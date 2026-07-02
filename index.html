@@ -167,10 +167,17 @@ input,textarea{-webkit-user-select:text!important;user-select:text!important;-we
 <div id="sec-sales" class="sec">
 <div class="pt">📈 ຍອດຂາຍພະນັກງານ</div>
 <div class="card" style="padding:12px">
-  <div style="display:flex;align-items:center;gap:10px">
-    <span style="font-size:16px;font-weight:700;color:#6b7280">📅 ເດືອນ:</span>
+  <div style="display:flex;gap:8px;margin-bottom:10px">
+    <button id="btn-sal-mode-month" style="flex:1;padding:10px;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;background:#1a56db;color:#fff;border:none">📅 ເດືອນ</button>
+    <button id="btn-sal-mode-day" style="flex:1;padding:10px;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;background:#f3f4f6;color:#6b7280;border:none">🗓 ວັນທີ່</button>
+  </div>
+  <div id="sal-month-picker" style="display:flex;align-items:center;gap:8px">
     <input type="month" id="sal-month" style="flex:1;padding:10px 14px;border:2px solid #d1d5db;border-radius:10px;font-size:16px;font-family:inherit;font-weight:600;outline:none">
-    <button id="btn-sal-load" style="background:linear-gradient(90deg,#1a56db,#1e40af);color:#fff;border:none;padding:10px 16px;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit">🔍 ໂຫຼດ</button>
+    <button id="btn-sal-load" style="background:linear-gradient(90deg,#1a56db,#1e40af);color:#fff;border:none;padding:10px 16px;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit">🔍</button>
+  </div>
+  <div id="sal-day-picker" style="display:none;align-items:center;gap:8px">
+    <input type="date" id="sal-date" style="flex:1;padding:10px 14px;border:2px solid #d1d5db;border-radius:10px;font-size:16px;font-family:inherit;font-weight:600;outline:none">
+    <button id="btn-sal-load-day" style="background:linear-gradient(90deg,#1a56db,#1e40af);color:#fff;border:none;padding:10px 16px;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit">🔍</button>
   </div>
 </div>
 <div class="g4" style="grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
@@ -700,6 +707,84 @@ function loadSalesData() {
   }).catch(function(){ box.innerHTML = '<div class="ld" style="color:#dc2626">❌ ໂຫຼດບໍ່ໄດ້</div>'; });
 }
 
+function loadSalesByDay() {
+  var date = document.getElementById('sal-date').value;
+  if (!date) { alert('ເລືອກວັນທີ່ກ່ອນ'); return; }
+  var box = document.getElementById('sal-table');
+  box.innerHTML = '<div class="ld">⏳ ໂຫຼດ...</div>';
+
+  fetch(POS_URL + '/sales/dashboard')
+  .then(function(r){return r.json();})
+  .then(function(res) {
+    if (!res.ok) return;
+    var d = res.data;
+
+    // Filter monthly by selected date
+    var monthly = d.monthly || [];
+    var dayData = monthly.find(function(m){ return m.date === date; });
+
+    // Check if selected date is today
+    var today = new Date().toISOString().slice(0,10);
+    var isToday = date === today;
+    var officers = isToday ? (d.today_by_officer||[]) : [];
+
+    // Update summary stats
+    if (dayData) {
+      document.getElementById('sm-total').textContent = '₭' + parseFloat(dayData.total).toLocaleString();
+      document.getElementById('sm-bills').textContent = dayData.bills + ' ບິນ';
+    } else if (isToday && d.today_total) {
+      document.getElementById('sm-total').textContent = '₭' + parseFloat(d.today_total.total||0).toLocaleString();
+      document.getElementById('sm-bills').textContent = (d.today_total.bills||0) + ' ບິນ';
+    } else {
+      document.getElementById('sm-total').textContent = '₭0';
+      document.getElementById('sm-bills').textContent = '0 ບິນ';
+    }
+    document.getElementById('sm-officers').textContent = officers.length || '-';
+
+    if (!isToday) {
+      box.innerHTML = '<div style="padding:16px;text-align:center">'
+        + (dayData
+          ? '<div style="font-size:18px;font-weight:700;margin-bottom:8px">📅 '+date+'</div>'
+            + '<div style="font-size:28px;font-weight:800;color:#1a56db">₭'+parseFloat(dayData.total).toLocaleString()+'</div>'
+            + '<div style="color:#9ca3af;margin-top:6px">'+dayData.bills+' ບິນ</div>'
+            + '<div style="margin-top:10px;padding:10px;background:#fffbeb;border-radius:8px;font-size:13px;color:#d97706">⚠ ຂໍ້ມູນລາຍລະອຽດພະນັກງານ ສະແດງໄດ້ສະເພາະວັນນີ້</div>'
+          : '<div style="color:#dc2626;font-size:16px">❌ ບໍ່ພົບຂໍ້ມູນວັນທີ່ '+date+'</div>'
+            + '<div style="color:#9ca3af;font-size:13px;margin-top:8px">ກົດ Sync Sales ໃຫ້ໄດ້ຂໍ້ມູນ</div>')
+        + '</div>';
+      return;
+    }
+
+    // Today - show officer breakdown
+    if (!officers.length) {
+      box.innerHTML = '<div class="ld">ຍັງບໍ່ມີຍອດວັນນີ້</div>';
+      return;
+    }
+
+    var rows = officers.map(function(o) {
+      var name = (o.officer||'ບໍ່ຮູ້').trim();
+      var code = (o.code||'').trim();
+      var tot = parseFloat(o.total)||0;
+      var target = salesTargets[name] ? parseFloat(salesTargets[name]) : 0;
+      var pct = target > 0 ? Math.min(Math.round((tot/target)*100),100) : 0;
+      var col = pct>=100?'#16a34a':pct>=70?'#d97706':'#dc2626';
+      return '<tr><td style="padding:10px 8px;border-bottom:1px solid #f3f4f6">'
+        + '<div style="font-weight:700">👤 '+name+'</div>'
+        + (code?'<div style="font-size:11px;color:#9ca3af">🆔 '+code+'</div>':'')
+        + '</td>'
+        + '<td style="padding:10px 8px;border-bottom:1px solid #f3f4f6;text-align:right;font-weight:700;color:#1a56db">₭'+tot.toLocaleString()+'</td>'
+        + '<td style="padding:10px 8px;border-bottom:1px solid #f3f4f6;text-align:right">'+o.bills+'</td>'
+        + '<td style="padding:10px 8px;border-bottom:1px solid #f3f4f6;text-align:right">'+(target>0?'₭'+target.toLocaleString():'-')+'</td>'
+        + '<td style="padding:10px 8px;border-bottom:1px solid #f3f4f6;min-width:100px">'
+        + (target>0?'<div style="display:flex;align-items:center;gap:4px"><div style="flex:1;background:#f3f4f6;border-radius:6px;height:8px"><div style="background:'+col+';width:'+pct+'%;height:8px;border-radius:6px"></div></div><span style="font-weight:800;color:'+col+';font-size:13px">'+pct+'%</span></div>':'<span style="color:#9ca3af;font-size:12px">-</span>')
+        + '</td></tr>';
+    }).join('');
+
+    box.innerHTML = '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:14px">'
+      + '<thead><tr style="background:#eff6ff"><th style="padding:10px 8px;text-align:left">ພະນັກງານ</th><th style="padding:10px 8px;text-align:right">ຍອດ</th><th style="padding:10px 8px;text-align:right">ບິນ</th><th style="padding:10px 8px;text-align:right">ເປົ້າ</th><th style="padding:10px 8px;text-align:left">%</th></tr></thead>'
+      + '<tbody>'+rows+'</tbody></table></div>';
+  }).catch(function(){ box.innerHTML = '<div class="ld" style="color:#dc2626">❌ ໂຫຼດບໍ່ໄດ້</div>'; });
+}
+
 function initSales() {
   var inp = document.getElementById('sal-month');
   if (inp && !inp.value) inp.value = new Date().toISOString().slice(0,7);
@@ -713,6 +798,7 @@ function initSales() {
 
 // ===== PRODUCTS =====
 function initProducts() {
+  loadProductImages();
   var catGrid = document.getElementById('cat-grid');
   catGrid.innerHTML = '<div class="ld">⏳ ໂຫຼດໝວດ...</div>';
   fetch(POS_URL + '/categories')
@@ -774,20 +860,36 @@ function doSearch(q) {
   }).catch(function() { resBox.innerHTML = '<div class="ld" style="color:#dc2626">❌ ເຊື່ອມ Server ບໍ່ໄດ້</div>'; });
 }
 
+var productImagesCache = {};
+function loadProductImages() {
+  fetch(POS_URL + '/product-images').then(function(r){return r.json();}).then(function(res){
+    if (res.ok) productImagesCache = res.data || {};
+  }).catch(function(){});
+}
+
 function selectProduct(p) {
   var box = document.getElementById('prod-selected');
   var stk = p.stock > 0 ? '<span style="color:#16a34a;font-weight:600">✓ '+p.stock+' ຊິ້ນ</span>' : '<span style="background:#fee2e2;color:#dc2626;padding:2px 8px;border-radius:6px;font-size:12px;font-weight:600">ໝົດ</span>';
+  var imgUrl = productImagesCache[p.id] ? POS_URL + productImagesCache[p.id] : null;
   box.style.display = 'block';
   box.innerHTML = '<div class="cl">✅ ສິນຄ້າທີ່ເລືອກ</div>'
+    + (imgUrl
+      ? '<div style="text-align:center;margin-bottom:10px"><img src="'+imgUrl+'" style="max-width:100%;max-height:180px;border-radius:12px;object-fit:contain;background:#f8fafc"></div>'
+      : '<div id="prod-img-placeholder" style="border:2px dashed #d1d5db;border-radius:12px;padding:16px;text-align:center;color:#9ca3af;font-size:14px;margin-bottom:10px;cursor:pointer">📷 ກົດເພື່ອເພີ່ມຮູບສິນຄ້າ</div>')
+    + '<input type="file" id="prod-img-inp" accept="image/*" style="display:none">'
     + '<div class="row"><span class="ic">📦</span><span style="flex:1;font-weight:600;font-size:16px">'+p.name+'</span></div>'
     + '<div class="row"><span class="ic">💰</span><span style="flex:1">ລາຄາ</span><span style="font-weight:700;color:#3b82f6;font-size:18px">₭'+p.price.toLocaleString()+'</span></div>'
     + '<div class="row"><span class="ic">📊</span><span style="flex:1">ສະຕ໋ອກ</span>'+stk+'</div>'
     + (p.color ? '<div class="row"><span class="ic">🎨</span><span style="flex:1">ສີ</span><span style="font-weight:600">'+p.color+'</span></div>' : '')
     + (p.barcode ? '<div class="row"><span class="ic">🔖</span><span style="flex:1">Barcode</span><span style="font-weight:600;font-family:monospace">'+p.barcode+'</span></div>' : '')
     + (p.comment ? '<div class="row" style="align-items:flex-start"><span class="ic">📝</span><div style="flex:1"><div style="font-size:13px;color:#9ca3af;margin-bottom:2px">ໝາຍເຫດ</div><div style="font-weight:600">'+p.comment+'</div></div></div>' : '')
-    + '<div style="display:flex;gap:8px;margin-top:10px">'
-    + '<button id="btn-go-calc" style="flex:1;background:#3b82f6;color:#fff;border:none;padding:12px;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit">💳 ຜ່ອນ</button>'
-    + '<button id="btn-share-prod" style="flex:1;background:#25d366;color:#fff;border:none;padding:12px;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit">🖼 ສ້າງຮູບ ສົ່ງລູກຄ້າ</button></div>';
+    + '<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">'
+    + '<button id="btn-go-calc" style="flex:1;background:#3b82f6;color:#fff;border:none;padding:12px;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;min-width:120px">💳 ຜ່ອນ</button>'
+    + '<button id="btn-share-prod" style="flex:1;background:#25d366;color:#fff;border:none;padding:12px;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;min-width:120px">🖼 ສ້າງຮູບ ສົ່ງລູກຄ້າ</button>'
+    + (imgUrl
+      ? '<button id="btn-del-img" style="background:#fef2f2;color:#dc2626;border:1px solid #fecaca;padding:12px 14px;border-radius:10px;font-size:15px;cursor:pointer;font-family:inherit">🗑</button>'
+      : '')
+    + '</div>';
   document.getElementById('btn-go-calc').addEventListener('click', function() {
     location.hash = 'calc';
     setTimeout(function() {
@@ -798,11 +900,59 @@ function selectProduct(p) {
   document.getElementById('btn-share-prod').addEventListener('click', function() {
     var btn = this;
     btn.textContent = '⏳ ກຳລັງສ້າງຮູບ...';
-    generateProductCardImage(p).then(function(canvas) {
+    // Pass image URL to card generator
+    var imgUrl2 = productImagesCache[p.id] ? POS_URL + productImagesCache[p.id] : null;
+    generateProductCardImage(p, imgUrl2).then(function(canvas) {
       shareCanvasImage(canvas, 'jcom-product.png', p.name + ' - Jcom ICT Service');
-      btn.innerHTML = '📤 ສົ່ງລູກຄ້າ';
+      btn.innerHTML = '🖼 ສ້າງຮູບ ສົ່ງລູກຄ້າ';
     });
   });
+
+  // Upload image
+  var placeholder = document.getElementById('prod-img-placeholder');
+  var imgInp = document.getElementById('prod-img-inp');
+  if (placeholder) {
+    placeholder.addEventListener('click', function() { imgInp.click(); });
+  } else {
+    // Already has image - click on img to replace
+    var existImg = box.querySelector('img');
+    if (existImg) existImg.style.cursor = 'pointer';
+  }
+  if (imgInp) {
+    imgInp.addEventListener('change', function() {
+      var file = this.files[0]; if (!file) return;
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        var data = e.target.result;
+        fetch(POS_URL + '/product-image', {
+          method: 'POST',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({ productId: p.id, imageData: data })
+        }).then(function(r){return r.json();}).then(function(res) {
+          if (res.ok) {
+            productImagesCache[p.id] = res.url;
+            selectProduct(p); // Re-render with new image
+            alert('✅ ບັນທຶກຮູບສຳເລັດ!');
+          }
+        }).catch(function(){ alert('❌ Upload ບໍ່ໄດ້'); });
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  // Delete image
+  var delBtn = document.getElementById('btn-del-img');
+  if (delBtn) {
+    delBtn.addEventListener('click', function() {
+      if (!confirm('ລຶບຮູບສິນຄ້ານີ້?')) return;
+      fetch(POS_URL + '/product-image/' + p.id, {method:'DELETE'})
+      .then(function(r){return r.json();}).then(function() {
+        delete productImagesCache[p.id];
+        selectProduct(p);
+      });
+    });
+  }
+
   document.getElementById('search-results').style.display = 'none';
 }
 
@@ -937,7 +1087,7 @@ function generateCalcCardImage(data) {
 }
 
 // Generate product info card image
-function generateProductCardImage(p) {
+function generateProductCardImage(p, productImgUrl) {
   return loadLogoImg().then(function(logoImg) {
     var W = 800, H = 900;
     var canvas = document.createElement('canvas');
@@ -964,14 +1114,20 @@ function generateProductCardImage(p) {
     var py = cardY + 60;
     ctx.textAlign = 'left';
 
-    // Product icon box
-    ctx.fillStyle = '#eff6ff';
-    roundRect(ctx, cardX+30, py-40, 70, 70, 14);
-    ctx.fill();
-    ctx.font = '36px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText('📦', cardX+65, py+8);
-    ctx.textAlign = 'left';
+    // Product image or icon
+    if (productImgUrl) {
+      var pImg = new Image();
+      pImg.crossOrigin = 'anonymous';
+      pImg.src = productImgUrl;
+      ctx.fillStyle = '#f8fafc';
+      roundRect(ctx, cardX+30, py-40, 70, 70, 14); ctx.fill();
+      try { ctx.drawImage(pImg, cardX+30, py-40, 70, 70); } catch(e) {}
+    } else {
+      ctx.fillStyle = '#eff6ff';
+      roundRect(ctx, cardX+30, py-40, 70, 70, 14); ctx.fill();
+      ctx.font = '36px sans-serif'; ctx.textAlign = 'center';
+      ctx.fillText('📦', cardX+65, py+8); ctx.textAlign = 'left';
+    }
 
     // Product name (wrap)
     ctx.fillStyle = '#1a1a2e';
@@ -1428,7 +1584,6 @@ function openCustomInfoModal() {
     + '<label class="lbl">ຮູບ (ຖ່າຍ ຫຼື ເລືອກ)</label>'
     + '<div id="ci-img-box" style="width:100%;height:160px;border:2px dashed #d1d5db;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#9ca3af;font-size:14px;cursor:pointer;margin-bottom:14px;overflow:hidden;background:#f8fafc">'
     + '<div style="font-size:36px;margin-bottom:6px">📷</div><div>ກົດເພື່ອຖ່າຍ / ເລືອກຮູບ</div></div>'
-    + '<input type="file" id="ci-img-inp" accept="image/*" capture="environment" style="display:none">'
     + '<label class="lbl">ຫົວຂໍ້</label>'
     + '<input class="inp" id="ci-title" placeholder="ເຊັ່ນ: QR ທະນາຄານ BCEL">'
     + '<label class="lbl">ລາຍລະອຽດ</label>'
@@ -1442,16 +1597,21 @@ function openCustomInfoModal() {
   document.body.appendChild(div.firstChild);
 
   var imgData = null;
-  document.getElementById('ci-img-box').addEventListener('click', function() { document.getElementById('ci-img-inp').click(); });
-  document.getElementById('ci-img-inp').addEventListener('change', function() {
+  var globalFileInp = document.getElementById('ci-img-inp-global');
+  document.getElementById('ci-img-box').addEventListener('click', function() {
+    globalFileInp.value = '';
+    globalFileInp.click();
+  });
+  globalFileInp.onchange = function() {
     var file = this.files[0]; if (!file) return;
     var reader = new FileReader();
     reader.onload = function(e) {
       imgData = e.target.result;
-      document.getElementById('ci-img-box').innerHTML = '<img src="'+imgData+'" style="width:100%;height:100%;object-fit:contain">';
+      var imgBox = document.getElementById('ci-img-box');
+      if (imgBox) imgBox.innerHTML = '<img src="'+imgData+'" style="width:100%;height:100%;object-fit:contain">';
     };
     reader.readAsDataURL(file);
-  });
+  };
 
   document.getElementById('ci-cancel').addEventListener('click', function() { document.getElementById('ci-modal-ov').remove(); });
 
@@ -1848,6 +2008,25 @@ window.addEventListener('load', function() {
     document.getElementById('target-name').value = ''; document.getElementById('target-val').value = '';
   });
   document.getElementById('btn-sal-load').addEventListener('click', loadSalesData);
+  document.getElementById('btn-sal-load-day').addEventListener('click', loadSalesByDay);
+
+  // Mode toggle
+  document.getElementById('btn-sal-mode-month').addEventListener('click', function() {
+    this.style.background='#1a56db'; this.style.color='#fff';
+    document.getElementById('btn-sal-mode-day').style.background='#f3f4f6';
+    document.getElementById('btn-sal-mode-day').style.color='#6b7280';
+    document.getElementById('sal-month-picker').style.display='flex';
+    document.getElementById('sal-day-picker').style.display='none';
+  });
+  document.getElementById('btn-sal-mode-day').addEventListener('click', function() {
+    this.style.background='#1a56db'; this.style.color='#fff';
+    document.getElementById('btn-sal-mode-month').style.background='#f3f4f6';
+    document.getElementById('btn-sal-mode-month').style.color='#6b7280';
+    document.getElementById('sal-day-picker').style.display='flex';
+    document.getElementById('sal-month-picker').style.display='none';
+    var di = document.getElementById('sal-date');
+    if (!di.value) di.value = new Date().toISOString().slice(0,10);
+  });
 
   // Target Sales
   document.getElementById('btn-tgt-load').addEventListener('click', loadTargetData);
@@ -1917,5 +2096,6 @@ window.addEventListener('load', function() {
   });
 });
 </script>
+<input type="file" id="ci-img-inp-global" accept="image/*" style="display:none">
 </body>
 </html>
