@@ -1779,19 +1779,12 @@ function loadTargetData() {
   .then(function(res) {
     if (!res.ok) return;
     var d = res.data;
-    var monthly = d.monthly || [];
-    var today = new Date().toISOString().slice(0,7);
 
-    // Get officers with sales this month
+    // Use today_by_officer (monthly data from sync-sales.js)
     var officerSales = {};
-    if (month === today && d.today_by_officer) {
-      d.today_by_officer.forEach(function(o) {
-        officerSales[(o.officer||'').trim()] = (officerSales[(o.officer||'').trim()]||0) + parseFloat(o.total||0);
-      });
-    }
-    // Also sum from monthly data
-    monthly.filter(function(m){return m.date && m.date.slice(0,7)===month;}).forEach(function(m) {
-      // monthly does not break down by officer, so if today===month we already have it
+    (d.today_by_officer||[]).forEach(function(o) {
+      var name = (o.officer||'').trim();
+      officerSales[name] = (officerSales[name]||0) + parseFloat(o.total||0);
     });
 
     // Combine: officers with targets + officers with sales
@@ -1803,22 +1796,21 @@ function loadTargetData() {
     Object.keys(allNames).forEach(function(name) {
       var sold = officerSales[name] || 0;
       var goal = targetData[name] ? parseFloat(targetData[name]) : 0;
-      var pct = goal > 0 ? Math.round((sold/goal)*100) : (sold > 0 ? 999 : 0);
+      var pct = goal > 0 ? Math.round((sold/goal)*100) : 0;
       rows.push({ name:name, sold:sold, goal:goal, pct:pct });
     });
     rows.sort(function(a,b){ return b.pct - a.pct; });
 
     // Update stats
     var totalSold = rows.reduce(function(s,r){return s+r.sold;},0);
-    var totalGoal = rows.reduce(function(s,r){return s+r.goal;},0);
+    var totalGoal = rows.filter(function(r){return r.goal>0;}).reduce(function(s,r){return s+r.goal;},0);
     var avgPct = totalGoal > 0 ? Math.round((totalSold/totalGoal)*100) : 0;
     document.getElementById('tgt-total').textContent = '₭'+totalSold.toLocaleString();
-    document.getElementById('tgt-goal').textContent = '₭'+totalGoal.toLocaleString();
+    document.getElementById('tgt-goal').textContent = totalGoal>0 ? '₭'+totalGoal.toLocaleString() : '₭0';
     document.getElementById('tgt-avg-pct').textContent = avgPct+'%';
 
-    // Render table
     if (!rows.length) {
-      document.getElementById('tgt-table').innerHTML = '<div class="ld">ຍັງບໍ່ມີຂໍ້ມູນ</div>';
+      document.getElementById('tgt-table').innerHTML = '<div class="ld">ຍັງບໍ່ມີຂໍ້ມູນ - ຕັ້ງເປົ້າກ່ອນ</div>';
       return;
     }
 
@@ -1828,6 +1820,7 @@ function loadTargetData() {
   })
   .catch(function(){ document.getElementById('tgt-table').innerHTML = '<div class="ld" style="color:#dc2626">❌ ໂຫຼດບໍ່ໄດ້</div>'; });
 }
+
 
 function renderTargetTable(rows) {
   var box = document.getElementById('tgt-table');
