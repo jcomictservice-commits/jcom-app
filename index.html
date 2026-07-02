@@ -923,7 +923,7 @@ function selectProduct(p) {
       var file = this.files[0]; if (!file) return;
       var reader = new FileReader();
       reader.onload = function(e) {
-        var data = e.target.result;
+        resizeImageData(e.target.result, 800, 0.75).then(function(data) {
         fetch(POS_URL + '/product-image', {
           method: 'POST',
           headers: {'Content-Type':'application/json'},
@@ -935,6 +935,7 @@ function selectProduct(p) {
             alert('✅ ບັນທຶກຮູບສຳເລັດ!');
           }
         }).catch(function(){ alert('❌ Upload ບໍ່ໄດ້'); });
+        }); // end resizeImageData
       };
       reader.readAsDataURL(file);
     });
@@ -1553,28 +1554,125 @@ function saveCustomInfo() {
   }).then(function(r){return r.json();});
 }
 
+function shareCustomInfoCard(item) {
+  // Share as image using canvas
+  loadLogoImg().then(function(logoImg) {
+    var W = 800;
+    var hasImg = !!item.img;
+    var H = hasImg ? 900 : 600;
+    var canvas = document.createElement('canvas');
+    canvas.width = W; canvas.height = H;
+    var ctx = canvas.getContext('2d');
+
+    // BG gradient
+    var g = ctx.createLinearGradient(0,0,0,H);
+    g.addColorStop(0,'#1a56db'); g.addColorStop(1,'#1e40af');
+    ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
+
+    // White card
+    ctx.fillStyle = '#fff';
+    roundRect(ctx,30,160,W-60,H-190,24); ctx.fill();
+
+    // Logo + shop name
+    if (logoImg) ctx.drawImage(logoImg, W/2-45, 20, 90, 90);
+    ctx.fillStyle='#fff'; ctx.textAlign='center';
+    ctx.font='700 26px sans-serif'; ctx.fillText('Jcom ICT Service', W/2, 140);
+
+    var py = 210;
+
+    // Product image if available
+    if (hasImg) {
+      var pImg = new Image();
+      pImg.onload = function() {
+        ctx.drawImage(pImg, 60, py, W-120, 220);
+        py += 240;
+        drawCardText();
+      };
+      pImg.src = item.img;
+    } else {
+      drawCardText();
+    }
+
+    function drawCardText() {
+      ctx.textAlign = 'left';
+      if (item.title) {
+        ctx.font = '800 28px sans-serif'; ctx.fillStyle = '#1a1a2e';
+        ctx.fillText(item.title, 60, py); py += 44;
+      }
+      if (item.desc) {
+        ctx.font = '600 20px sans-serif'; ctx.fillStyle = '#4b5563';
+        var lines = item.desc.split('
+');
+        lines.forEach(function(line) {
+          ctx.fillText(line.slice(0,45), 60, py); py += 30;
+        });
+        py += 10;
+      }
+      ctx.strokeStyle = '#e5e7eb'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(60, H-80); ctx.lineTo(W-60, H-80); ctx.stroke();
+      ctx.font = '600 17px sans-serif'; ctx.fillStyle = '#9ca3af'; ctx.textAlign = 'center';
+      ctx.fillText('📞 020-7776-9999 | Jcom ICT Service', W/2, H-45);
+
+      shareCanvasImage(canvas, 'jcom-info.png', (item.title||'Jcom ICT Service'));
+    }
+  });
+}
+
 function renderCustomInfo() {
   var box = document.getElementById('custom-info-list');
   if (!box) return;
   if (!customInfoList.length) { box.innerHTML = '<div style="color:#9ca3af;font-size:14px;padding:8px 0">ຍັງບໍ່ມີຂໍ້ມູນເພີ່ມເຕີມ — ກົດ + ເພື່ອເພີ່ມ</div>'; return; }
   box.innerHTML = customInfoList.map(function(item, idx) {
     return '<div style="border:1px solid #e5e7eb;border-radius:12px;padding:12px;margin-bottom:10px">'
-      + (item.img ? '<img src="'+item.img+'" style="width:100%;max-height:200px;object-fit:contain;border-radius:8px;margin-bottom:8px;background:#f8fafc">' : '')
+      + (item.img ? '<img src="'+item.img+'" style="width:100%;max-height:220px;object-fit:contain;border-radius:8px;margin-bottom:8px;background:#f8fafc">' : '')
       + (item.title ? '<div style="font-weight:700;font-size:16px;margin-bottom:4px">'+item.title+'</div>' : '')
-      + (item.desc ? '<div style="font-size:14px;color:#4b5563;white-space:pre-wrap">'+item.desc+'</div>' : '')
-      + (item.addedBy ? '<div style="font-size:12px;color:#9ca3af;margin-top:6px">👤 '+item.addedBy+'</div>' : '')
-      + '<button data-idx="'+idx+'" class="btn-del-custom-info" style="margin-top:8px;background:#fef2f2;color:#dc2626;border:1px solid #fecaca;padding:6px 14px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">🗑 ລຶບ</button>'
+      + (item.desc ? '<div style="font-size:14px;color:#4b5563;white-space:pre-wrap;margin-bottom:8px">'+item.desc+'</div>' : '')
+      + (item.addedBy ? '<div style="font-size:12px;color:#9ca3af;margin-bottom:8px">👤 '+item.addedBy+'</div>' : '')
+      + '<div style="display:flex;gap:8px">'
+      + '<button data-idx="'+idx+'" class="btn-share-custom-info" style="flex:1;background:#25d366;color:#fff;border:none;padding:8px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">📤 ແຊໃຫ້ລູກຄ້າ</button>'
+      + '<button data-idx="'+idx+'" class="btn-del-custom-info" style="background:#fef2f2;color:#dc2626;border:1px solid #fecaca;padding:8px 12px;border-radius:8px;font-size:14px;cursor:pointer;font-family:inherit">🗑</button>'
+      + '</div>'
       + '</div>';
   }).join('');
+
+  // Share handlers
+  var shareBtns = box.querySelectorAll('.btn-share-custom-info');
+  for (var i = 0; i < shareBtns.length; i++) {
+    shareBtns[i].addEventListener('click', function() {
+      var idx = parseInt(this.getAttribute('data-idx'));
+      var btn = this;
+      btn.textContent = '⏳ ກຳລັງສ້າງ...';
+      shareCustomInfoCard(customInfoList[idx]);
+      setTimeout(function(){ btn.innerHTML = '📤 ແຊໃຫ້ລູກຄ້າ'; }, 2000);
+    });
+  }
+
+  // Delete handlers
   var delBtns = box.querySelectorAll('.btn-del-custom-info');
-  for (var i = 0; i < delBtns.length; i++) {
-    delBtns[i].addEventListener('click', function() {
+  for (var j = 0; j < delBtns.length; j++) {
+    delBtns[j].addEventListener('click', function() {
       var idx = parseInt(this.getAttribute('data-idx'));
       if (!confirm('ລຶບຂໍ້ມູນນີ້?')) return;
       customInfoList.splice(idx, 1);
       saveCustomInfo().then(function() { renderCustomInfo(); });
     });
   }
+}
+
+function resizeImageData(dataUrl, maxWidth, quality) {
+  return new Promise(function(resolve) {
+    var img = new Image();
+    img.onload = function() {
+      var canvas = document.createElement('canvas');
+      var w = img.width, h = img.height;
+      if (w > maxWidth) { h = Math.round(h * maxWidth / w); w = maxWidth; }
+      canvas.width = w; canvas.height = h;
+      var ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, w, h);
+      resolve(canvas.toDataURL('image/jpeg', quality || 0.7));
+    };
+    img.src = dataUrl;
+  });
 }
 
 function openCustomInfoModal() {
@@ -1606,9 +1704,11 @@ function openCustomInfoModal() {
     var file = this.files[0]; if (!file) return;
     var reader = new FileReader();
     reader.onload = function(e) {
-      imgData = e.target.result;
-      var imgBox = document.getElementById('ci-img-box');
-      if (imgBox) imgBox.innerHTML = '<img src="'+imgData+'" style="width:100%;height:100%;object-fit:contain">';
+      resizeImageData(e.target.result, 800, 0.75).then(function(resized) {
+        imgData = resized;
+        var imgBox = document.getElementById('ci-img-box');
+        if (imgBox) imgBox.innerHTML = '<img src="'+imgData+'" style="width:100%;height:100%;object-fit:contain">';
+      });
     };
     reader.readAsDataURL(file);
   };
