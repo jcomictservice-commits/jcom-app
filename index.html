@@ -2092,14 +2092,7 @@ window.addEventListener('load', function() {
   });
   document.getElementById('btn-cancel-edit').addEventListener('click', resetAdminUserForm);
 
-  // Sales
-  document.getElementById('btn-set-target').addEventListener('click', function() {
-    var n = (document.getElementById('target-name').value||'').trim();
-    var v = parseFloat(document.getElementById('target-val').value) || 0;
-    if (!n || !v) { alert('ໃສ່ຊື່ ແລະ ເປົ້າ'); return; }
-    salesTargets[n] = v; saveTargets(); renderTargetList();
-    document.getElementById('target-name').value = ''; document.getElementById('target-val').value = '';
-  });
+  // Sales target moved to target page
   document.getElementById('btn-sal-load').addEventListener('click', loadSalesData);
   document.getElementById('btn-sal-load-day').addEventListener('click', loadSalesByDay);
 
