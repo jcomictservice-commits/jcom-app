@@ -871,7 +871,8 @@ function loadProductImages() {
 function selectProduct(p) {
   var box = document.getElementById('prod-selected');
   var stk = p.stock > 0 ? '<span style="color:#16a34a;font-weight:600">✓ '+p.stock+' ຊິ້ນ</span>' : '<span style="background:#fee2e2;color:#dc2626;padding:2px 8px;border-radius:6px;font-size:12px;font-weight:600">ໝົດ</span>';
-  var imgUrl = productImagesCache[p.id] ? POS_URL + productImagesCache[p.id] : null;
+  var prodKey = p.id || p.sku || p.barcode || '';
+  var imgUrl = prodKey && productImagesCache[prodKey] ? POS_URL + productImagesCache[prodKey] : null;
   box.style.display = 'block';
   box.innerHTML = '<div class="cl">✅ ສິນຄ້າທີ່ເລືອກ</div>'
     + (imgUrl
@@ -928,10 +929,10 @@ function selectProduct(p) {
         fetch(POS_URL + '/product-image', {
           method: 'POST',
           headers: {'Content-Type':'application/json'},
-          body: JSON.stringify({ productId: p.id, imageData: data })
+          body: JSON.stringify({ productId: prodKey, imageData: data })
         }).then(function(r){return r.json();}).then(function(res) {
           if (res.ok) {
-            productImagesCache[p.id] = res.url;
+            productImagesCache[prodKey] = res.url;
             selectProduct(p); // Re-render with new image
             alert('✅ ບັນທຶກຮູບສຳເລັດ!');
           }
@@ -947,9 +948,9 @@ function selectProduct(p) {
   if (delBtn) {
     delBtn.addEventListener('click', function() {
       if (!confirm('ລຶບຮູບສິນຄ້ານີ້?')) return;
-      fetch(POS_URL + '/product-image/' + p.id, {method:'DELETE'})
+      fetch(POS_URL + '/product-image/' + prodKey, {method:'DELETE'})
       .then(function(r){return r.json();}).then(function() {
-        delete productImagesCache[p.id];
+        delete productImagesCache[prodKey];
         selectProduct(p);
       });
     });
