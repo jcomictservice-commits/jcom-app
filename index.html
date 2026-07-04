@@ -910,22 +910,32 @@ function selectProduct(p) {
     });
   });
 
-  // Upload image
+  // Upload image - bind after innerHTML is set
   var placeholder = document.getElementById('prod-img-placeholder');
   var imgInp = document.getElementById('prod-img-inp');
-  if (placeholder) {
-    placeholder.addEventListener('click', function() { imgInp.click(); });
-  } else {
-    // Already has image - click on img to replace
-    var existImg = box.querySelector('img');
-    if (existImg) existImg.style.cursor = 'pointer';
+
+  // Create a hidden file input that persists
+  var globalProdInp = document.getElementById('_global_prod_img_inp');
+  if (!globalProdInp) {
+    globalProdInp = document.createElement('input');
+    globalProdInp.type = 'file';
+    globalProdInp.id = '_global_prod_img_inp';
+    globalProdInp.accept = 'image/*';
+    globalProdInp.style.display = 'none';
+    document.body.appendChild(globalProdInp);
   }
-  if (imgInp) {
-    imgInp.addEventListener('change', function() {
-      var file = this.files[0]; if (!file) return;
-      var reader = new FileReader();
-      reader.onload = function(e) {
-        resizeImageData(e.target.result, 800, 0.75).then(function(data) {
+
+  if (placeholder) {
+    placeholder.onclick = function() { globalProdInp.value=''; globalProdInp.click(); };
+  }
+
+  globalProdInp.onchange = function() {
+    var file = this.files[0]; if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      resizeImageData(e.target.result, 800, 0.75).then(function(data) {
+        var btn = placeholder || box.querySelector('img');
+        if (btn) btn.style.opacity = '0.5';
         fetch(POS_URL + '/product-image', {
           method: 'POST',
           headers: {'Content-Type':'application/json'},
@@ -933,15 +943,16 @@ function selectProduct(p) {
         }).then(function(r){return r.json();}).then(function(res) {
           if (res.ok) {
             productImagesCache[prodKey] = res.url;
-            selectProduct(p); // Re-render with new image
             alert('✅ ບັນທຶກຮູບສຳເລັດ!');
+            selectProduct(p);
+          } else {
+            alert('❌ Upload ບໍ່ສຳເລັດ');
           }
-        }).catch(function(){ alert('❌ Upload ບໍ່ໄດ້'); });
-        }); // end resizeImageData
-      };
-      reader.readAsDataURL(file);
-    });
-  }
+        }).catch(function(){ alert('❌ ເຊື່ອມ Server ບໍ່ໄດ້'); });
+      });
+    };
+    reader.readAsDataURL(file);
+  };
 
   // Delete image
   var delBtn = document.getElementById('btn-del-img');
