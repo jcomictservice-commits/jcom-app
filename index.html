@@ -876,9 +876,9 @@ function selectProduct(p) {
   box.style.display = 'block';
   box.innerHTML = '<div class="cl">✅ ສິນຄ້າທີ່ເລືອກ</div>'
     + (imgUrl
-      ? '<div style="text-align:center;margin-bottom:10px"><img src="'+imgUrl+'" style="max-width:100%;max-height:180px;border-radius:12px;object-fit:contain;background:#f8fafc"></div>'
-      : '<div id="prod-img-placeholder" style="border:2px dashed #d1d5db;border-radius:12px;padding:16px;text-align:center;color:#9ca3af;font-size:14px;margin-bottom:10px;cursor:pointer">📷 ກົດເພື່ອເພີ່ມຮູບສິນຄ້າ</div>')
-    + '<input type="file" id="prod-img-inp" accept="image/*" style="display:none">'
+      ? '<div style="text-align:center;margin-bottom:10px"><img src="'+imgUrl+'" style="max-width:100%;max-height:180px;border-radius:12px;object-fit:contain;background:#f8fafc"><br><label for="_prod_file_inp" style="display:inline-block;margin-top:6px;background:#eff6ff;color:#1a56db;padding:6px 14px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">📷 ປ່ຽນຮູບ</label></div>'
+      : '<label for="_prod_file_inp" style="display:block;border:2px dashed #d1d5db;border-radius:12px;padding:20px;text-align:center;color:#9ca3af;font-size:15px;margin-bottom:10px;cursor:pointer">📷 ກົດເພື່ອເພີ່ມຮູບສິນຄ້າ</label>')
+    + '<input type="file" id="_prod_file_inp" accept="image/*" style="display:none">'
     + '<div class="row"><span class="ic">📦</span><span style="flex:1;font-weight:600;font-size:16px">'+p.name+'</span></div>'
     + '<div class="row"><span class="ic">💰</span><span style="flex:1">ລາຄາ</span><span style="font-weight:700;color:#3b82f6;font-size:18px">₭'+p.price.toLocaleString()+'</span></div>'
     + '<div class="row"><span class="ic">📊</span><span style="flex:1">ສະຕ໋ອກ</span>'+stk+'</div>'
@@ -910,49 +910,32 @@ function selectProduct(p) {
     });
   });
 
-  // Upload image - bind after innerHTML is set
-  var placeholder = document.getElementById('prod-img-placeholder');
-  var imgInp = document.getElementById('prod-img-inp');
-
-  // Create a hidden file input that persists
-  var globalProdInp = document.getElementById('_global_prod_img_inp');
-  if (!globalProdInp) {
-    globalProdInp = document.createElement('input');
-    globalProdInp.type = 'file';
-    globalProdInp.id = '_global_prod_img_inp';
-    globalProdInp.accept = 'image/*';
-    globalProdInp.style.display = 'none';
-    document.body.appendChild(globalProdInp);
-  }
-
-  if (placeholder) {
-    placeholder.onclick = function() { globalProdInp.value=''; globalProdInp.click(); };
-  }
-
-  globalProdInp.onchange = function() {
-    var file = this.files[0]; if (!file) return;
-    var reader = new FileReader();
-    reader.onload = function(e) {
-      resizeImageData(e.target.result, 800, 0.75).then(function(data) {
-        var btn = placeholder || box.querySelector('img');
-        if (btn) btn.style.opacity = '0.5';
-        fetch(POS_URL + '/product-image', {
-          method: 'POST',
-          headers: {'Content-Type':'application/json'},
-          body: JSON.stringify({ productId: prodKey, imageData: data })
-        }).then(function(r){return r.json();}).then(function(res) {
-          if (res.ok) {
-            productImagesCache[prodKey] = res.url;
-            alert('✅ ບັນທຶກຮູບສຳເລັດ!');
-            selectProduct(p);
-          } else {
-            alert('❌ Upload ບໍ່ສຳເລັດ');
-          }
-        }).catch(function(){ alert('❌ ເຊື່ອມ Server ບໍ່ໄດ້'); });
-      });
+  // Upload image - use label+input directly (works on mobile)
+  var prodFileInp = document.getElementById('_prod_file_inp');
+  if (prodFileInp) {
+    prodFileInp.onchange = function() {
+      var file = this.files[0]; if (!file) return;
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        resizeImageData(e.target.result, 800, 0.75).then(function(data) {
+          fetch(POS_URL + '/product-image', {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({ productId: prodKey, imageData: data })
+          }).then(function(r){return r.json();}).then(function(res) {
+            if (res.ok) {
+              productImagesCache[prodKey] = res.url;
+              alert('✅ ບັນທຶກຮູບສຳເລັດ!');
+              selectProduct(p);
+            } else {
+              alert('❌ Upload ບໍ່ສຳເລັດ');
+            }
+          }).catch(function(){ alert('❌ ເຊື່ອມ Server ບໍ່ໄດ້'); });
+        });
+      };
+      reader.readAsDataURL(file);
     };
-    reader.readAsDataURL(file);
-  };
+  }
 
   // Delete image
   var delBtn = document.getElementById('btn-del-img');
