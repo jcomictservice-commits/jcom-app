@@ -862,6 +862,30 @@ function doSearch(q) {
 }
 
 var productImagesCache = {};
+
+function shareProductPhoto(imgUrl, name) {
+  var img = new Image();
+  img.crossOrigin = 'anonymous';
+  img.onload = function() {
+    var canvas = document.createElement('canvas');
+    canvas.width = img.width; canvas.height = img.height;
+    var ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0);
+    canvas.toBlob(function(blob) {
+      var f = new File([blob], 'jcom-photo.png', {type:'image/png'});
+      if (navigator.share && navigator.canShare && navigator.canShare({files:[f]})) {
+        navigator.share({files:[f], title:name, text:'Jcom ICT Service'}).catch(function(){});
+      } else {
+        var u = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = u; a.download = 'jcom-photo.png';
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        setTimeout(function(){ URL.revokeObjectURL(u); }, 1000);
+      }
+    }, 'image/png');
+  };
+  img.src = imgUrl + '?t=' + Date.now();
+}
 function loadProductImages() {
   fetch(POS_URL + '/product-images').then(function(r){return r.json();}).then(function(res){
     if (res.ok) productImagesCache = res.data || {};
@@ -902,11 +926,43 @@ function selectProduct(p) {
   document.getElementById('btn-share-prod').addEventListener('click', function() {
     var btn = this;
     btn.textContent = '⏳ ກຳລັງສ້າງຮູບ...';
-    // Pass image URL to card generator
-    var imgUrl2 = productImagesCache[p.id] ? POS_URL + productImagesCache[p.id] : null;
-    generateProductCardImage(p, imgUrl2).then(function(canvas) {
-      shareCanvasImage(canvas, 'jcom-product.png', p.name + ' - Jcom ICT Service');
-      btn.innerHTML = '🖼 ສ້າງຮູບ ສົ່ງລູກຄ້າ';
+    var imgUrl2 = productImagesCache[prodKey] ? POS_URL + productImagesCache[prodKey] : null;
+
+    generateProductCardImage(p, imgUrl2).then(function(canvas1) {
+      // Share info card first
+      canvas1.toBlob(function(blob1) {
+        var f1 = new File([blob1], 'jcom-info.png', {type:'image/png'});
+        var shareInfo = function() {
+          if (navigator.share && navigator.canShare && navigator.canShare({files:[f1]})) {
+            navigator.share({files:[f1], title:p.name, text:'Jcom ICT Service'})
+            .then(function() {
+              // After sharing info, offer to share photo if available
+              if (imgUrl2) {
+                setTimeout(function() {
+                  if (confirm('ສົ່ງຮູບສິນຄ້ານຳດ້ວຍບໍ?')) {
+                    shareProductPhoto(imgUrl2, p.name);
+                  }
+                }, 500);
+              }
+            }).catch(function(){});
+          } else {
+            var u1 = URL.createObjectURL(blob1);
+            var a1 = document.createElement('a');
+            a1.href = u1; a1.download = 'jcom-info.png';
+            document.body.appendChild(a1); a1.click(); document.body.removeChild(a1);
+            setTimeout(function(){ URL.revokeObjectURL(u1); }, 1000);
+            if (imgUrl2) {
+              setTimeout(function() {
+                if (confirm('ດາວໂຫຼດຮູບສິນຄ້ານຳດ້ວຍບໍ?')) {
+                  shareProductPhoto(imgUrl2, p.name);
+                }
+              }, 500);
+            }
+          }
+        };
+        shareInfo();
+        btn.innerHTML = '🖼 ສ້າງຮູບ ສົ່ງລູກຄ້າ';
+      }, 'image/png');
     });
   });
 
