@@ -463,6 +463,12 @@ input,textarea{-webkit-user-select:text!important;user-select:text!important;-we
       <span style="font-weight:600;color:#6b7280">ສ່ວນຫຼຸດທ້າຍບິນ:</span>
       <input type="number" id="qt-final-disc" value="0" style="width:120px;padding:6px 10px;border:2px solid #d1d5db;border-radius:8px;font-size:15px;font-family:inherit;text-align:right">
     </div>
+    <div style="display:flex;justify-content:space-between;margin-bottom:6px;align-items:center">
+      <label style="font-weight:600;color:#6b7280;display:flex;align-items:center;gap:6px">
+        <input type="checkbox" id="qt-vat-check" style="width:18px;height:18px"> VAT 10%
+      </label>
+      <span style="font-weight:700;color:#d97706" id="qt-vat-amount">₭0</span>
+    </div>
     <div style="display:flex;justify-content:space-between;background:#eff6ff;padding:10px 14px;border-radius:10px">
       <span style="font-weight:700;color:#1a56db">ລວມທັງໝົດ:</span>
       <span style="font-weight:800;font-size:20px;color:#1a56db" id="qt-total">₭0</span>
@@ -2298,6 +2304,8 @@ window.addEventListener('load', function() {
   if(qtSrchInp) qtSrchInp.addEventListener('keyup', function(e){ if(e.key==='Enter') qtSearchProduct(this.value); });
   var qtFinalDisc = document.getElementById('qt-final-disc');
   if(qtFinalDisc) qtFinalDisc.addEventListener('input', renderQtItems);
+  var qtVatCheck=document.getElementById('qt-vat-check');
+  if(qtVatCheck) qtVatCheck.addEventListener('change', renderQtItems);
 
 });
 
@@ -2324,8 +2332,13 @@ function renderQtItems() {
   }
   var subtotal = qtItems.reduce(function(s,x){ return s + (x.qty*x.price - (x.disc||0)); }, 0);
   var finalDisc = parseFloat((document.getElementById('qt-final-disc')||{}).value)||0;
-  var total = subtotal - finalDisc;
+  var useVat = document.getElementById('qt-vat-check') && document.getElementById('qt-vat-check').checked;
+  var afterDisc = subtotal - finalDisc;
+  var vatAmt = useVat ? Math.round(afterDisc * 0.1) : 0;
+  var total = afterDisc + vatAmt;
   document.getElementById('qt-subtotal').textContent = '₭'+subtotal.toLocaleString();
+  var vatEl = document.getElementById('qt-vat-amount');
+  if(vatEl) vatEl.textContent = useVat ? '₭'+vatAmt.toLocaleString() : '₭0';
   document.getElementById('qt-total').textContent = '₭'+total.toLocaleString();
   if(sum) sum.style.display='block';
 
@@ -2403,10 +2416,16 @@ function generateQuotationPDF() {
   var salesperson=document.getElementById('qt-salesperson').value||'Admin';
   var notes=document.getElementById('qt-notes').value||'';
   var finalDisc=parseFloat(document.getElementById('qt-final-disc').value)||0;
+  var useVat=document.getElementById('qt-vat-check').checked;
   var subtotal=qtItems.reduce(function(s,x){return s+(x.qty*x.price-(x.disc||0));},0);
-  var total=subtotal-finalDisc;
+  var afterDisc=subtotal-finalDisc;
+  var vatAmt=useVat?Math.round(afterDisc*0.1):0;
+  var total=afterDisc+vatAmt;
 
   if(!qtItems.length){alert('ເພີ່ມລາຍການສິນຄ້າກ່ອນ');return;}
+
+  // Get logo base64
+  var logoSrc = document.querySelector('.sb-logo img') ? document.querySelector('.sb-logo img').src : '';
 
   var ITEMS_PER_PAGE=10;
   var pages=Math.ceil(qtItems.length/ITEMS_PER_PAGE)||1;
@@ -2414,64 +2433,80 @@ function generateQuotationPDF() {
   html2+='body{font-family:"Noto Sans Lao",Arial,sans-serif;font-size:13px;margin:0;padding:0;color:#000}';
   html2+='.page{width:210mm;min-height:297mm;padding:15mm 15mm 20mm;box-sizing:border-box;page-break-after:always;position:relative}';
   html2+='.page:last-child{page-break-after:auto}';
-  html2+='.header{display:flex;justify-content:space-between;margin-bottom:8px}';
+  html2+='.header{display:flex;justify-content:space-between;margin-bottom:8px;align-items:flex-start}';
   html2+='.logo-area{display:flex;align-items:flex-start;gap:10px}';
+  html2+='.logo-img{width:70px;height:70px;object-fit:contain}';
   html2+='.company-name{font-size:22px;font-weight:800;color:#1a56db;margin:0}';
-  html2+='.company-info{font-size:11px;color:#555;margin-top:4px}';
+  html2+='.company-info{font-size:11px;color:#555;margin-top:4px;line-height:1.6}';
   html2+='.doc-info{font-size:12px;line-height:1.8;text-align:right}';
-  html2+='.title{text-align:center;font-size:22px;font-weight:800;margin:10px 0;color:#1a1a2e}';
-  html2+='.customer-info{font-size:13px;margin-bottom:10px}';
+  html2+='.title{text-align:center;font-size:22px;font-weight:800;margin:10px 0;color:#1a1a2e;border-bottom:2px solid #1a56db;padding-bottom:6px}';
+  html2+='.customer-info{font-size:13px;margin-bottom:10px;line-height:1.8}';
   html2+='table{width:100%;border-collapse:collapse;margin-bottom:10px}';
   html2+='th{background:#1a56db;color:#fff;padding:8px 6px;text-align:center;font-size:12px;border:1px solid #1a56db}';
   html2+='td{padding:7px 6px;border:1px solid #d1d5db;font-size:12px;vertical-align:top}';
   html2+='.num{text-align:right}.ctr{text-align:center}';
   html2+='.total-box{display:flex;justify-content:flex-end;margin-top:10px}';
-  html2+='.total-table{width:280px;border-collapse:collapse}';
+  html2+='.total-table{width:300px;border-collapse:collapse}';
   html2+='.total-table td{padding:6px 10px;border:1px solid #d1d5db;font-size:13px}';
-  html2+='.total-table .bold{font-weight:700}.total-table .blue{color:#1a56db;font-size:15px;font-weight:800}';
+  html2+='.bold{font-weight:700}.blue{color:#1a56db;font-size:15px;font-weight:800}';
   html2+='.notes{font-size:12px;margin-top:10px;line-height:1.8;color:#333}';
-  html2+='.signature{display:flex;justify-content:space-between;margin-top:30px;font-size:12px;text-align:center}';
+  html2+='.signature{display:flex;justify-content:space-between;margin-top:40px;font-size:12px;text-align:center}';
   html2+='.sig-line{border-top:1px solid #000;width:150px;margin:0 auto;padding-top:4px}';
-  html2+='@media print{body{-webkit-print-color-adjust:exact}}';
+  html2+='.back-btn{display:block;text-align:center;margin:20px auto;padding:12px 30px;background:#1a56db;color:#fff;border:none;border-radius:10px;font-size:16px;font-family:inherit;cursor:pointer;font-weight:700}';
+  html2+='@media print{.back-btn{display:none}.page{padding:10mm 12mm 15mm}}';
   html2+='</style></head><body>';
+
+  html2+='<button class="back-btn" onclick="window.close()">◀ ກັບຄືນ</button>';
 
   for(var pg=0;pg<pages;pg++){
     var pageItems=qtItems.slice(pg*ITEMS_PER_PAGE,(pg+1)*ITEMS_PER_PAGE);
     html2+='<div class="page">';
     html2+='<div class="header"><div class="logo-area">';
-    html2+='<div><p class="company-name">JCOM ICT Service</p><p class="company-info">ເຮືອນເລກທີ 046 ທາງເລກທີ13 ບ້ານ ໂພນໄຊ ເມືອງ ປາກເຊ ແຂວງ ຈຳປາສັກ<br>Tel : 030 9158885 &nbsp;|&nbsp; Email : 030 9158885 : 11510</p></div>';
+    if(logoSrc) html2+='<img src="'+logoSrc+'" class="logo-img">';
+    html2+='<div><p class="company-name">JCOM ICT Service</p>';
+    html2+='<p class="company-info">ເຮືອນເລກທີ 046 ທາງເລກທີ13 ບ້ານ ໂພນໄຊ ເມືອງ ປາກເຊ ແຂວງ ຈຳປາສັກ<br>';
+    html2+='Tel : 030 9158885 &nbsp;|&nbsp; 020-7776-9999</p></div>';
     html2+='</div><div class="doc-info">';
-    html2+='<b>Doc No.</b> '+docno+'&nbsp;&nbsp;<b>ໜ້າ '+(pg+1)+'/'+pages+'</b><br>';
+    html2+='<b>Doc No.</b> '+docno+'&nbsp;&nbsp;&nbsp;<b>ໜ້າ '+(pg+1)+'/'+pages+'</b><br>';
     html2+='<b>ວັນທີ:</b> '+date+'<br>';
-    html2+='<b>ຜູ້ສະເໜີລາຄາ:</b> '+salesperson;
+    html2+='<b>ຜູ້ສະເໜີ:</b> '+salesperson;
     html2+='</div></div>';
     html2+='<div class="title">ໃບສະເໜີລາຄາ / Quotation</div>';
     html2+='<div class="customer-info">';
     html2+='<b>ລູກຄ້າ:</b> '+customer+'&nbsp;&nbsp;&nbsp;<b>Tel:</b> '+tel;
     if(address) html2+='<br><b>ທີ່ຢູ່:</b> '+address;
     html2+='</div>';
-    html2+='<table><thead><tr><th style="width:35px">ລ.ດ</th><th>ຊື່ສິນຄ້າ / Description</th><th style="width:60px">ຈຳນວນ</th><th style="width:55px">ຫ.ໜ</th><th style="width:100px">ລາຄາ/ໜ່ວຍ</th><th style="width:70px">ສ່ວນຫຼຸດ</th><th style="width:100px">ລາຄາລວມ</th></tr></thead><tbody>';
+    html2+='<table><thead><tr>';
+    html2+='<th style="width:35px">ລ.ດ</th><th>ຊື່ສິນຄ້າ / Description</th>';
+    html2+='<th style="width:60px">ຈຳນວນ</th><th style="width:55px">ຫ.ໜ</th>';
+    html2+='<th style="width:100px">ລາຄາ/ໜ່ວຍ</th><th style="width:70px">ສ່ວນຫຼຸດ</th>';
+    html2+='<th style="width:100px">ລາຄາລວມ</th></tr></thead><tbody>';
     pageItems.forEach(function(item,i){
       var realIdx=pg*ITEMS_PER_PAGE+i+1;
       var rowTotal=item.qty*item.price-(item.disc||0);
-      html2+='<tr><td class="ctr">'+realIdx+'</td><td>'+item.name+'</td><td class="ctr">'+item.qty+'</td><td class="ctr">'+(item.unit||'')+'</td><td class="num">'+item.price.toLocaleString()+'.00</td><td class="num">'+(item.disc||0)+'.00</td><td class="num">'+rowTotal.toLocaleString()+'.00</td></tr>';
+      html2+='<tr><td class="ctr">'+realIdx+'</td><td>'+item.name+'</td>';
+      html2+='<td class="ctr">'+item.qty+'</td><td class="ctr">'+(item.unit||'')+'</td>';
+      html2+='<td class="num">'+item.price.toLocaleString()+'.00</td>';
+      html2+='<td class="num">'+(item.disc||0).toLocaleString()+'.00</td>';
+      html2+='<td class="num">'+rowTotal.toLocaleString()+'.00</td></tr>';
     });
-    // Empty rows
     for(var er=pageItems.length;er<ITEMS_PER_PAGE;er++){
       html2+='<tr><td>&nbsp;</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>';
     }
     html2+='</tbody></table>';
-    // Show totals on last page
     if(pg===pages-1){
       html2+='<div class="total-box"><table class="total-table">';
       html2+='<tr><td class="bold">ຈຳນວນເງິນ</td><td class="num bold">'+subtotal.toLocaleString()+'.00</td></tr>';
-      html2+='<tr><td class="bold">ສ່ວນຫຼຸດທ້າຍບິນ</td><td class="num">'+finalDisc.toLocaleString()+'.00</td></tr>';
+      html2+='<tr><td>ສ່ວນຫຼຸດ</td><td class="num">'+finalDisc.toLocaleString()+'.00</td></tr>';
+      if(useVat){
+        html2+='<tr><td>VAT 10%</td><td class="num">'+vatAmt.toLocaleString()+'.00</td></tr>';
+      }
       html2+='<tr><td class="blue">ລວມທັງໝົດ</td><td class="num blue">'+total.toLocaleString()+'.00</td></tr>';
       html2+='</table></div>';
     }
     if(notes){
       html2+='<div class="notes">';
-      notes.split("\n").forEach(function(line){ html2+='-'+line.replace(/^-/,'')+'<br>'; });
+      notes.split('\n').forEach(function(line){ if(line.trim()) html2+=line+'<br>'; });
       html2+='</div>';
     }
     html2+='<div class="signature">';
@@ -2480,12 +2515,13 @@ function generateQuotationPDF() {
     html2+='<div><div class="sig-line">ລູກຄ້າເຫັນຮັບຮອງ</div></div>';
     html2+='</div></div>';
   }
+  html2+='<button class="back-btn" onclick="window.close()">◀ ກັບຄືນ</button>';
   html2+='</body></html>';
 
   var win=window.open('','_blank');
   win.document.write(html2);
   win.document.close();
-  setTimeout(function(){ win.print(); },800);
+  setTimeout(function(){ win.focus(); },300);
 }
 
 </script>
