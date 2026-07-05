@@ -2452,11 +2452,14 @@ function generateQuotationPDF() {
   html2+='.notes{font-size:12px;margin-top:10px;line-height:1.8;color:#333}';
   html2+='.signature{display:flex;justify-content:space-between;margin-top:40px;font-size:12px;text-align:center}';
   html2+='.sig-line{border-top:1px solid #000;width:150px;margin:0 auto;padding-top:4px}';
-  html2+='.back-btn{display:block;text-align:center;margin:20px auto;padding:12px 30px;background:#1a56db;color:#fff;border:none;border-radius:10px;font-size:16px;font-family:inherit;cursor:pointer;font-weight:700}';
+  html2+='.back-btn{display:inline-block;text-align:center;padding:12px 30px;background:#1a56db;color:#fff;border:none;border-radius:10px;font-size:16px;font-family:inherit;cursor:pointer;font-weight:700}';
   html2+='@media print{.back-btn{display:none}.page{padding:10mm 12mm 15mm}}';
   html2+='</style></head><body>';
 
-  html2+='<button class="back-btn" onclick="window.close()">◀ ກັບຄືນ</button>';
+  html2+='<div style="display:flex;gap:12px;justify-content:center;margin:20px auto">';
+  html2+='<button class="back-btn" onclick="window.close()" style="background:#6b7280">◀ ກັບຄືນ</button>';
+  html2+='<button class="back-btn" onclick="window.print()" style="background:#1a56db">🖨 Print / Save PDF</button>';
+  html2+='</div>';
 
   for(var pg=0;pg<pages;pg++){
     var pageItems=qtItems.slice(pg*ITEMS_PER_PAGE,(pg+1)*ITEMS_PER_PAGE);
@@ -2515,7 +2518,10 @@ function generateQuotationPDF() {
     html2+='<div><div class="sig-line">ລູກຄ້າເຫັນຮັບຮອງ</div></div>';
     html2+='</div></div>';
   }
-  html2+='<button class="back-btn" onclick="window.close()">◀ ກັບຄືນ</button>';
+  html2+='<div style="display:flex;gap:12px;justify-content:center;margin:20px auto">';
+  html2+='<button class="back-btn" onclick="window.close()" style="background:#6b7280">◀ ກັບຄືນ</button>';
+  html2+='<button class="back-btn" onclick="window.print()" style="background:#1a56db">🖨 Print / Save PDF</button>';
+  html2+='</div>';
   html2+='</body></html>';
 
   var win=window.open('','_blank');
