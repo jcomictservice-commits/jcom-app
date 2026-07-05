@@ -479,8 +479,15 @@ input,textarea{-webkit-user-select:text!important;user-select:text!important;-we
 <!-- Notes -->
 <div class="card">
   <div class="cl">📝 ໝາຍເຫດ</div>
-  <textarea id="qt-notes" rows="3" style="width:100%;padding:12px;border:2px solid #d1d5db;border-radius:10px;font-size:15px;font-family:inherit;outline:none" placeholder="ໝາຍເຫດ ຫຼື ເງື່ອນໄຂ...">-ລູກຄ້າຕ້ອງໄດ້ມັດຈໍາກ່ອນ 30% ຂອງມູນຄ່າທັງໝົດ ຫຼັງຈາກການຕິດຕັ້ງແລ້ວ ຈະໄດ້ຈ່າຍເພີ່ມອີກ70% ທີ່ເຫຼືອທັງໝົດ
+  <textarea id="qt-notes" rows="3" style="width:100%;padding:12px;border:2px solid #d1d5db;border-radius:10px;font-size:15px;font-family:inherit;outline:none;margin-bottom:10px" placeholder="ໝາຍເຫດ ຫຼື ເງື່ອນໄຂ...">-ລູກຄ້າຕ້ອງໄດ້ມັດຈໍາກ່ອນ 30% ຂອງມູນຄ່າທັງໝົດ ຫຼັງຈາກການຕິດຕັ້ງແລ້ວ ຈະໄດ້ຈ່າຍເພີ່ມອີກ70% ທີ່ເຫຼືອທັງໝົດ
 -ສິນຄ້າມີຮັບປະກັນ 1ປີ</textarea>
+  <div class="cl" style="margin-top:8px">⏰ ອາຍຸໃຊ້ງານໃບສະເໜີ</div>
+  <select id="qt-validity" style="width:100%;padding:12px;border:2px solid #d1d5db;border-radius:10px;font-size:15px;font-family:inherit;outline:none;background:#fff">
+    <option value="7">7 ວັນ</option>
+    <option value="14">14 ວັນ</option>
+    <option value="30">30 ວັນ</option>
+    <option value="60">60 ວັນ</option>
+  </select>
 </div>
 
 <!-- Export -->
@@ -2415,6 +2422,7 @@ function generateQuotationPDF() {
   var date=document.getElementById('qt-date').value||new Date().toISOString().slice(0,10);
   var salesperson=document.getElementById('qt-salesperson').value||'Admin';
   var notes=document.getElementById('qt-notes').value||'';
+  var validity=document.getElementById('qt-validity').value||'7';
   var finalDisc=parseFloat(document.getElementById('qt-final-disc').value)||0;
   var useVat=document.getElementById('qt-vat-check').checked;
   var subtotal=qtItems.reduce(function(s,x){return s+(x.qty*x.price-(x.disc||0));},0);
@@ -2516,7 +2524,17 @@ function generateQuotationPDF() {
     html2+='<div><div class="sig-line">ຜູ້ສະເໜີລາຄາ</div></div>';
     html2+='<div><div class="sig-line">Sales Manager</div></div>';
     html2+='<div><div class="sig-line">ລູກຄ້າເຫັນຮັບຮອງ</div></div>';
-    html2+='</div></div>';
+    html2+='</div>';
+    if(pg===pages-1){
+      html2+='<div style="margin-top:16px;padding:10px 14px;border:1px solid #d1d5db;border-radius:8px;font-size:11px;line-height:1.8;background:#f8fafc">';
+      html2+='<b>🏦 ບັນຊີທະນາຄານການຄ້າຕ່າງປະເທດ (BCEL)</b><br>';
+      html2+='ຊື່ບັນຊີ: <b>JCOMICTSERVICE</b><br>';
+      html2+='💰 KIP: <b>040120001917195001</b> &nbsp;|&nbsp; 💵 USD: <b>040120101917195001</b> &nbsp;|&nbsp; 🇹🇭 BATH: <b>040120201917195001</b>';
+      html2+='</div>';
+      html2+='<div style="margin-top:8px;text-align:center;font-size:12px;color:#dc2626;font-weight:700">';
+      html2+='⚠ ໃບສະເໜີນີ້ມີຜົນສະເພາະ '+validity+' ວັນເທົ່ານັ້ນ</div>';
+    }
+    html2+='</div>';
   }
   html2+='<div style="display:flex;gap:12px;justify-content:center;margin:20px auto">';
   html2+='<button class="back-btn" onclick="window.close()" style="background:#6b7280">◀ ກັບຄືນ</button>';
