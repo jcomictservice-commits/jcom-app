@@ -928,40 +928,56 @@ function selectProduct(p) {
     btn.textContent = '⏳ ກຳລັງສ້າງຮູບ...';
     var imgUrl2 = productImagesCache[prodKey] ? POS_URL + productImagesCache[prodKey] : null;
 
-    generateProductCardImage(p, imgUrl2).then(function(canvas1) {
-      // Share info card first
+    // Generate info card (no product image in card)
+    generateProductCardImage(p, null).then(function(canvas1) {
       canvas1.toBlob(function(blob1) {
         var f1 = new File([blob1], 'jcom-info.png', {type:'image/png'});
-        var shareInfo = function() {
-          if (navigator.share && navigator.canShare && navigator.canShare({files:[f1]})) {
-            navigator.share({files:[f1], title:p.name, text:'Jcom ICT Service'})
-            .then(function() {
-              // After sharing info, offer to share photo if available
-              if (imgUrl2) {
-                setTimeout(function() {
-                  if (confirm('ສົ່ງຮູບສິນຄ້ານຳດ້ວຍບໍ?')) {
-                    shareProductPhoto(imgUrl2, p.name);
-                  }
-                }, 500);
+
+        if (imgUrl2) {
+          // Load and share product photo right after
+          var img = new Image();
+          img.crossOrigin = 'anonymous';
+          img.onload = function() {
+            var c2 = document.createElement('canvas');
+            var maxW = 1080;
+            var scale = img.width > maxW ? maxW/img.width : 1;
+            c2.width = Math.round(img.width*scale);
+            c2.height = Math.round(img.height*scale);
+            var ctx2 = c2.getContext('2d');
+            ctx2.fillStyle = '#fff'; ctx2.fillRect(0,0,c2.width,c2.height);
+            ctx2.drawImage(img,0,0,c2.width,c2.height);
+            c2.toBlob(function(blob2) {
+              var f2 = new File([blob2], 'jcom-photo.png', {type:'image/png'});
+              // Try sharing both files at once
+              if (navigator.share && navigator.canShare && navigator.canShare({files:[f1,f2]})) {
+                navigator.share({files:[f1,f2], title:p.name, text:'Jcom ICT Service'}).catch(function(){
+                  // Fallback: share one by one
+                  shareCanvasImage(canvas1, 'jcom-info.png', p.name);
+                });
+              } else {
+                // Download both
+                var u1 = URL.createObjectURL(blob1);
+                var a1 = document.createElement('a'); a1.href=u1; a1.download='jcom-info.png';
+                document.body.appendChild(a1); a1.click(); document.body.removeChild(a1);
+                setTimeout(function(){
+                  var u2 = URL.createObjectURL(blob2);
+                  var a2 = document.createElement('a'); a2.href=u2; a2.download='jcom-photo.png';
+                  document.body.appendChild(a2); a2.click(); document.body.removeChild(a2);
+                  URL.revokeObjectURL(u1); URL.revokeObjectURL(u2);
+                }, 800);
               }
-            }).catch(function(){});
-          } else {
-            var u1 = URL.createObjectURL(blob1);
-            var a1 = document.createElement('a');
-            a1.href = u1; a1.download = 'jcom-info.png';
-            document.body.appendChild(a1); a1.click(); document.body.removeChild(a1);
-            setTimeout(function(){ URL.revokeObjectURL(u1); }, 1000);
-            if (imgUrl2) {
-              setTimeout(function() {
-                if (confirm('ດາວໂຫຼດຮູບສິນຄ້ານຳດ້ວຍບໍ?')) {
-                  shareProductPhoto(imgUrl2, p.name);
-                }
-              }, 500);
-            }
-          }
-        };
-        shareInfo();
-        btn.innerHTML = '🖼 ສ້າງຮູບ ສົ່ງລູກຄ້າ';
+              btn.innerHTML = '🖼 ສ້າງຮູບ ສົ່ງລູກຄ້າ';
+            }, 'image/jpeg', 0.9);
+          };
+          img.onerror = function() {
+            shareCanvasImage(canvas1, 'jcom-info.png', p.name);
+            btn.innerHTML = '🖼 ສ້າງຮູບ ສົ່ງລູກຄ້າ';
+          };
+          img.src = imgUrl2 + '?t=' + Date.now();
+        } else {
+          shareCanvasImage(canvas1, 'jcom-info.png', p.name + ' - Jcom ICT Service');
+          btn.innerHTML = '🖼 ສ້າງຮູບ ສົ່ງລູກຄ້າ';
+        }
       }, 'image/png');
     });
   });
