@@ -2506,22 +2506,24 @@ function generateQuotationPDF() {
     }
     html2+='</tbody></table>';
     if(pg===pages-1){
-      html2+='<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-top:10px">';
-      html2+='<div style="flex:1;padding:10px 14px;border:1px solid #d1d5db;border-radius:8px;font-size:11px;line-height:2;background:#f8fafc;margin-right:16px">';
-      html2+='<b>🏦 ທະນາຄານການຄ້າຕ່າງປະເທດ (BCEL)</b><br>';
-      html2+='ຊື່ບັນຊີ: <b>JCOMICTSERVICE</b><br>';
-      html2+='💰 KIP: <b>040120001917195001</b><br>';
-      html2+='💵 USD: <b>040120101917195001</b><br>';
-      html2+='🇹🇭 BATH: <b>040120201917195001</b>';
-      html2+='</div>';
-      html2+='<table class="total-table" style="flex-shrink:0">';
+      html2+='<div style="display:flex;justify-content:flex-end;margin-top:10px">';
+      html2+='<table class="total-table">';
       html2+='<tr><td class="bold">ຈຳນວນເງິນ</td><td class="num bold">'+subtotal.toLocaleString()+'.00</td></tr>';
       html2+='<tr><td>ສ່ວນຫຼຸດ</td><td class="num">'+finalDisc.toLocaleString()+'.00</td></tr>';
       if(useVat){
         html2+='<tr><td>VAT 10%</td><td class="num">'+vatAmt.toLocaleString()+'.00</td></tr>';
       }
       html2+='<tr><td class="blue">ລວມທັງໝົດ</td><td class="num blue">'+total.toLocaleString()+'.00</td></tr>';
-      html2+='</table></div></div>';
+      html2+='</table></div>';
+      // Bank info below table on left side
+      html2+='<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-top:8px">';
+      html2+='<div style="flex:1;padding:8px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:11px;line-height:2;background:#f8fafc">';
+      html2+='<b>🏦 ທະນາຄານການຄ້າຕ່າງປະເທດ (BCEL)</b><br>';
+      html2+='ຊື່ບັນຊີ: <b>JCOMICTSERVICE</b><br>';
+      html2+='💰 KIP &nbsp;: <b>040120001917195001</b><br>';
+      html2+='💵 USD : <b>040120101917195001</b><br>';
+      html2+='🇹🇭 BATH: <b>040120201917195001</b>';
+      html2+='</div></div>';
       html2+='<div style="margin-top:8px;text-align:center;font-size:12px;color:#dc2626;font-weight:700">';
       html2+='⚠ ໃບສະເໜີນີ້ມີຜົນສະເພາະ '+validity+' ວັນເທົ່ານັ້ນ</div>';
     }
