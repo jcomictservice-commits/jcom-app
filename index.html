@@ -1704,12 +1704,9 @@ function shareCustomInfoCard(item) {
 
   // Text only - share via WhatsApp
   var msg = '';
-  if (item.title) msg += '*'+item.title+'*
-';
-  if (item.desc) msg += item.desc + '
-';
-  msg += '
-Jcom ICT Service | 020-7776-9999';
+  if (item.title) msg += item.title + '\n';
+  if (item.desc) msg += item.desc + '\n';
+  msg += 'Jcom ICT Service | 020-7776-9999';
   window.open('https://wa.me/?text='+encodeURIComponent(msg), '_blank');
 }
 
