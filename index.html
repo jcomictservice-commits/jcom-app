@@ -133,6 +133,7 @@ input,textarea{-webkit-user-select:text!important;user-select:text!important;-we
   </div>
   <div class="sb-sec">
     <div class="sb-lbl">ຮ້ານ</div>
+    <a class="nav-a" id="na-docs" href="#docs">📥 ດາວໂຫຼດເອກະສານ</a>
     <a class="nav-a" id="na-users" href="#users" style="display:none">🔐 ຈັດການຜູ້ໃຊ້</a>
     <a class="nav-a" id="na-setup" href="#setup">⚙️ ຕັ້ງຄ່າ</a>
   </div>
@@ -520,6 +521,43 @@ input,textarea{-webkit-user-select:text!important;user-select:text!important;-we
 </div>
 </div>
 
+<!-- DOCS -->
+<div id="sec-docs" class="sec">
+<div class="pt">📥 ດາວໂຫຼດເອກະສານອົງກອນ</div>
+
+<div class="card" id="docs-admin-panel" style="display:none">
+  <div class="cl">📁 ສ້າງໝວດໃໝ່</div>
+  <input class="inp" id="docs-cat-name" placeholder="ຊື່ໝວດ (ເຊັ່ນ: ແບບຟອມ HR)">
+  <button class="pb" id="btn-docs-add-cat">+ ສ້າງໝວດ</button>
+</div>
+
+<div class="card" id="docs-add-panel" style="display:none">
+  <div class="cl">+ ເພີ່ມເອກະສານ</div>
+  <select id="docs-cat-select" style="width:100%;padding:12px;border:2px solid #d1d5db;border-radius:10px;font-size:15px;font-family:inherit;margin-bottom:10px;outline:none;background:#fff">
+    <option value="">-- ເລືອກໝວດ --</option>
+  </select>
+  <input class="inp" id="docs-title" placeholder="ຊື່ເອກະສານ">
+  <input class="inp" id="docs-desc" placeholder="ຄຳອະທິບາຍ (ທາງເລືອກ)">
+  <div style="margin-bottom:10px">
+    <div style="display:flex;gap:8px">
+      <button id="btn-docs-type-link" style="flex:1;padding:10px;border-radius:8px;border:2px solid #1a56db;background:#eff6ff;color:#1a56db;font-weight:700;cursor:pointer;font-family:inherit">🔗 Link URL</button>
+      <button id="btn-docs-type-file" style="flex:1;padding:10px;border-radius:8px;border:2px solid #d1d5db;background:#f9fafb;color:#6b7280;font-weight:700;cursor:pointer;font-family:inherit">📎 Upload ໄຟລ໌</button>
+    </div>
+  </div>
+  <div id="docs-link-input">
+    <input class="inp" id="docs-url" placeholder="ໃສ່ URL (https://drive.google.com/...)">
+  </div>
+  <div id="docs-file-input" style="display:none">
+    <label for="docs-file-inp" style="display:block;border:2px dashed #d1d5db;border-radius:10px;padding:16px;text-align:center;color:#9ca3af;font-size:14px;cursor:pointer;margin-bottom:10px">📎 ກົດເພື່ອເລືອກໄຟລ໌ (PDF, Word, Excel)</label>
+    <input type="file" id="docs-file-inp" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx" style="display:none">
+    <div id="docs-file-name" style="font-size:13px;color:#6b7280"></div>
+  </div>
+  <button class="pb" id="btn-docs-add">+ ເພີ່ມເອກະສານ</button>
+</div>
+
+<div id="docs-list"><div class="ld">⏳ ໂຫຼດ...</div></div>
+</div>
+
 <!-- USERS MANAGEMENT -->
 <div id="sec-users" class="sec">
 <div class="pt">🔐 ຈັດການຜູ້ໃຊ້ ແລະ ສິດເຂົ້າເຖິງ</div>
@@ -557,7 +595,7 @@ var PAGE_NAMES = {
   dash:'Dashboard', sales:'ຍອດຂາຍ', products:'ສິນຄ້າ', catalog:'ກາຕາລ໋ອກ',
   staff:'ພະນັກງານ', tasks:'ມອບໝາຍງານ', attend:'ເຂົ້າ-ອອກງານ',
   install:'ສັນຍາຜ່ອນ', calc:'ຄິດໄລ່ຜ່ອນ', crm:'CRM', quotation:'ໃບສະເໜີລາຄາ',
-  shopinfo:'ຂໍ້ມູນຮ້ານ', setup:'ຕັ້ງຄ່າ', users:'ຈັດການຜູ້ໃຊ້'
+  shopinfo:'ຂໍ້ມູນຮ້ານ', setup:'ຕັ້ງຄ່າ', docs:'ດາວໂຫຼດເອກະສານ', users:'ຈັດການຜູ້ໃຊ້'
 };
 
 // ===== AUTH =====
@@ -578,6 +616,7 @@ var ALL_PERMS = [
   {id:'quotation', label:'📄 ໃບສະເໜີລາຄາ'},
   {id:'shopinfo', label:'🏪 ຂໍ້ມູນຮ້ານ'},
   {id:'setup', label:'⚙️ ຕັ້ງຄ່າ'},
+  {id:'docs', label:'📥 ດາວໂຫຼດເອກະສານ'},
   {id:'users', label:'🔐 ຈັດການຜູ້ໃຊ້'}
 ];
 
@@ -662,6 +701,7 @@ function showPage(id) {
   if (id === 'staff') initStaff();
   if (id === 'users') initUsers();
   if (id === 'quotation') initQuotation();
+  if (id === 'docs') initDocs();
   if (id === 'setup') initSetup();
   if (id === 'shopinfo') loadCustomInfo();
 }
@@ -2525,6 +2565,188 @@ function generateQuotationPDF() {
   win.document.write(html2);
   win.document.close();
   setTimeout(function(){ win.focus(); },300);
+}
+
+
+// === DOCS ===
+var docsData = { categories: [], files: [] };
+
+function saveDocs() {
+  return fetch(POS_URL+'/orgdocs', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify(docsData)
+  }).then(function(r){return r.json();});
+}
+
+function loadDocs() {
+  return fetch(POS_URL+'/orgdocs').then(function(r){return r.json();}).then(function(res){
+    if(res.ok) docsData = res.data || {categories:[], files:[]};
+    if(!docsData.categories) docsData.categories = [];
+    if(!docsData.files) docsData.files = [];
+  });
+}
+
+function renderDocsCatSelect() {
+  var sel = document.getElementById('docs-cat-select');
+  if(!sel) return;
+  sel.innerHTML = '<option value="">-- ເລືອກໝວດ --</option>';
+  docsData.categories.forEach(function(cat) {
+    sel.innerHTML += '<option value="'+cat.id+'">'+cat.name+'</option>';
+  });
+}
+
+function renderDocsList() {
+  var box = document.getElementById('docs-list');
+  if(!box) return;
+  if(!docsData.categories.length && !docsData.files.length) {
+    box.innerHTML = '<div class="ld">ຍັງບໍ່ມີເອກະສານ</div>';
+    return;
+  }
+  var html3 = '';
+  docsData.categories.forEach(function(cat) {
+    var catFiles = docsData.files.filter(function(f){ return f.catId === cat.id; });
+    html3 += '<div class="card" style="margin-bottom:12px">';
+    html3 += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">';
+    html3 += '<div class="cl" style="margin:0">📁 '+cat.name+'</div>';
+    if(currentUser && currentUser.role==='admin') {
+      html3 += '<button data-catid="'+cat.id+'" class="docs-del-cat-btn" style="background:#fef2f2;color:#dc2626;border:1px solid #fecaca;padding:4px 10px;border-radius:6px;font-size:12px;cursor:pointer;font-family:inherit">🗑</button>';
+    }
+    html3 += '</div>';
+    if(!catFiles.length) {
+      html3 += '<div style="color:#9ca3af;font-size:13px;padding:8px">ຍັງບໍ່ມີເອກະສານໃນໝວດນີ້</div>';
+    } else {
+      catFiles.forEach(function(f) {
+        html3 += '<div style="display:flex;align-items:center;gap:10px;padding:10px;border:1px solid #e5e7eb;border-radius:8px;margin-bottom:8px">';
+        html3 += '<div style="font-size:24px">'+(f.type==='link'?'🔗':'📄')+'</div>';
+        html3 += '<div style="flex:1"><div style="font-weight:700;font-size:14px">'+f.title+'</div>';
+        if(f.desc) html3 += '<div style="font-size:12px;color:#9ca3af">'+f.desc+'</div></div>';
+        html3 += '<div style="display:flex;gap:6px">';
+        if(f.type==='link') {
+          html3 += '<a href="'+f.url+'" target="_blank" style="background:#1a56db;color:#fff;border:none;padding:8px 12px;border-radius:8px;font-size:13px;font-weight:700;text-decoration:none;display:inline-block">📥 ເປີດ</a>';
+        } else {
+          html3 += '<a href="'+POS_URL+'/docs/'+f.filename+'" download="'+f.title+'" style="background:#16a34a;color:#fff;border:none;padding:8px 12px;border-radius:8px;font-size:13px;font-weight:700;text-decoration:none;display:inline-block">📥 ດາວໂຫຼດ</a>';
+        }
+        if(currentUser && currentUser.role==='admin') {
+          html3 += '<button data-fileid="'+f.id+'" class="docs-del-file-btn" style="background:#fef2f2;color:#dc2626;border:1px solid #fecaca;padding:8px 10px;border-radius:8px;font-size:13px;cursor:pointer;font-family:inherit">🗑</button>';
+        }
+        html3 += '</div></div>';
+      });
+    }
+    html3 += '</div>';
+  });
+  box.innerHTML = html3;
+
+  // Delete cat
+  box.querySelectorAll('.docs-del-cat-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var cid = this.getAttribute('data-catid');
+      if(!confirm('ລຶບໝວດນີ້ທັງໝົດ?')) return;
+      docsData.categories = docsData.categories.filter(function(c){return c.id!==cid;});
+      docsData.files = docsData.files.filter(function(f){return f.catId!==cid;});
+      saveDocs().then(function(){ renderDocsList(); renderDocsCatSelect(); });
+    });
+  });
+
+  // Delete file
+  box.querySelectorAll('.docs-del-file-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var fid = this.getAttribute('data-fileid');
+      if(!confirm('ລຶບເອກະສານນີ້?')) return;
+      docsData.files = docsData.files.filter(function(f){return f.id!==fid;});
+      saveDocs().then(function(){ renderDocsList(); });
+    });
+  });
+}
+
+var docsAddType = 'link';
+var docsFileData = null;
+
+function initDocs() {
+  loadDocs().then(function(){
+    renderDocsList();
+    renderDocsCatSelect();
+  });
+
+  var isAdmin = currentUser && currentUser.role==='admin';
+  var adminPanel = document.getElementById('docs-admin-panel');
+  var addPanel = document.getElementById('docs-add-panel');
+  if(adminPanel) adminPanel.style.display = isAdmin ? 'block' : 'none';
+  if(addPanel) addPanel.style.display = isAdmin ? 'block' : 'none';
+
+  // Add category
+  var btnAddCat = document.getElementById('btn-docs-add-cat');
+  if(btnAddCat) btnAddCat.addEventListener('click', function(){
+    var name = (document.getElementById('docs-cat-name').value||'').trim();
+    if(!name){alert('ໃສ່ຊື່ໝວດ');return;}
+    docsData.categories.push({id:'cat_'+Date.now(), name:name});
+    document.getElementById('docs-cat-name').value='';
+    saveDocs().then(function(){ renderDocsCatSelect(); renderDocsList(); });
+  });
+
+  // Type toggle
+  var btnLink = document.getElementById('btn-docs-type-link');
+  var btnFile = document.getElementById('btn-docs-type-file');
+  if(btnLink) btnLink.addEventListener('click', function(){
+    docsAddType='link';
+    this.style.background='#eff6ff'; this.style.color='#1a56db'; this.style.borderColor='#1a56db';
+    btnFile.style.background='#f9fafb'; btnFile.style.color='#6b7280'; btnFile.style.borderColor='#d1d5db';
+    document.getElementById('docs-link-input').style.display='block';
+    document.getElementById('docs-file-input').style.display='none';
+  });
+  if(btnFile) btnFile.addEventListener('click', function(){
+    docsAddType='file';
+    this.style.background='#eff6ff'; this.style.color='#1a56db'; this.style.borderColor='#1a56db';
+    btnLink.style.background='#f9fafb'; btnLink.style.color='#6b7280'; btnLink.style.borderColor='#d1d5db';
+    document.getElementById('docs-file-input').style.display='block';
+    document.getElementById('docs-link-input').style.display='none';
+  });
+
+  // File select
+  var fileInp = document.getElementById('docs-file-inp');
+  if(fileInp) fileInp.addEventListener('change', function(){
+    var file = this.files[0];
+    if(!file) return;
+    document.getElementById('docs-file-name').textContent = '📎 '+file.name+' ('+Math.round(file.size/1024)+'KB)';
+    var reader = new FileReader();
+    reader.onload = function(e){ docsFileData = {name:file.name, data:e.target.result}; };
+    reader.readAsDataURL(file);
+  });
+
+  // Add document
+  var btnAdd = document.getElementById('btn-docs-add');
+  if(btnAdd) btnAdd.addEventListener('click', function(){
+    var catId = document.getElementById('docs-cat-select').value;
+    var title = (document.getElementById('docs-title').value||'').trim();
+    var desc = (document.getElementById('docs-desc').value||'').trim();
+    if(!catId){alert('ເລືອກໝວດກ່ອນ');return;}
+    if(!title){alert('ໃສ່ຊື່ເອກະສານ');return;}
+    if(docsAddType==='link'){
+      var url = (document.getElementById('docs-url').value||'').trim();
+      if(!url){alert('ໃສ່ URL');return;}
+      docsData.files.push({id:'f_'+Date.now(),catId:catId,title:title,desc:desc,type:'link',url:url});
+      document.getElementById('docs-url').value='';
+      document.getElementById('docs-title').value='';
+      document.getElementById('docs-desc').value='';
+      saveDocs().then(function(){ renderDocsList(); alert('✅ ເພີ່ມສຳເລັດ'); });
+    } else {
+      if(!docsFileData){alert('ເລືອກໄຟລ໌ກ່ອນ');return;}
+      var btn2 = this; btn2.textContent='⏳ Upload...'; btn2.disabled=true;
+      fetch(POS_URL+'/upload-doc',{
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({filename:docsFileData.name, data:docsFileData.data})
+      }).then(function(r){return r.json();}).then(function(res){
+        if(res.ok){
+          docsData.files.push({id:'f_'+Date.now(),catId:catId,title:title,desc:desc,type:'file',filename:res.filename});
+          document.getElementById('docs-title').value='';
+          document.getElementById('docs-desc').value='';
+          document.getElementById('docs-file-name').textContent='';
+          docsFileData=null;
+          saveDocs().then(function(){ renderDocsList(); alert('✅ Upload ສຳເລັດ'); });
+        } else { alert('❌ Upload ຜິດ: '+res.error); }
+        btn2.textContent='+ ເພີ່ມເອກະສານ'; btn2.disabled=false;
+      }).catch(function(){ alert('❌ ເຊື່ອມ Server ບໍ່ໄດ້'); btn2.textContent='+ ເພີ່ມເອກະສານ'; btn2.disabled=false; });
+    }
+  });
 }
 
 </script>
