@@ -1676,7 +1676,7 @@ function shareCustomInfoCard(item) {
   loadLogoImg().then(function(logoImg) {
     var W = 800;
     var hasImg = !!item.img;
-    var H = hasImg ? 900 : 600;
+    var H = hasImg ? 1100 : 600;
     var canvas = document.createElement('canvas');
     canvas.width = W; canvas.height = H;
     var ctx = canvas.getContext('2d');
@@ -1701,8 +1701,8 @@ function shareCustomInfoCard(item) {
     if (hasImg) {
       var pImg = new Image();
       pImg.onload = function() {
-        ctx.drawImage(pImg, 60, py, W-120, 220);
-        py += 240;
+        ctx.drawImage(pImg, 30, py, W-60, 400);
+        py += 420;
         drawCardText();
       };
       pImg.src = item.img;
