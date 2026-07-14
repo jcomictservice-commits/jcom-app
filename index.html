@@ -134,6 +134,7 @@ input,textarea{-webkit-user-select:text!important;user-select:text!important;-we
   <div class="sb-sec">
     <div class="sb-lbl">ຮ້ານ</div>
     <a class="nav-a" id="na-docs" href="#docs">📥 ດາວໂຫຼດເອກະສານ</a>
+    <a class="nav-a" id="na-finance" href="#finance">💰 ບັນຊີລາຍຈ່າຍ</a>
     <a class="nav-a" id="na-users" href="#users" style="display:none">🔐 ຈັດການຜູ້ໃຊ້</a>
     <a class="nav-a" id="na-setup" href="#setup">⚙️ ຕັ້ງຄ່າ</a>
   </div>
@@ -521,6 +522,54 @@ input,textarea{-webkit-user-select:text!important;user-select:text!important;-we
 </div>
 </div>
 
+<!-- FINANCE -->
+<div id="sec-finance" class="sec">
+<div class="pt">💰 ບັນຊີລາຍຈ່າຍ</div>
+
+<!-- Summary Cards -->
+<div style="display:flex;gap:10px;margin-bottom:12px">
+  <div style="flex:1;background:linear-gradient(135deg,#16a34a,#15803d);border-radius:14px;padding:14px;color:#fff">
+    <div style="font-size:11px;opacity:.8">💰 ລາຍຮັບ</div>
+    <div style="font-size:20px;font-weight:800" id="fin-income">₭0</div>
+  </div>
+  <div style="flex:1;background:linear-gradient(135deg,#dc2626,#b91c1c);border-radius:14px;padding:14px;color:#fff">
+    <div style="font-size:11px;opacity:.8">💸 ລາຍຈ່າຍ</div>
+    <div style="font-size:20px;font-weight:800" id="fin-expense">₭0</div>
+  </div>
+  <div style="flex:1;background:linear-gradient(135deg,#1a56db,#1e40af);border-radius:14px;padding:14px;color:#fff">
+    <div style="font-size:11px;opacity:.8">📊 ຄົງເຫຼືອ</div>
+    <div style="font-size:20px;font-weight:800" id="fin-balance">₭0</div>
+  </div>
+</div>
+
+<!-- Add Transaction -->
+<div class="card">
+  <div class="cl">+ ບັນທຶກລາຍການ</div>
+  <div style="display:flex;gap:8px;margin-bottom:10px">
+    <button id="btn-fin-income" style="flex:1;padding:10px;border-radius:8px;border:2px solid #16a34a;background:#f0fdf4;color:#16a34a;font-weight:700;cursor:pointer;font-family:inherit">💰 ລາຍຮັບ</button>
+    <button id="btn-fin-expense" style="flex:1;padding:10px;border-radius:8px;border:2px solid #d1d5db;background:#f9fafb;color:#6b7280;font-weight:700;cursor:pointer;font-family:inherit">💸 ລາຍຈ່າຍ</button>
+  </div>
+  <input type="hidden" id="fin-type" value="income">
+  <input class="inp" id="fin-date" type="date">
+  <input class="inp" id="fin-category" placeholder="ໝວດ (ເຊັ່ນ: ຄ່າໄຟ, ເງິນເດືອນ, ເບີກສຳຮອງ...)">
+  <input class="inp" id="fin-desc" placeholder="ລາຍລະອຽດ">
+  <input class="inp" id="fin-amount" type="number" placeholder="ຈຳນວນເງິນ (ກີບ)">
+  <button class="pb" id="btn-fin-save" style="background:linear-gradient(90deg,#16a34a,#15803d)">💾 ບັນທຶກ</button>
+</div>
+
+<!-- Filter -->
+<div class="card" style="padding:10px">
+  <div style="display:flex;gap:8px;align-items:center">
+    <input type="month" id="fin-filter-month" style="flex:1;padding:10px;border:2px solid #d1d5db;border-radius:10px;font-size:15px;font-family:inherit;outline:none">
+    <button id="btn-fin-filter" style="background:#1a56db;color:#fff;border:none;padding:10px 16px;border-radius:10px;font-size:15px;cursor:pointer;font-family:inherit">🔍</button>
+    <a id="btn-fin-sheet" href="https://docs.google.com/spreadsheets/d/10aqQ8CVgp1dkz9H1cccWiolH7rX7d65YEIulSChYwGQ/edit" target="_blank" style="background:#16a34a;color:#fff;border:none;padding:10px 14px;border-radius:10px;font-size:15px;text-decoration:none;display:inline-block">📊 Google Sheet</a>
+  </div>
+</div>
+
+<!-- Transaction List -->
+<div id="fin-list"><div class="ld">⏳ ໂຫຼດ...</div></div>
+</div>
+
 <!-- DOCS -->
 <div id="sec-docs" class="sec">
 <div class="pt">📥 ດາວໂຫຼດເອກະສານອົງກອນ</div>
@@ -595,7 +644,7 @@ var PAGE_NAMES = {
   dash:'Dashboard', sales:'ຍອດຂາຍ', products:'ສິນຄ້າ', catalog:'ກາຕາລ໋ອກ',
   staff:'ພະນັກງານ', tasks:'ມອບໝາຍງານ', attend:'ເຂົ້າ-ອອກງານ',
   install:'ສັນຍາຜ່ອນ', calc:'ຄິດໄລ່ຜ່ອນ', crm:'CRM', quotation:'ໃບສະເໜີລາຄາ',
-  shopinfo:'ຂໍ້ມູນຮ້ານ', setup:'ຕັ້ງຄ່າ', docs:'ດາວໂຫຼດເອກະສານ', users:'ຈັດການຜູ້ໃຊ້'
+  shopinfo:'ຂໍ້ມູນຮ້ານ', setup:'ຕັ້ງຄ່າ', docs:'ດາວໂຫຼດເອກະສານ', finance:'ບັນຊີລາຍຈ່າຍ', users:'ຈັດການຜູ້ໃຊ້'
 };
 
 // ===== AUTH =====
@@ -616,6 +665,7 @@ var ALL_PERMS = [
   {id:'quotation', label:'📄 ໃບສະເໜີລາຄາ'},
   {id:'shopinfo', label:'🏪 ຂໍ້ມູນຮ້ານ'},
   {id:'setup', label:'⚙️ ຕັ້ງຄ່າ'},
+  {id:'finance', label:'💰 ບັນຊີລາຍຈ່າຍ'},
   {id:'docs', label:'📥 ດາວໂຫຼດເອກະສານ'},
   {id:'users', label:'🔐 ຈັດການຜູ້ໃຊ້'}
 ];
@@ -702,6 +752,7 @@ function showPage(id) {
   if (id === 'users') initUsers();
   if (id === 'quotation') initQuotation();
   if (id === 'docs') initDocs();
+  if (id === 'finance') initFinance();
   if (id === 'setup') initSetup();
   if (id === 'shopinfo') loadCustomInfo();
 }
@@ -2747,6 +2798,114 @@ function initDocs() {
       }).catch(function(){ alert('❌ ເຊື່ອມ Server ບໍ່ໄດ້'); btn2.textContent='+ ເພີ່ມເອກະສານ'; btn2.disabled=false; });
     }
   });
+}
+
+
+// === FINANCE ===
+var finType = 'income';
+
+function initFinance() {
+  var dateInp = document.getElementById('fin-date');
+  if (dateInp && !dateInp.value) dateInp.value = new Date().toISOString().slice(0,10);
+  var monthInp = document.getElementById('fin-filter-month');
+  if (monthInp && !monthInp.value) monthInp.value = new Date().toISOString().slice(0,7);
+
+  loadFinanceList(monthInp ? monthInp.value : '');
+
+  // Type toggle
+  var btnIncome = document.getElementById('btn-fin-income');
+  var btnExpense = document.getElementById('btn-fin-expense');
+  if(btnIncome) btnIncome.addEventListener('click', function(){
+    finType = 'income';
+    document.getElementById('fin-type').value = 'income';
+    this.style.borderColor='#16a34a'; this.style.background='#f0fdf4'; this.style.color='#16a34a';
+    btnExpense.style.borderColor='#d1d5db'; btnExpense.style.background='#f9fafb'; btnExpense.style.color='#6b7280';
+  });
+  if(btnExpense) btnExpense.addEventListener('click', function(){
+    finType = 'expense';
+    document.getElementById('fin-type').value = 'expense';
+    this.style.borderColor='#dc2626'; this.style.background='#fef2f2'; this.style.color='#dc2626';
+    btnIncome.style.borderColor='#d1d5db'; btnIncome.style.background='#f9fafb'; btnIncome.style.color='#6b7280';
+  });
+
+  // Save
+  var btnSave = document.getElementById('btn-fin-save');
+  if(btnSave) btnSave.addEventListener('click', function(){
+    var type = document.getElementById('fin-type').value;
+    var date = document.getElementById('fin-date').value;
+    var cat = (document.getElementById('fin-category').value||'').trim();
+    var desc = (document.getElementById('fin-desc').value||'').trim();
+    var amount = parseFloat(document.getElementById('fin-amount').value)||0;
+    if(!date){alert('ເລືອກວັນທີ');return;}
+    if(!cat){alert('ໃສ່ໝວດ');return;}
+    if(!amount){alert('ໃສ່ຈຳນວນເງິນ');return;}
+    var btn = this;
+    btn.textContent = '⏳ ກຳລັງບັນທຶກ...'; btn.disabled = true;
+    var user = currentUser ? (currentUser.name||currentUser.username) : 'Unknown';
+    fetch(POS_URL+'/finance', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({type:type, date:date, category:cat, desc:desc, amount:amount, user:user})
+    }).then(function(r){return r.json();}).then(function(res){
+      if(res.ok){
+        document.getElementById('fin-category').value='';
+        document.getElementById('fin-desc').value='';
+        document.getElementById('fin-amount').value='';
+        alert('✅ ບັນທຶກສຳເລັດ! ຂໍ້ມູນບັນທຶກລົງ Google Sheet ແລ້ວ');
+        var month = document.getElementById('fin-filter-month').value;
+        loadFinanceList(month);
+      } else { alert('❌ ບັນທຶກຜິດ: '+(res.error||'')); }
+      btn.textContent = '💾 ບັນທຶກ'; btn.disabled = false;
+    }).catch(function(){ alert('❌ ເຊື່ອມ Server ບໍ່ໄດ້'); btn.textContent = '💾 ບັນທຶກ'; btn.disabled = false; });
+  });
+
+  // Filter
+  var btnFilter = document.getElementById('btn-fin-filter');
+  if(btnFilter) btnFilter.addEventListener('click', function(){
+    var month = document.getElementById('fin-filter-month').value;
+    loadFinanceList(month);
+  });
+}
+
+function loadFinanceList(month) {
+  var box = document.getElementById('fin-list');
+  if(!box) return;
+  box.innerHTML = '<div class="ld">⏳ ໂຫຼດ...</div>';
+  fetch(POS_URL+'/finance?month='+(month||''))
+  .then(function(r){return r.json();})
+  .then(function(res){
+    if(!res.ok){ box.innerHTML='<div class="ld" style="color:#dc2626">❌ ໂຫຼດບໍ່ໄດ້</div>'; return; }
+    var rows = res.data || [];
+    var income = rows.filter(function(r){return r.type==='income';}).reduce(function(s,r){return s+parseFloat(r.amount||0);},0);
+    var expense = rows.filter(function(r){return r.type==='expense';}).reduce(function(s,r){return s+parseFloat(r.amount||0);},0);
+    var balance = income - expense;
+    document.getElementById('fin-income').textContent = '₭'+income.toLocaleString();
+    document.getElementById('fin-expense').textContent = '₭'+expense.toLocaleString();
+    var balEl = document.getElementById('fin-balance');
+    balEl.textContent = '₭'+balance.toLocaleString();
+    balEl.style.color = balance >= 0 ? '#fff' : '#fca5a5';
+
+    if(!rows.length){ box.innerHTML='<div class="ld">ຍັງບໍ່ມີລາຍການ</div>'; return; }
+
+    box.innerHTML = '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:14px">'
+      + '<thead><tr style="background:#eff6ff">'
+      + '<th style="padding:8px 6px;text-align:left">ວັນທີ</th>'
+      + '<th style="padding:8px 6px;text-align:left">ໝວດ</th>'
+      + '<th style="padding:8px 6px;text-align:left">ລາຍລະອຽດ</th>'
+      + '<th style="padding:8px 6px;text-align:right">ຈຳນວນ</th>'
+      + '<th style="padding:8px 6px;text-align:center">ປະເພດ</th>'
+      + '</tr></thead><tbody>'
+      + rows.map(function(r){
+        var isIncome = r.type==='income';
+        return '<tr style="border-bottom:1px solid #f3f4f6">'
+          +'<td style="padding:8px 6px">'+r.date+'</td>'
+          +'<td style="padding:8px 6px;font-weight:600">'+r.category+'</td>'
+          +'<td style="padding:8px 6px;color:#6b7280">'+( r.desc||'-')+'</td>'
+          +'<td style="padding:8px 6px;text-align:right;font-weight:700;color:'+(isIncome?'#16a34a':'#dc2626')+'">₭'+parseFloat(r.amount).toLocaleString()+'</td>'
+          +'<td style="padding:8px 6px;text-align:center">'+(isIncome?'💰 ຮັບ':'💸 ຈ່າຍ')+'</td>'
+          +'</tr>';
+      }).join('')
+      + '</tbody></table></div>';
+  }).catch(function(){ box.innerHTML='<div class="ld" style="color:#dc2626">❌ ໂຫຼດບໍ່ໄດ້</div>'; });
 }
 
 </script>
