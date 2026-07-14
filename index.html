@@ -554,6 +554,10 @@ input,textarea{-webkit-user-select:text!important;user-select:text!important;-we
   <input class="inp" id="fin-category" placeholder="ໝວດ (ເຊັ່ນ: ຄ່າໄຟ, ເງິນເດືອນ, ເບີກສຳຮອງ...)">
   <input class="inp" id="fin-desc" placeholder="ລາຍລະອຽດ">
   <input class="inp" id="fin-amount" type="number" placeholder="ຈຳນວນເງິນ (ກີບ)">
+  <select id="fin-payment" style="width:100%;padding:12px;border:2px solid #d1d5db;border-radius:10px;font-size:15px;font-family:inherit;margin-bottom:10px;outline:none;background:#fff">
+    <option value="cash">💵 ເງິນສົດ</option>
+    <option value="transfer">📱 ເງິນໂອນ</option>
+  </select>
   <button class="pb" id="btn-fin-save" style="background:linear-gradient(90deg,#16a34a,#15803d)">💾 ບັນທຶກ</button>
 </div>
 
@@ -2844,7 +2848,7 @@ function initFinance() {
     var user = currentUser ? (currentUser.name||currentUser.username) : 'Unknown';
     fetch(POS_URL+'/finance', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({type:type, date:date, category:cat, desc:desc, amount:amount, user:user})
+      body: JSON.stringify({type:type, date:date, category:cat, desc:desc, amount:amount, user:user, payment:(document.getElementById('fin-payment').value||'cash')})
     }).then(function(r){return r.json();}).then(function(res){
       if(res.ok){
         document.getElementById('fin-category').value='';
@@ -2893,18 +2897,44 @@ function loadFinanceList(month) {
       + '<th style="padding:8px 6px;text-align:left">ລາຍລະອຽດ</th>'
       + '<th style="padding:8px 6px;text-align:right">ຈຳນວນ</th>'
       + '<th style="padding:8px 6px;text-align:center">ປະເພດ</th>'
+      + '<th style="padding:8px 6px;text-align:center">ຈ່າຍ</th>'
+      + '<th style="padding:8px 6px;text-align:center">ແກ້ໄຂ</th>'
       + '</tr></thead><tbody>'
       + rows.map(function(r){
         var isIncome = r.type==='income';
+        var payLabel = r.payment==='transfer'?'📱 ໂອນ':'💵 ສົດ';
         return '<tr style="border-bottom:1px solid #f3f4f6">'
           +'<td style="padding:8px 6px">'+r.date+'</td>'
           +'<td style="padding:8px 6px;font-weight:600">'+r.category+'</td>'
-          +'<td style="padding:8px 6px;color:#6b7280">'+( r.desc||'-')+'</td>'
+          +'<td style="padding:8px 6px;color:#6b7280">'+(r.desc||'-')+'</td>'
           +'<td style="padding:8px 6px;text-align:right;font-weight:700;color:'+(isIncome?'#16a34a':'#dc2626')+'">₭'+parseFloat(r.amount).toLocaleString()+'</td>'
           +'<td style="padding:8px 6px;text-align:center">'+(isIncome?'💰 ຮັບ':'💸 ຈ່າຍ')+'</td>'
+          +'<td style="padding:8px 6px;text-align:center">'+payLabel+'</td>'
+          +'<td style="padding:8px 6px;text-align:center"><button data-idx="'+rows.indexOf(r)+'" class="fin-edit-btn" style="background:#eff6ff;color:#1a56db;border:1px solid #bfdbfe;padding:4px 8px;border-radius:6px;font-size:12px;cursor:pointer;font-family:inherit">✏️</button></td>'
           +'</tr>';
       }).join('')
       + '</tbody></table></div>';
+  // Bind edit buttons
+    setTimeout(function(){
+      box.querySelectorAll('.fin-edit-btn').forEach(function(btn){
+        btn.addEventListener('click', function(){
+          var idx = parseInt(this.getAttribute('data-idx'));
+          var entry = rows[idx];
+          if(!entry) return;
+          var newAmount = prompt('ແກ້ໄຂຈຳນວນເງິນ:', entry.amount);
+          if(newAmount===null) return;
+          var newDesc = prompt('ແກ້ໄຂລາຍລະອຽດ:', entry.desc||'');
+          if(newDesc===null) return;
+          fetch(POS_URL+'/finance/'+idx, {
+            method:'PUT', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({amount:parseFloat(newAmount)||0, desc:newDesc})
+          }).then(function(r){return r.json();}).then(function(res){
+            if(res.ok){ alert('✅ ແກ້ໄຂສຳເລັດ'); loadFinanceList(document.getElementById('fin-filter-month').value); }
+            else { alert('❌ ແກ້ໄຂຜິດ'); }
+          });
+        });
+      });
+    }, 100);
   }).catch(function(){ box.innerHTML='<div class="ld" style="color:#dc2626">❌ ໂຫຼດບໍ່ໄດ້</div>'; });
 }
 
