@@ -563,10 +563,11 @@ input,textarea{-webkit-user-select:text!important;user-select:text!important;-we
 
 <!-- Filter -->
 <div class="card" style="padding:10px">
-  <div style="display:flex;gap:8px;align-items:center">
-    <input type="month" id="fin-filter-month" style="flex:1;padding:10px;border:2px solid #d1d5db;border-radius:10px;font-size:15px;font-family:inherit;outline:none">
+  <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+    <input type="month" id="fin-filter-month" style="flex:1;min-width:140px;padding:10px;border:2px solid #d1d5db;border-radius:10px;font-size:15px;font-family:inherit;outline:none">
     <button id="btn-fin-filter" style="background:#1a56db;color:#fff;border:none;padding:10px 16px;border-radius:10px;font-size:15px;cursor:pointer;font-family:inherit">🔍</button>
-    <a id="btn-fin-sheet" href="https://docs.google.com/spreadsheets/d/10aqQ8CVgp1dkz9H1cccWiolH7rX7d65YEIulSChYwGQ/edit" target="_blank" style="background:#16a34a;color:#fff;border:none;padding:10px 14px;border-radius:10px;font-size:15px;text-decoration:none;display:inline-block">📊 Google Sheet</a>
+    <button id="btn-fin-sync-sheet" style="background:#d97706;color:#fff;border:none;padding:10px 14px;border-radius:10px;font-size:15px;cursor:pointer;font-family:inherit">🔄 Sync Sheet</button>
+    <a href="https://docs.google.com/spreadsheets/d/10aqQ8CVgp1dkz9H1cccWiolH7rX7d65YEIulSChYwGQ/edit" target="_blank" style="background:#16a34a;color:#fff;border:none;padding:10px 14px;border-radius:10px;font-size:15px;text-decoration:none;display:inline-block">📊 Sheet</a>
   </div>
 </div>
 
@@ -2868,13 +2869,47 @@ function initFinance() {
     var month = document.getElementById('fin-filter-month').value;
     loadFinanceList(month);
   });
+  // Sync from Sheet
+  var btnSyncSheet = document.getElementById('btn-fin-sync-sheet');
+  if(btnSyncSheet) btnSyncSheet.addEventListener('click', function(){
+    var btn = this;
+    btn.textContent = '⏳ Syncing...'; btn.disabled = true;
+    fetch(POS_URL+'/finance/sync-from-sheet')
+    .then(function(r){return r.json();})
+    .then(function(res){
+      if(res.ok){ alert('✅ Sync ສຳເລັດ! '+res.count+' ລາຍການ'); loadFinanceList(document.getElementById('fin-filter-month').value); }
+      else { alert('❌ '+( res.error||'Sync ຜິດ')); }
+      btn.textContent = '🔄 Sync Sheet'; btn.disabled = false;
+    }).catch(function(){ alert('❌ ເຊື່ອມ Server ບໍ່ໄດ້'); btn.textContent = '🔄 Sync Sheet'; btn.disabled = false; });
+  });
+
+  // Sync from Sheet
+  var btnSyncSheet = document.getElementById('btn-fin-sync-sheet');
+  if(btnSyncSheet) btnSyncSheet.addEventListener('click', function(){
+    var btn = this;
+    btn.textContent = '⏳ Syncing...'; btn.disabled = true;
+    fetch(POS_URL+'/finance/sync-from-sheet')
+    .then(function(r){return r.json();})
+    .then(function(res){
+      if(res.ok){
+        alert('✅ Sync ສຳເລັດ! '+res.count+' ລາຍການ');
+        var month = document.getElementById('fin-filter-month').value;
+        loadFinanceList(month);
+      } else { alert('❌ Sync ຜິດ: '+(res.error||'')); }
+      btn.textContent = '🔄 Sync Sheet'; btn.disabled = false;
+    }).catch(function(){
+      alert('❌ ເຊື່ອມ Server ບໍ່ໄດ້');
+      btn.textContent = '🔄 Sync Sheet'; btn.disabled = false;
+    });
+  });
 }
 
-function loadFinanceList(month) {
+function loadFinanceList(month, fromSheet) {
   var box = document.getElementById('fin-list');
   if(!box) return;
   box.innerHTML = '<div class="ld">⏳ ໂຫຼດ...</div>';
-  fetch(POS_URL+'/finance?month='+(month||''))
+  var url = fromSheet ? POS_URL+'/finance/sync-from-sheet' : POS_URL+'/finance?month='+(month||'');
+  fetch(url)
   .then(function(r){return r.json();})
   .then(function(res){
     if(!res.ok){ box.innerHTML='<div class="ld" style="color:#dc2626">❌ ໂຫຼດບໍ່ໄດ້</div>'; return; }
