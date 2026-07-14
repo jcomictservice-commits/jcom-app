@@ -2910,7 +2910,10 @@ function loadFinanceList(month) {
           +'<td style="padding:8px 6px;text-align:right;font-weight:700;color:'+(isIncome?'#16a34a':'#dc2626')+'">₭'+parseFloat(r.amount).toLocaleString()+'</td>'
           +'<td style="padding:8px 6px;text-align:center">'+(isIncome?'💰 ຮັບ':'💸 ຈ່າຍ')+'</td>'
           +'<td style="padding:8px 6px;text-align:center">'+payLabel+'</td>'
-          +'<td style="padding:8px 6px;text-align:center"><button data-idx="'+rows.indexOf(r)+'" class="fin-edit-btn" style="background:#eff6ff;color:#1a56db;border:1px solid #bfdbfe;padding:4px 8px;border-radius:6px;font-size:12px;cursor:pointer;font-family:inherit">✏️</button></td>'
+          +'<td style="padding:8px 6px;text-align:center;white-space:nowrap">'
+          +'<button data-idx="'+rows.indexOf(r)+'" class="fin-edit-btn" style="background:#eff6ff;color:#1a56db;border:1px solid #bfdbfe;padding:4px 8px;border-radius:6px;font-size:12px;cursor:pointer;font-family:inherit;margin-right:4px">✏️</button>'
+          +'<button data-idx="'+rows.indexOf(r)+'" class="fin-del-btn" style="background:#fef2f2;color:#dc2626;border:1px solid #fecaca;padding:4px 8px;border-radius:6px;font-size:12px;cursor:pointer;font-family:inherit">🗑</button>'
+          +'</td>'
           +'</tr>';
       }).join('')
       + '</tbody></table></div>';
@@ -2933,6 +2936,20 @@ function loadFinanceList(month) {
             else { alert('❌ ແກ້ໄຂຜິດ'); }
           });
         });
+      // Delete buttons
+      box.querySelectorAll('.fin-del-btn').forEach(function(btn){
+        btn.addEventListener('click', function(){
+          var idx = parseInt(this.getAttribute('data-idx'));
+          var entry = rows[idx];
+          if(!entry) return;
+          if(!confirm('ລຶບລາຍການ: '+entry.category+' ₭'+parseFloat(entry.amount).toLocaleString()+'?')) return;
+          fetch(POS_URL+'/finance/'+idx, {method:'DELETE'})
+          .then(function(r){return r.json();}).then(function(res){
+            if(res.ok){ alert('✅ ລຶບສຳເລັດ'); loadFinanceList(document.getElementById('fin-filter-month').value); }
+            else { alert('❌ ລຶບຜິດ'); }
+          });
+        });
+      });
       });
     }, 100);
   }).catch(function(){ box.innerHTML='<div class="ld" style="color:#dc2626">❌ ໂຫຼດບໍ່ໄດ້</div>'; });
