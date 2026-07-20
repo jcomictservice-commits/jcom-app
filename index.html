@@ -202,13 +202,19 @@ input,textarea{-webkit-user-select:text!important;user-select:text!important;-we
   <div class="cl">🔍 ຄົ້ນຫາຍອດຂາຍສິນຄ້າ (ຊື່ ຫຼື ບາໂຄ້ດ)</div>
   <div style="display:flex;gap:8px;margin-bottom:10px">
     <input type="text" id="ps-search" placeholder="ພິມຊື່ສິນຄ້າ ຫຼື ບາໂຄ້ດ..." style="flex:1;padding:10px 14px;border:2px solid #d1d5db;border-radius:10px;font-size:15px;font-family:inherit;outline:none">
-    <button id="btn-ps-search" style="background:linear-gradient(90deg,#1a56db,#1e40af);color:#fff;border:none;padding:10px 16px;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit">🔍</button>
   </div>
-  <div style="display:flex;gap:8px;margin-bottom:10px">
-    <button id="btn-ps-current" style="flex:1;padding:8px;border-radius:8px;border:2px solid #1a56db;background:#eff6ff;color:#1a56db;font-weight:700;cursor:pointer;font-family:inherit;font-size:13px">ເດືອນນີ້</button>
-    <button id="btn-ps-prev" style="flex:1;padding:8px;border-radius:8px;border:2px solid #d1d5db;background:#f9fafb;color:#6b7280;font-weight:700;cursor:pointer;font-family:inherit;font-size:13px">ເດືອນແລ້ວ</button>
+  <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center">
+    <div style="flex:1">
+      <div style="font-size:11px;color:#9ca3af;margin-bottom:2px">ຈາກວັນທີ່</div>
+      <input type="date" id="ps-date-from" style="width:100%;padding:8px 10px;border:2px solid #d1d5db;border-radius:8px;font-size:14px;font-family:inherit;outline:none">
+    </div>
+    <div style="flex:1">
+      <div style="font-size:11px;color:#9ca3af;margin-bottom:2px">ຮອດວັນທີ່</div>
+      <input type="date" id="ps-date-to" style="width:100%;padding:8px 10px;border:2px solid #d1d5db;border-radius:8px;font-size:14px;font-family:inherit;outline:none">
+    </div>
+    <button id="btn-ps-search" style="background:linear-gradient(90deg,#1a56db,#1e40af);color:#fff;border:none;padding:10px 16px;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;align-self:flex-end">🔍</button>
   </div>
-  <div id="ps-results"><div class="ld">ພິມຊື່ສິນຄ້າ ຫຼື ບາໂຄ້ດ ແລ້ວກົດຄົ້ນຫາ</div></div>
+  <div id="ps-results"><div class="ld">ໃສ່ຊື່ສິນຄ້າ + ຊ່ວງວັນທີ ແລ້ວກົດຄົ້ນຫາ</div></div>
 </div>
 
 <div class="card">
@@ -2995,82 +3001,89 @@ function loadFinanceList(month, fromSheet) {
 
 
 // === PRODUCT SALES SEARCH ===
-var psMonthMode = 'current';
-
 function initProductSalesSearch() {
   var btnSearch = document.getElementById('btn-ps-search');
-  var btnCurrent = document.getElementById('btn-ps-current');
-  var btnPrev = document.getElementById('btn-ps-prev');
   var searchInp = document.getElementById('ps-search');
+  var dateFrom = document.getElementById('ps-date-from');
+  var dateTo = document.getElementById('ps-date-to');
 
   if (btnSearch && !btnSearch.dataset.bound) {
     btnSearch.dataset.bound = '1';
     btnSearch.addEventListener('click', doProductSalesSearch);
     searchInp.addEventListener('keypress', function(e){ if(e.key==='Enter') doProductSalesSearch(); });
-  }
 
-  if (btnCurrent && !btnCurrent.dataset.bound) {
-    btnCurrent.dataset.bound = '1';
-    btnCurrent.addEventListener('click', function(){
-      psMonthMode = 'current';
-      btnCurrent.style.background='#eff6ff'; btnCurrent.style.color='#1a56db'; btnCurrent.style.borderColor='#1a56db';
-      btnPrev.style.background='#f9fafb'; btnPrev.style.color='#6b7280'; btnPrev.style.borderColor='#d1d5db';
-      doProductSalesSearch();
-    });
-  }
-
-  if (btnPrev && !btnPrev.dataset.bound) {
-    btnPrev.dataset.bound = '1';
-    btnPrev.addEventListener('click', function(){
-      psMonthMode = 'prev';
-      btnPrev.style.background='#eff6ff'; btnPrev.style.color='#1a56db'; btnPrev.style.borderColor='#1a56db';
-      btnCurrent.style.background='#f9fafb'; btnCurrent.style.color='#6b7280'; btnCurrent.style.borderColor='#d1d5db';
-      doProductSalesSearch();
-    });
+    var today = new Date().toISOString().slice(0,10);
+    var firstDay = new Date();
+    firstDay.setDate(1);
+    if(!dateFrom.value) dateFrom.value = firstDay.toISOString().slice(0,10);
+    if(!dateTo.value) dateTo.value = today;
   }
 }
 
 function doProductSalesSearch() {
   var box = document.getElementById('ps-results');
   var q = (document.getElementById('ps-search').value||'').trim();
+  var from = document.getElementById('ps-date-from').value||'';
+  var to = document.getElementById('ps-date-to').value||'';
   box.innerHTML = '<div class="ld">⏳ ກຳລັງຄົ້ນຫາ...</div>';
 
-  fetch(POS_URL+'/sales/products?q='+encodeURIComponent(q)+'&month='+psMonthMode)
+  var url = POS_URL+'/sales/products?q='+encodeURIComponent(q)+'&from='+from+'&to='+to;
+  fetch(url)
   .then(function(r){return r.json();})
   .then(function(res){
     if(!res.ok){ box.innerHTML='<div class="ld" style="color:#dc2626">❌ ໂຫຼດບໍ່ໄດ້</div>'; return; }
-    var data = res.data||[];
-    var label = res.monthLabel||'';
+    var summary = res.summary||[];
+    var details = res.details||[];
 
-    if(!data.length){
-      box.innerHTML = '<div class="ld">ບໍ່ພົບຂໍ້ມູນ' + (q?(' ສຳລັບ "'+q+'"'):'') + '</div>';
+    if(!summary.length){
+      box.innerHTML = '<div class="ld">ບໍ່ພົບຂໍ້ມູນ' + (q?(' ສຳລັບ "'+q+'"'):'') + ' ໃນຊ່ວງວັນທີ່ນີ້</div>';
       return;
     }
 
-    var html2 = '<div style="font-size:12px;color:#9ca3af;margin-bottom:8px">📅 ເດືອນ: '+label+' | ພົບ '+data.length+' ລາຍການ</div>';
-    html2 += '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:14px">';
-    html2 += '<thead><tr style="background:#eff6ff">';
-    html2 += '<th style="padding:8px 6px;text-align:left">ຊື່ສິນຄ້າ</th>';
-    html2 += '<th style="padding:8px 6px;text-align:left">ບາໂຄ້ດ</th>';
-    html2 += '<th style="padding:8px 6px;text-align:center">ຈຳນວນຂາຍ</th>';
-    html2 += '<th style="padding:8px 6px;text-align:center">ຈຳນວນບິນ</th>';
-    html2 += '<th style="padding:8px 6px;text-align:right">ຍອດເງິນ</th>';
-    html2 += '</tr></thead><tbody>';
+    var html2 = '<div style="font-size:12px;color:#9ca3af;margin-bottom:8px">📅 '+from+' ຫາ '+to+' | ພົບ '+summary.length+' ສິນຄ້າ, '+details.length+' ລາຍການ</div>';
 
-    data.forEach(function(p){
+    // Summary table
+    html2 += '<div style="font-weight:700;margin:10px 0 6px;color:#1a56db">📊 ສະຫຼຸບຕາມສິນຄ້າ</div>';
+    html2 += '<div style="overflow-x:auto;margin-bottom:16px"><table style="width:100%;border-collapse:collapse;font-size:13px">';
+    html2 += '<thead><tr style="background:#eff6ff">';
+    html2 += '<th style="padding:6px">ຊື່ສິນຄ້າ</th><th style="padding:6px">ບາໂຄ້ດ</th>';
+    html2 += '<th style="padding:6px">ຈຳນວນ</th><th style="padding:6px">ບິນ</th><th style="padding:6px">ຍອດເງິນ</th>';
+    html2 += '</tr></thead><tbody>';
+    summary.forEach(function(p){
       html2 += '<tr style="border-bottom:1px solid #f3f4f6">';
-      html2 += '<td style="padding:8px 6px;font-weight:600">'+p.Name+'</td>';
-      html2 += '<td style="padding:8px 6px;color:#6b7280;font-size:12px">'+(p.Barcode||'').trim()+'</td>';
-      html2 += '<td style="padding:8px 6px;text-align:center;font-weight:700;color:#1a56db">'+p.TotalQty+'</td>';
-      html2 += '<td style="padding:8px 6px;text-align:center">'+p.BillCount+'</td>';
-      html2 += '<td style="padding:8px 6px;text-align:right;font-weight:700;color:#16a34a">₭'+p.TotalAmount.toLocaleString()+'</td>';
+      html2 += '<td style="padding:6px;font-weight:600">'+p.Name+'</td>';
+      html2 += '<td style="padding:6px;color:#6b7280;font-size:11px">'+(p.Barcode||'').trim()+'</td>';
+      html2 += '<td style="padding:6px;text-align:center;font-weight:700;color:#1a56db">'+p.TotalQty+'</td>';
+      html2 += '<td style="padding:6px;text-align:center">'+p.BillCount+'</td>';
+      html2 += '<td style="padding:6px;text-align:right;font-weight:700;color:#16a34a">₭'+p.TotalAmount.toLocaleString()+'</td>';
       html2 += '</tr>';
     });
-
     html2 += '</tbody></table></div>';
+
+    // Detail table with Doc Date, Customer, SN
+    html2 += '<div style="font-weight:700;margin:10px 0 6px;color:#d97706">📋 ລາຍລະອຽດແຕ່ລະບິນ</div>';
+    html2 += '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">';
+    html2 += '<thead><tr style="background:#fff7ed">';
+    html2 += '<th style="padding:6px">Doc No</th><th style="padding:6px">ວັນທີຂາຍ</th><th style="padding:6px">ລູກຄ້າ</th>';
+    html2 += '<th style="padding:6px">ສິນຄ້າ</th><th style="padding:6px">ຈຳນວນ</th><th style="padding:6px">SN</th><th style="padding:6px">ຍອດ</th>';
+    html2 += '</tr></thead><tbody>';
+    details.forEach(function(d){
+      html2 += '<tr style="border-bottom:1px solid #f3f4f6">';
+      html2 += '<td style="padding:6px">'+d.DocNumber+'</td>';
+      html2 += '<td style="padding:6px;white-space:nowrap">'+(d.DocDate||'').slice(0,16)+'</td>';
+      html2 += '<td style="padding:6px">'+(d.CustomerName||'-')+'</td>';
+      html2 += '<td style="padding:6px">'+d.ProductName+'</td>';
+      html2 += '<td style="padding:6px;text-align:center">'+d.Qty+'</td>';
+      html2 += '<td style="padding:6px;font-size:11px;color:#6b7280">'+(d.SN?d.SN.trim():'-')+'</td>';
+      html2 += '<td style="padding:6px;text-align:right">₭'+d.SumPrice.toLocaleString()+'</td>';
+      html2 += '</tr>';
+    });
+    html2 += '</tbody></table></div>';
+
     box.innerHTML = html2;
   }).catch(function(){ box.innerHTML='<div class="ld" style="color:#dc2626">❌ ເຊື່ອມ Server ບໍ່ໄດ້</div>'; });
 }
+
 
 </script>
 <input type="file" id="ci-img-inp-global" accept="image/*" style="display:none">
