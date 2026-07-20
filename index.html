@@ -197,6 +197,20 @@ input,textarea{-webkit-user-select:text!important;user-select:text!important;-we
   </div>
 </div>
 
+<!-- PRODUCT SALES SEARCH -->
+<div class="card">
+  <div class="cl">🔍 ຄົ້ນຫາຍອດຂາຍສິນຄ້າ (ຊື່ ຫຼື ບາໂຄ້ດ)</div>
+  <div style="display:flex;gap:8px;margin-bottom:10px">
+    <input type="text" id="ps-search" placeholder="ພິມຊື່ສິນຄ້າ ຫຼື ບາໂຄ້ດ..." style="flex:1;padding:10px 14px;border:2px solid #d1d5db;border-radius:10px;font-size:15px;font-family:inherit;outline:none">
+    <button id="btn-ps-search" style="background:linear-gradient(90deg,#1a56db,#1e40af);color:#fff;border:none;padding:10px 16px;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit">🔍</button>
+  </div>
+  <div style="display:flex;gap:8px;margin-bottom:10px">
+    <button id="btn-ps-current" style="flex:1;padding:8px;border-radius:8px;border:2px solid #1a56db;background:#eff6ff;color:#1a56db;font-weight:700;cursor:pointer;font-family:inherit;font-size:13px">ເດືອນນີ້</button>
+    <button id="btn-ps-prev" style="flex:1;padding:8px;border-radius:8px;border:2px solid #d1d5db;background:#f9fafb;color:#6b7280;font-weight:700;cursor:pointer;font-family:inherit;font-size:13px">ເດືອນແລ້ວ</button>
+  </div>
+  <div id="ps-results"><div class="ld">ພິມຊື່ສິນຄ້າ ຫຼື ບາໂຄ້ດ ແລ້ວກົດຄົ້ນຫາ</div></div>
+</div>
+
 <div class="card">
   <div class="cl">📊 ຕາຕາລາງຍອດຕາມພະນັກງານ</div>
   <div id="sal-table"><div class="ld">ກົດ 🔍 ໂຫຼດ ເພື່ອສະແດງ</div></div>
@@ -756,6 +770,7 @@ function showPage(id) {
   if (id === 'staff') initStaff();
   if (id === 'users') initUsers();
   if (id === 'quotation') initQuotation();
+  if (id === 'sales') initProductSalesSearch();
   if (id === 'docs') initDocs();
   if (id === 'finance') initFinance();
   if (id === 'setup') initSetup();
@@ -2975,6 +2990,86 @@ function loadFinanceList(month, fromSheet) {
       });
     }, 100);
   }).catch(function(){ box.innerHTML='<div class="ld" style="color:#dc2626">❌ ໂຫຼດບໍ່ໄດ້</div>'; });
+}
+
+
+
+// === PRODUCT SALES SEARCH ===
+var psMonthMode = 'current';
+
+function initProductSalesSearch() {
+  var btnSearch = document.getElementById('btn-ps-search');
+  var btnCurrent = document.getElementById('btn-ps-current');
+  var btnPrev = document.getElementById('btn-ps-prev');
+  var searchInp = document.getElementById('ps-search');
+
+  if (btnSearch && !btnSearch.dataset.bound) {
+    btnSearch.dataset.bound = '1';
+    btnSearch.addEventListener('click', doProductSalesSearch);
+    searchInp.addEventListener('keypress', function(e){ if(e.key==='Enter') doProductSalesSearch(); });
+  }
+
+  if (btnCurrent && !btnCurrent.dataset.bound) {
+    btnCurrent.dataset.bound = '1';
+    btnCurrent.addEventListener('click', function(){
+      psMonthMode = 'current';
+      btnCurrent.style.background='#eff6ff'; btnCurrent.style.color='#1a56db'; btnCurrent.style.borderColor='#1a56db';
+      btnPrev.style.background='#f9fafb'; btnPrev.style.color='#6b7280'; btnPrev.style.borderColor='#d1d5db';
+      doProductSalesSearch();
+    });
+  }
+
+  if (btnPrev && !btnPrev.dataset.bound) {
+    btnPrev.dataset.bound = '1';
+    btnPrev.addEventListener('click', function(){
+      psMonthMode = 'prev';
+      btnPrev.style.background='#eff6ff'; btnPrev.style.color='#1a56db'; btnPrev.style.borderColor='#1a56db';
+      btnCurrent.style.background='#f9fafb'; btnCurrent.style.color='#6b7280'; btnCurrent.style.borderColor='#d1d5db';
+      doProductSalesSearch();
+    });
+  }
+}
+
+function doProductSalesSearch() {
+  var box = document.getElementById('ps-results');
+  var q = (document.getElementById('ps-search').value||'').trim();
+  box.innerHTML = '<div class="ld">⏳ ກຳລັງຄົ້ນຫາ...</div>';
+
+  fetch(POS_URL+'/sales/products?q='+encodeURIComponent(q)+'&month='+psMonthMode)
+  .then(function(r){return r.json();})
+  .then(function(res){
+    if(!res.ok){ box.innerHTML='<div class="ld" style="color:#dc2626">❌ ໂຫຼດບໍ່ໄດ້</div>'; return; }
+    var data = res.data||[];
+    var label = res.monthLabel||'';
+
+    if(!data.length){
+      box.innerHTML = '<div class="ld">ບໍ່ພົບຂໍ້ມູນ' + (q?(' ສຳລັບ "'+q+'"'):'') + '</div>';
+      return;
+    }
+
+    var html2 = '<div style="font-size:12px;color:#9ca3af;margin-bottom:8px">📅 ເດືອນ: '+label+' | ພົບ '+data.length+' ລາຍການ</div>';
+    html2 += '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:14px">';
+    html2 += '<thead><tr style="background:#eff6ff">';
+    html2 += '<th style="padding:8px 6px;text-align:left">ຊື່ສິນຄ້າ</th>';
+    html2 += '<th style="padding:8px 6px;text-align:left">ບາໂຄ້ດ</th>';
+    html2 += '<th style="padding:8px 6px;text-align:center">ຈຳນວນຂາຍ</th>';
+    html2 += '<th style="padding:8px 6px;text-align:center">ຈຳນວນບິນ</th>';
+    html2 += '<th style="padding:8px 6px;text-align:right">ຍອດເງິນ</th>';
+    html2 += '</tr></thead><tbody>';
+
+    data.forEach(function(p){
+      html2 += '<tr style="border-bottom:1px solid #f3f4f6">';
+      html2 += '<td style="padding:8px 6px;font-weight:600">'+p.Name+'</td>';
+      html2 += '<td style="padding:8px 6px;color:#6b7280;font-size:12px">'+(p.Barcode||'').trim()+'</td>';
+      html2 += '<td style="padding:8px 6px;text-align:center;font-weight:700;color:#1a56db">'+p.TotalQty+'</td>';
+      html2 += '<td style="padding:8px 6px;text-align:center">'+p.BillCount+'</td>';
+      html2 += '<td style="padding:8px 6px;text-align:right;font-weight:700;color:#16a34a">₭'+p.TotalAmount.toLocaleString()+'</td>';
+      html2 += '</tr>';
+    });
+
+    html2 += '</tbody></table></div>';
+    box.innerHTML = html2;
+  }).catch(function(){ box.innerHTML='<div class="ld" style="color:#dc2626">❌ ເຊື່ອມ Server ບໍ່ໄດ້</div>'; });
 }
 
 </script>
