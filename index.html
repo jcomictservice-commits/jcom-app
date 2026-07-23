@@ -3132,7 +3132,7 @@ function loadCatGroups() {
   .then(function(r){return r.json();})
   .then(function(res){
     if(!res.ok){ box.innerHTML='<div class="ld" style="color:#dc2626">Load failed</div>'; return; }
-    catGroups = res.data||[];
+    catGroups = (res.data||[]).sort(function(a,b){return a.name.localeCompare(b.name);});
     renderCatGroups();
   }).catch(function(){ box.innerHTML='<div class="ld" style="color:#dc2626">Connection failed</div>'; });
 }
@@ -3192,27 +3192,57 @@ function doCatSearch(query) {
 
 var catSelectedItems = [];
 
+var catImagesCache = null;
+function getCatImage(productId) {
+  if(catImagesCache && catImagesCache[productId]) return POS_URL + catImagesCache[productId];
+  return null;
+}
+
 function renderCatProducts(res, box) {
   if(!res.ok || !res.data || !res.data.length){
     box.innerHTML = '<div class="ld">No products found</div>';
     return;
   }
   catSelectedItems = [];
-  var html2 = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">';
-  html2 += '<div style="font-size:12px;color:#9ca3af">Found '+res.total+' items (showing '+res.data.length+')</div>';
-  html2 += '<button id="btn-cat-export" style="background:#16a34a;color:#fff;border:none;padding:8px 14px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">📤 Export (0)</button>';
-  html2 += '</div>';
-  html2 += '<div style="display:flex;flex-direction:column;gap:8px">';
-  res.data.forEach(function(p, idx){
-    html2 += '<div class="cat-prod-item" style="display:flex;align-items:center;gap:10px;padding:10px;border:1px solid #e5e7eb;border-radius:10px;background:#fff">';
-    html2 += '<input type="checkbox" class="cat-prod-check" data-idx="'+idx+'" style="width:20px;height:20px">';
-    html2 += '<div style="flex:1"><div style="font-weight:600;font-size:14px">'+p.name+'</div>';
-    html2 += '<div style="font-size:12px;color:#9ca3af">'+(p.barcode||'').trim()+'</div></div>';
-    html2 += '<div style="font-weight:700;color:#1a56db">₭'+(p.price||0).toLocaleString()+'</div></div>';
-  });
-  html2 += '</div>';
-  box.innerHTML = html2;
-  window.catProductsData = res.data;
+
+  function doRender() {
+    var html2 = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">';
+    html2 += '<div style="font-size:12px;color:#9ca3af">Found '+res.total+' items (showing '+res.data.length+')</div>';
+    html2 += '<button id="btn-cat-export" style="background:#16a34a;color:#fff;border:none;padding:8px 14px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">📤 Export (0)</button>';
+    html2 += '</div>';
+    html2 += '<div style="display:flex;flex-direction:column;gap:8px">';
+    res.data.forEach(function(p, idx){
+      var imgUrl = getCatImage(p.id);
+      html2 += '<div class="cat-prod-item" style="display:flex;align-items:center;gap:10px;padding:10px;border:1px solid #e5e7eb;border-radius:10px;background:#fff">';
+      html2 += '<input type="checkbox" class="cat-prod-check" data-idx="'+idx+'" style="width:20px;height:20px">';
+      if(imgUrl) {
+        html2 += '<img src="'+imgUrl+'" style="width:44px;height:44px;object-fit:cover;border-radius:8px;flex-shrink:0">';
+      } else {
+        html2 += '<div style="width:44px;height:44px;background:#f3f4f6;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:18px">📦</div>';
+      }
+      html2 += '<div style="flex:1"><div style="font-weight:600;font-size:14px">'+p.name+'</div>';
+      html2 += '<div style="font-size:12px;color:#9ca3af">'+(p.barcode||'').trim()+'</div></div>';
+      html2 += '<div style="font-weight:700;color:#1a56db">₭'+(p.price||0).toLocaleString()+'</div></div>';
+    });
+    html2 += '</div>';
+    box.innerHTML = html2;
+    window.catProductsData = res.data;
+    bindCatProductEvents();
+  }
+
+  if(catImagesCache === null) {
+    fetch(POS_URL+'/product-images').then(function(r){return r.json();}).then(function(imgRes){
+      catImagesCache = imgRes.data || {};
+      doRender();
+    }).catch(function(){ catImagesCache = {}; doRender(); });
+  } else {
+    doRender();
+  }
+  return;
+}
+
+function bindCatProductEvents() {
+  var box = document.getElementById('cat-products-list');
   box.querySelectorAll('.cat-prod-check').forEach(function(cb){
     cb.addEventListener('change', function(){
       var idx = parseInt(this.getAttribute('data-idx'));
@@ -3221,19 +3251,77 @@ function renderCatProducts(res, box) {
       document.getElementById('btn-cat-export').textContent = '📤 Export ('+catSelectedItems.length+')';
     });
   });
-  document.getElementById('btn-cat-export').addEventListener('click', function(){
+  var btnExport = document.getElementById('btn-cat-export');
+  if(btnExport) btnExport.addEventListener('click', function(){
     if(!catSelectedItems.length){ alert('Select products first'); return; }
     exportCatalogSelection();
   });
 }
 
 function exportCatalogSelection() {
-  var msg = '🛍 Product List\\n\\n';
-  catSelectedItems.forEach(function(p, i){
-    msg += (i+1)+'. '+p.name+' - ₭'+(p.price||0).toLocaleString()+'\\n';
+  var W = 900;
+  var itemH = 130;
+  var H = 180 + catSelectedItems.length * itemH + 60;
+  var canvas = document.createElement('canvas');
+  canvas.width = W; canvas.height = H;
+  var ctx = canvas.getContext('2d');
+
+  ctx.fillStyle = '#fff'; ctx.fillRect(0,0,W,H);
+
+  var g = ctx.createLinearGradient(0,0,W,0);
+  g.addColorStop(0,'#1a56db'); g.addColorStop(1,'#1e40af');
+  ctx.fillStyle = g; ctx.fillRect(0,0,W,90);
+  ctx.fillStyle = '#fff'; ctx.font = '700 30px sans-serif'; ctx.textAlign = 'left';
+  ctx.fillText('🛍 Jcom ICT Service - ລາຍການສິນຄ້າ', 30, 55);
+
+  var imgPromises = catSelectedItems.map(function(p){
+    return new Promise(function(resolve){
+      var imgUrl = getCatImage(p.id);
+      if(!imgUrl){ resolve(null); return; }
+      var img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = function(){ resolve(img); };
+      img.onerror = function(){ resolve(null); };
+      img.src = imgUrl;
+    });
   });
-  msg += '\\nJcom ICT Service | 020-7776-9999';
-  window.open('https://wa.me/?text='+encodeURIComponent(msg), '_blank');
+
+  Promise.all(imgPromises).then(function(images){
+    var y = 110;
+    catSelectedItems.forEach(function(p, i){
+      var img = images[i];
+      ctx.strokeStyle = '#e5e7eb'; ctx.lineWidth = 1;
+      ctx.strokeRect(30, y, W-60, itemH-10);
+
+      if(img) {
+        ctx.drawImage(img, 40, y+10, 100, 100);
+      } else {
+        ctx.fillStyle = '#f3f4f6'; ctx.fillRect(40, y+10, 100, 100);
+        ctx.fillStyle = '#9ca3af'; ctx.font = '40px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText('📦', 90, y+70);
+      }
+
+      ctx.textAlign = 'left'; ctx.fillStyle = '#1a1a2e';
+      ctx.font = '700 22px sans-serif';
+      var name = p.name.length > 40 ? p.name.slice(0,40)+'...' : p.name;
+      ctx.fillText(name, 160, y+45);
+
+      ctx.font = '800 24px sans-serif'; ctx.fillStyle = '#1a56db';
+      ctx.fillText('₭'+(p.price||0).toLocaleString(), 160, y+85);
+
+      y += itemH;
+    });
+
+    ctx.fillStyle = '#6b7280'; ctx.font = '18px sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('📞 020-7776-9999', W/2, H-25);
+
+    canvas.toBlob(function(blob){
+      var url = URL.createObjectURL(blob);
+      var win = window.open('', '_blank');
+      win.document.write('<img src="'+url+'" style="max-width:100%">');
+      win.document.write('<br><a href="'+url+'" download="catalog.png" style="display:block;text-align:center;padding:15px;background:#16a34a;color:#fff;text-decoration:none;font-size:18px;font-weight:700">📥 Download</a>');
+    }, 'image/png');
+  });
 }
 
 </script>
