@@ -3571,7 +3571,7 @@ function generateCatalogPoster() {
   var cols = cmSelectedProducts.length <= 2 ? cmSelectedProducts.length : (cmSelectedProducts.length <= 6 ? 2 : 3);
   var rows = Math.ceil(cmSelectedProducts.length / cols);
   var cardW = (W - 60 - (cols-1)*20) / cols;
-  var cardH = cardW * 1.55;
+  var cardH = cardW * 1.9;
   var headerH = cmSelectedPromo ? 320 : 180;
   var footerH = 480;
   var H = headerH + rows*(cardH+20) + footerH + 40;
@@ -3679,7 +3679,7 @@ function generateCatalogPoster() {
       ctx.strokeStyle = '#e5e7eb'; ctx.lineWidth = 1;
       roundRectCM(ctx, x, y, cardW, cardH, 14); ctx.stroke();
 
-      var imgH = cardW * 0.55;
+      var imgH = cardW * 0.45;
       var img = prodImages[i];
       if(img) {
         ctx.save();
@@ -3696,19 +3696,19 @@ function generateCatalogPoster() {
       }
 
       // Name
-      ctx.fillStyle = '#1a1a2e'; ctx.textAlign = 'left'; ctx.font = '700 30px sans-serif';
+      ctx.fillStyle = '#1a1a2e'; ctx.textAlign = 'left'; ctx.font = '700 24px sans-serif';
       var name = p.name.length > 22 ? p.name.slice(0,22)+'...' : p.name;
       ctx.fillText(name, x+10, y+imgH+30);
 
       // Spec
       if(p.spec) {
-        ctx.fillStyle = '#6b7280'; ctx.font = '22px sans-serif';
+        ctx.fillStyle = '#6b7280'; ctx.font = '17px sans-serif';
         var spec = p.spec.length > 30 ? p.spec.slice(0,30)+'...' : p.spec;
         ctx.fillText(spec, x+10, y+imgH+48);
       }
 
       // Price
-      ctx.fillStyle = '#dc2626'; ctx.font = '800 40px sans-serif';
+      ctx.fillStyle = '#dc2626'; ctx.font = '800 32px sans-serif';
       ctx.fillText('₭'+p.price.toLocaleString(), x+10, y+cardH-14);
     });
 
