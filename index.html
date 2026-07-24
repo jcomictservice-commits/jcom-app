@@ -3573,7 +3573,7 @@ function generateCatalogPoster() {
   var cardW = (W - 60 - (cols-1)*20) / cols;
   var cardH = cardW * 1.25;
   var headerH = cmSelectedPromo ? 320 : 180;
-  var footerH = 130;
+  var footerH = 220;
   var H = headerH + rows*(cardH+20) + footerH + 40;
 
   var canvas = document.createElement('canvas');
@@ -3716,14 +3716,28 @@ function generateCatalogPoster() {
     var footY = startY + rows*(cardH+20);
     ctx.fillStyle = '#1a1a2e'; ctx.fillRect(0, footY, W, footerH);
 
+    ctx.textAlign = 'left';
+    var fy = footY + 30;
+
+    ctx.fillStyle = '#fff'; ctx.font = '700 17px sans-serif';
+    ctx.fillText('⏰ ຫາດສັຈຈັນ-ອາທິດ 8:00-17:20', 30, fy); fy += 26;
+
+    ctx.font = '600 15px sans-serif'; ctx.fillStyle = '#d1d5db';
+    ctx.fillText('📍 ບ້ານໂພນໄຊ ເມືອງປາກເຊ ແຂວງຈຳປາສັກ', 30, fy); fy += 24;
+
+    ctx.fillText('💬 WhatsApp: '+shopTels.join(' | '), 30, fy); fy += 24;
+
+    ctx.fillText('📘 Facebook: @Jcomictservice   🎵 TikTok: Jcompakse69999', 30, fy); fy += 24;
+
+    ctx.fillStyle = '#93c5fd'; ctx.font = '700 15px sans-serif';
+    ctx.fillText('🌐 www.jcomictservice.com', 30, fy); fy += 24;
+
     if(extraNote) {
-      ctx.fillStyle = '#fff'; ctx.textAlign = 'left';
-      ctx.font = '500 14px sans-serif'; ctx.fillStyle='#d1d5db';
-      var noteLines = extraNote.split('\\n');
-      var ny = footY + 68;
+      ctx.font = '500 14px sans-serif'; ctx.fillStyle='#fbbf24';
+      var noteLines = extraNote.split(String.fromCharCode(10));
       noteLines.slice(0,2).forEach(function(line){
-        ctx.fillText(line, 30, ny);
-        ny += 20;
+        ctx.fillText(line, 30, fy);
+        fy += 20;
       });
     }
 
