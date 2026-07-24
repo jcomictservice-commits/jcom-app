@@ -3573,7 +3573,7 @@ function generateCatalogPoster() {
   var cardW = (W - 60 - (cols-1)*20) / cols;
   var cardH = cardW * 1.25;
   var headerH = cmSelectedPromo ? 320 : 180;
-  var footerH = 480;
+  var footerH = 700;
   var H = headerH + rows*(cardH+20) + footerH + 40;
 
   var canvas = document.createElement('canvas');
@@ -3613,7 +3613,7 @@ function generateCatalogPoster() {
     var prodImages = results[3];
 
     // Draw header
-    var topBarH = 320;
+    var topBarH = 420;
     var promoY = topBarH;
     var promoH = headerH - topBarH;
 
@@ -3627,15 +3627,15 @@ function generateCatalogPoster() {
 
       // Shop name next to logo
       ctx.fillStyle = '#1a1a2e'; ctx.textAlign = 'left';
-      ctx.font = '900 96px sans-serif';
-      ctx.fillText('JCOM ICT SERVICE', 25+lw+18, topBarH/2-20);
+      ctx.font = '900 144px sans-serif';
+      ctx.fillText('JCOM ICT SERVICE', 25+lw+18, topBarH/2-30);
 
       // Phone numbers next to logo
-      ctx.fillStyle = '#1a56db'; ctx.font = '700 60px sans-serif';
-      ctx.fillText('📞 '+shopTels.join(' | '), 25+lw+18, topBarH/2+60);
+      ctx.fillStyle = '#1a56db'; ctx.font = '700 90px sans-serif';
+      ctx.fillText('📞 '+shopTels.join(' | '), 25+lw+18, topBarH/2+90);
     } else {
-      ctx.fillStyle = '#1a1a2e'; ctx.textAlign = 'left'; ctx.font = '900 108px sans-serif';
-      ctx.fillText('JCOM ICT SERVICE', 25, topBarH/2+20);
+      ctx.fillStyle = '#1a1a2e'; ctx.textAlign = 'left'; ctx.font = '900 162px sans-serif';
+      ctx.fillText('JCOM ICT SERVICE', 25, topBarH/2+30);
     }
 
     // Credit logos (right, top)
@@ -3696,19 +3696,19 @@ function generateCatalogPoster() {
       }
 
       // Name
-      ctx.fillStyle = '#1a1a2e'; ctx.textAlign = 'left'; ctx.font = '700 30px sans-serif';
+      ctx.fillStyle = '#1a1a2e'; ctx.textAlign = 'left'; ctx.font = '700 45px sans-serif';
       var name = p.name.length > 22 ? p.name.slice(0,22)+'...' : p.name;
       ctx.fillText(name, x+10, y+imgH+30);
 
       // Spec
       if(p.spec) {
-        ctx.fillStyle = '#6b7280'; ctx.font = '22px sans-serif';
+        ctx.fillStyle = '#6b7280'; ctx.font = '33px sans-serif';
         var spec = p.spec.length > 30 ? p.spec.slice(0,30)+'...' : p.spec;
         ctx.fillText(spec, x+10, y+imgH+48);
       }
 
       // Price
-      ctx.fillStyle = '#dc2626'; ctx.font = '800 40px sans-serif';
+      ctx.fillStyle = '#dc2626'; ctx.font = '800 60px sans-serif';
       ctx.fillText('₭'+p.price.toLocaleString(), x+10, y+cardH-14);
     });
 
@@ -3719,25 +3719,25 @@ function generateCatalogPoster() {
     ctx.textAlign = 'left';
     var fy = footY + 30;
 
-    ctx.fillStyle = '#fff'; ctx.font = '700 50px sans-serif';
-    ctx.fillText('⏰ ເວລາເປິດ: 8:00-17:30 ວັນຈັນ-ວັນອາທິດ', 30, fy); fy += 70;
+    ctx.fillStyle = '#fff'; ctx.font = '700 75px sans-serif';
+    ctx.fillText('⏰ ເວລາເປິດ: 8:00-17:30 ວັນຈັນ-ວັນອາທິດ', 30, fy); fy += 105;
 
-    ctx.font = '600 44px sans-serif'; ctx.fillStyle = '#d1d5db';
-    ctx.fillText('📍 ບ້ານໂພນໄຊ ເມືອງປາກເຊ ແຂວງຈຳປາສັກ', 30, fy); fy += 60;
+    ctx.font = '600 66px sans-serif'; ctx.fillStyle = '#d1d5db';
+    ctx.fillText('📍 ບ້ານໂພນໄຊ ເມືອງປາກເຊ ແຂວງຈຳປາສັກ', 30, fy); fy += 90;
 
-    ctx.fillText('💬 WhatsApp: '+shopTels.join(' | '), 30, fy); fy += 60;
+    ctx.fillText('💬 WhatsApp: '+shopTels.join(' | '), 30, fy); fy += 90;
 
-    ctx.fillText('📘 Facebook: @Jcomictservice   🎵 TikTok: Jcompakse69999', 30, fy); fy += 60;
+    ctx.fillText('📘 Facebook: @Jcomictservice   🎵 TikTok: Jcompakse69999', 30, fy); fy += 90;
 
-    ctx.fillStyle = '#93c5fd'; ctx.font = '700 44px sans-serif';
-    ctx.fillText('🌐 www.jcomictservice.com', 30, fy); fy += 60;
+    ctx.fillStyle = '#93c5fd'; ctx.font = '700 66px sans-serif';
+    ctx.fillText('🌐 www.jcomictservice.com', 30, fy); fy += 90;
 
     if(extraNote) {
-      ctx.font = '500 36px sans-serif'; ctx.fillStyle='#fbbf24';
+      ctx.font = '500 54px sans-serif'; ctx.fillStyle='#fbbf24';
       var noteLines = extraNote.split(String.fromCharCode(10));
       noteLines.slice(0,2).forEach(function(line){
         ctx.fillText(line, 30, fy);
-        fy += 45;
+        fy += 68;
       });
     }
 
