@@ -3370,7 +3370,7 @@ function exportCatalogSelection() {
 var cmSelectedProducts = [];
 var cmPromoImages = [];
 var cmSelectedPromo = null;
-var cmLogoUrls = { eaon: '/docs/doc_1784863698123.png', krungsri: '/docs/doc_1784863698949.png' };
+var cmLogoUrls = { eaon: '/docs/doc_1784863698123.png', krungsri: '/docs/doc_1784863698949.png', facebook: '/docs/doc_1784885990298.png', tiktok: '/docs/doc_1784885991231.png' };
 
 function initCatalogTabs() {
   var btnBrowse = document.getElementById('btn-cat-tab-browse');
@@ -3606,9 +3606,12 @@ function generateCatalogPoster() {
     loadImg(cmLogoUrls.eaon ? POS_URL+cmLogoUrls.eaon : null),
     loadImg(cmLogoUrls.krungsri ? POS_URL+cmLogoUrls.krungsri : null),
     Promise.all(cmSelectedProducts.map(function(p){ return loadImg(p.img); })),
-    loadImg(jcomLogoSrc)
+    loadImg(jcomLogoSrc),
+    loadImg(POS_URL+cmLogoUrls.facebook),
+    loadImg(POS_URL+cmLogoUrls.tiktok)
   ]).then(function(results){
     promoImg = results[0]; eaonImg = results[1]; krungsriImg = results[2]; logoImg = results[4];
+    var fbLogoImg = results[5]; var ttLogoImg = results[6];
     var prodImages = results[3];
 
     // Draw header
@@ -3748,8 +3751,26 @@ function generateCatalogPoster() {
     var waText = fitText('💬 WhatsApp: '+shopTels.join(' | '), '500 20px sans-serif', maxTextW);
     ctx.fillText(waText, fx, fy); fy += 30;
 
-    var socialText = fitText('📘 @Jcomictservice   🎵 Jcompakse69999', '500 20px sans-serif', maxTextW);
-    ctx.fillText(socialText, fx, fy); fy += 30;
+    // Draw Facebook logo + text
+    var socialIconSize = 26;
+    var sx = fx;
+    if(fbLogoImg) {
+      ctx.drawImage(fbLogoImg, sx, fy-20, socialIconSize, socialIconSize);
+      sx += socialIconSize + 8;
+    }
+    ctx.fillStyle = '#d1d5db'; ctx.font = '500 20px sans-serif'; ctx.textAlign = 'left';
+    var fbText = fitText('@Jcomictservice', '500 20px sans-serif', maxTextW*0.4);
+    ctx.fillText(fbText, sx, fy);
+    sx += ctx.measureText(fbText).width + 24;
+
+    // Draw TikTok logo + text
+    if(ttLogoImg) {
+      ctx.drawImage(ttLogoImg, sx, fy-20, socialIconSize, socialIconSize);
+      sx += socialIconSize + 8;
+    }
+    var ttText = fitText('Jcompakse69999', '500 20px sans-serif', maxTextW*0.35);
+    ctx.fillText(ttText, sx, fy);
+    fy += 30;
 
     ctx.fillStyle = '#93c5fd';
     var webText = fitText('🌐 www.jcomictservice.com', '700 20px sans-serif', maxTextW);
