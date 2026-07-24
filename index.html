@@ -522,87 +522,52 @@ input,textarea{-webkit-user-select:text!important;user-select:text!important;-we
 
 <!-- CATALOG -->
 <div id="sec-catalog" class="sec">
-<div class="pt">🛍 ກາຕາລ໋ອກ</div>
+<div class="pt">🛍 ສ້າງ Catalog</div>
 
-<!-- Tab switcher -->
-<div style="display:flex;gap:8px;margin-bottom:14px">
-  <button id="btn-cat-tab-browse" style="flex:1;padding:10px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;background:#1a56db;color:#fff;border:none">📦 ເບິ່ງສິນຄ້າ</button>
-  <button id="btn-cat-tab-maker" style="flex:1;padding:10px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;background:#f3f4f6;color:#6b7280;border:none">🎨 ສ້າງ Catalog</button>
-</div>
-
-<!-- ===== BROWSE TAB ===== -->
-<div id="cat-tab-browse">
-<div class="card" style="padding:10px">
-  <input type="text" id="cat-search" placeholder="🔍 ຄົ້ນຫາສິນຄ້າຂ້າມທຸກໝວດ..." style="width:100%;padding:10px 14px;border:2px solid #d1d5db;border-radius:10px;font-size:15px;font-family:inherit;outline:none">
-</div>
-<div id="cat-groups-view">
-  <div id="cat-groups-list" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-    <div class="ld">Loading...</div>
-  </div>
-</div>
-<div id="cat-products-view" style="display:none">
-  <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
-    <button id="btn-cat-back" style="background:#f3f4f6;color:#374151;border:none;padding:8px 14px;border-radius:8px;font-size:14px;cursor:pointer;font-family:inherit">Back</button>
-    <div id="cat-current-title" style="font-weight:700;font-size:15px;flex:1"></div>
-  </div>
-  <div id="cat-products-list"></div>
-</div>
-</div>
-
-<!-- ===== MAKER TAB ===== -->
-<div id="cat-tab-maker" style="display:none">
-
-  <!-- Admin: manage logos/promo -->
-  <div class="card" id="cm-admin-panel" style="display:none">
-    <div class="cl">⚙️ ຈັດການ Logo ສິນເຊື່ອ / ຮູບໂປໂມຊັ່ນ</div>
-    <div style="display:flex;gap:10px;margin-bottom:10px">
-      <div style="flex:1;text-align:center">
-        <label for="cm-promo-upload" style="display:block;border:2px dashed #d1d5db;border-radius:10px;padding:16px;cursor:pointer;color:#9ca3af;font-size:13px">📷 ອັບໂຫລດ ຮູບໂປໂມຊັ່ນ</label>
-        <input type="file" id="cm-promo-upload" accept="image/*" style="display:none">
-      </div>
-    </div>
-    <div id="cm-promo-list" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px"></div>
-  </div>
-
-  <!-- Step 1: Shop info -->
-  <div class="card">
-    <div class="cl">🏪 ຂໍ້ມູນຮ້ານ</div>
-    <input class="inp" id="cm-shop-tel" placeholder="ເບີໂທຮ້ານ (ເຊັ່ນ 020-7776-9999)">
-    <input class="inp" id="cm-staff-tel" placeholder="ເບີໂທພະນັກງານ (ທາງເລືອກ)">
-    <div style="display:flex;gap:10px;margin-top:6px">
-      <label style="flex:1;display:flex;align-items:center;gap:6px;font-size:14px;font-weight:600;color:#6b7280"><input type="checkbox" id="cm-show-eaon" style="width:18px;height:18px"> ສະແດງ EAON</label>
-      <label style="flex:1;display:flex;align-items:center;gap:6px;font-size:14px;font-weight:600;color:#6b7280"><input type="checkbox" id="cm-show-krungsri" style="width:18px;height:18px"> ສະແດງ Krungsri</label>
+<!-- Admin: manage logos/promo -->
+<div class="card" id="cm-admin-panel" style="display:none">
+  <div class="cl">⚙️ ອັບໂຫລດຮູບໂປໂມຊັ່ນ</div>
+  <div style="display:flex;gap:10px;margin-bottom:10px">
+    <div style="flex:1;text-align:center">
+      <label for="cm-promo-upload" style="display:block;border:2px dashed #d1d5db;border-radius:10px;padding:16px;cursor:pointer;color:#9ca3af;font-size:13px">📷 ອັບໂຫລດ ຮູບໂປໂມຊັ່ນ</label>
+      <input type="file" id="cm-promo-upload" accept="image/*" style="display:none">
     </div>
   </div>
-
-  <!-- Step 2: Promo banner select -->
-  <div class="card">
-    <div class="cl">🎉 ຮູບໂປໂມຊັ່ນ (ທາງເລືອກ)</div>
-    <div id="cm-promo-select" style="display:flex;gap:8px;flex-wrap:wrap">
-      <div class="ld">ຍັງບໍ່ມີຮູບໂປໂມຊັ່ນ</div>
-    </div>
-  </div>
-
-  <!-- Step 3: Add products -->
-  <div class="card">
-    <div class="cl">📦 ເລືອກສິນຄ້າ (ຈາກຊ່ອງສິນຄ້າ)</div>
-    <div style="display:flex;gap:8px;margin-bottom:10px">
-      <input type="text" id="cm-prod-search" placeholder="ພິມຊື່ ຫຼື ບາໂຄ້ດ ສິນຄ້າ..." style="flex:1;padding:10px 14px;border:2px solid #d1d5db;border-radius:10px;font-size:15px;font-family:inherit;outline:none">
-      <button id="btn-cm-prod-search" style="background:#1a56db;color:#fff;border:none;padding:10px 16px;border-radius:10px;font-size:15px;cursor:pointer;font-family:inherit">🔍</button>
-    </div>
-    <div id="cm-prod-search-results"></div>
-  </div>
-
-  <!-- Selected products list -->
-  <div class="card">
-    <div class="cl">✅ ສິນຄ້າທີ່ເລືອກ (<span id="cm-selected-count">0</span>)</div>
-    <div id="cm-selected-list"><div class="ld">ຍັງບໍ່ໄດ້ເລືອກສິນຄ້າ</div></div>
-  </div>
-
-  <!-- Generate button -->
-  <button class="pb" id="btn-cm-generate" style="background:linear-gradient(90deg,#16a34a,#15803d);font-size:16px;padding:14px">🎨 ສ້າງ Catalog</button>
-
+  <div id="cm-promo-list" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px"></div>
 </div>
+
+<!-- Promo banner select -->
+<div class="card">
+  <div class="cl">🎉 ຮູບໂປໂມຊັ່ນ (ທາງເລືອກ)</div>
+  <div id="cm-promo-select" style="display:flex;gap:8px;flex-wrap:wrap">
+    <div class="ld">ຍັງບໍ່ມີຮູບໂປໂມຊັ່ນ</div>
+  </div>
+</div>
+
+<!-- Add products -->
+<div class="card">
+  <div class="cl">📦 ເລືອກສິນຄ້າ</div>
+  <div style="display:flex;gap:8px;margin-bottom:10px">
+    <input type="text" id="cm-prod-search" placeholder="ພິມຊື່ ຫຼື ບາໂຄ້ດ ສິນຄ້າ..." style="flex:1;padding:10px 14px;border:2px solid #d1d5db;border-radius:10px;font-size:15px;font-family:inherit;outline:none">
+    <button id="btn-cm-prod-search" style="background:#1a56db;color:#fff;border:none;padding:10px 16px;border-radius:10px;font-size:15px;cursor:pointer;font-family:inherit">🔍</button>
+  </div>
+  <div id="cm-prod-search-results"></div>
+</div>
+
+<!-- Selected products list -->
+<div class="card">
+  <div class="cl">✅ ສິນຄ້າທີ່ເລືອກ (<span id="cm-selected-count">0</span>)</div>
+  <div id="cm-selected-list"><div class="ld">ຍັງບໍ່ໄດ້ເລືອກສິນຄ້າ</div></div>
+</div>
+
+<!-- Extra note field -->
+<div class="card">
+  <div class="cl">📝 ຂໍ້ຄວາມເພີ່ມເຕີມ (ທາງເລືອກ)</div>
+  <textarea id="cm-extra-note" rows="3" placeholder="ເຊັ່ນ: ໂປຣໂມຊັ່ນພິເສດ, ເງື່ອນໄຂ, ວັນທີ່ຫມົດອາຍຸ..." style="width:100%;padding:12px;border:2px solid #d1d5db;border-radius:10px;font-size:15px;font-family:inherit;outline:none"></textarea>
+</div>
+
+<!-- Generate button -->
+<button class="pb" id="btn-cm-generate" style="background:linear-gradient(90deg,#16a34a,#15803d);font-size:16px;padding:14px">🎨 ສ້າງ Catalog</button>
 
 </div>
 <!-- SETUP -->
@@ -852,7 +817,7 @@ function showPage(id) {
   if (id === 'users') initUsers();
   if (id === 'quotation') initQuotation();
   if (id === 'sales') initProductSalesSearch();
-  if (id === 'catalog') { initCatalog(); initCatalogTabs(); }
+  if (id === 'catalog') initCatalogMaker();
   if (id === 'docs') initDocs();
   if (id === 'finance') initFinance();
   if (id === 'setup') initSetup();
@@ -3597,10 +3562,10 @@ function renderCmSelectedList() {
 function generateCatalogPoster() {
   if(!cmSelectedProducts.length) { alert('ເລືອກສິນຄ້າກ່ອນ'); return; }
 
-  var shopTel = document.getElementById('cm-shop-tel').value.trim() || '020-7776-9999';
-  var staffTel = document.getElementById('cm-staff-tel').value.trim();
-  var showEaon = document.getElementById('cm-show-eaon').checked;
-  var showKrungsri = document.getElementById('cm-show-krungsri').checked;
+  var shopTels = ['020-7776-9999', '020-5907-8888', '020-5970-7444'];
+  var extraNote = (document.getElementById('cm-extra-note')||{}).value || '';
+  var showEaon = true;
+  var showKrungsri = true;
 
   var W = 1080;
   var cols = cmSelectedProducts.length <= 2 ? cmSelectedProducts.length : (cmSelectedProducts.length <= 6 ? 2 : 3);
@@ -3636,30 +3601,36 @@ function generateCatalogPoster() {
     });
   }
 
+  var jcomLogoSrc = document.querySelector('.sb-logo img') ? document.querySelector('.sb-logo img').src : null;
   Promise.all([
     loadImg(cmSelectedPromo ? POS_URL+cmSelectedPromo : null),
     loadImg(cmLogoUrls.eaon ? POS_URL+cmLogoUrls.eaon : null),
     loadImg(cmLogoUrls.krungsri ? POS_URL+cmLogoUrls.krungsri : null),
-    Promise.all(cmSelectedProducts.map(function(p){ return loadImg(p.img); }))
+    Promise.all(cmSelectedProducts.map(function(p){ return loadImg(p.img); })),
+    loadImg(jcomLogoSrc)
   ]).then(function(results){
-    promoImg = results[0]; eaonImg = results[1]; krungsriImg = results[2];
+    promoImg = results[0]; eaonImg = results[1]; krungsriImg = results[2]; logoImg = results[4];
     var prodImages = results[3];
 
     // Draw header
     if(promoImg) {
-      var pw = W, ph = headerH - 60;
+      var pw = W, ph = headerH - 70;
       var scale = Math.max(pw/promoImg.width, ph/promoImg.height);
       var dw = promoImg.width*scale, dh = promoImg.height*scale;
       ctx.save();
       ctx.beginPath(); ctx.rect(0,0,W,ph); ctx.clip();
       ctx.drawImage(promoImg, (pw-dw)/2, (ph-dh)/2, dw, dh);
       ctx.restore();
-      ctx.fillStyle='#fff'; ctx.textAlign='center'; ctx.font='800 34px sans-serif';
-      ctx.fillText('🛍 JCOM ICT SERVICE', W/2, headerH-20);
+    }
+    if(logoImg) {
+      var lh = 60, lw = 60*(logoImg.width/logoImg.height);
+      ctx.fillStyle='#fff';
+      roundRectCM(ctx, W/2-lw/2-8, headerH-lh-18, lw+16, lh+16, 10); ctx.fill();
+      ctx.drawImage(logoImg, W/2-lw/2, headerH-lh-10, lw, lh);
     } else {
       ctx.fillStyle='#fff'; ctx.textAlign='center';
-      ctx.font='800 42px sans-serif';
-      ctx.fillText('🛍 JCOM ICT SERVICE', W/2, headerH/2+15);
+      ctx.font='800 34px sans-serif';
+      ctx.fillText('🛍 JCOM ICT SERVICE', W/2, headerH-20);
     }
 
     // Product grid
@@ -3712,11 +3683,17 @@ function generateCatalogPoster() {
     var footY = startY + rows*(cardH+20);
     ctx.fillStyle = '#1a1a2e'; ctx.fillRect(0, footY, W, footerH);
 
-    ctx.fillStyle = '#fff'; ctx.textAlign = 'left'; ctx.font = '700 22px sans-serif';
-    ctx.fillText('📞 '+shopTel, 30, footY+45);
-    if(staffTel) {
-      ctx.font = '600 16px sans-serif'; ctx.fillStyle='#d1d5db';
-      ctx.fillText('👤 '+staffTel, 30, footY+72);
+    ctx.fillStyle = '#fff'; ctx.textAlign = 'left'; ctx.font = '700 20px sans-serif';
+    ctx.fillText('📞 '+shopTels.join(' | '), 30, footY+40);
+
+    if(extraNote) {
+      ctx.font = '500 14px sans-serif'; ctx.fillStyle='#d1d5db';
+      var noteLines = extraNote.split('\\n');
+      var ny = footY + 68;
+      noteLines.slice(0,2).forEach(function(line){
+        ctx.fillText(line, 30, ny);
+        ny += 20;
+      });
     }
 
     // Credit logos
