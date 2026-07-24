@@ -3208,6 +3208,7 @@ function getCatImage(productId) {
 }
 
 function renderCatProducts(res, box) {
+  if(res.ok && res.data) res.data.sort(function(a,b){return (a.price||0)-(b.price||0);});
   if(!res.ok || !res.data || !res.data.length){
     box.innerHTML = '<div class="ld">No products found</div>';
     return;
