@@ -801,7 +801,16 @@ window.addEventListener('hashchange', function() {
 });
 
 // ===== DASHBOARD =====
+var dashAutoRefreshTimer = null;
 function initDash() {
+  if(dashAutoRefreshTimer) clearInterval(dashAutoRefreshTimer);
+  dashAutoRefreshTimer = setInterval(function(){
+    if(getPage()==='dash') loadDashData();
+  }, 5*60*1000);
+  loadDashData();
+}
+
+function loadDashData() {
   fetch(POS_URL + '/sales/dashboard')
   .then(function(r){return r.json();})
   .then(function(res) {
