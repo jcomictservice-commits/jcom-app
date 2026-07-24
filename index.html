@@ -523,6 +523,15 @@ input,textarea{-webkit-user-select:text!important;user-select:text!important;-we
 <!-- CATALOG -->
 <div id="sec-catalog" class="sec">
 <div class="pt">🛍 ກາຕາລ໋ອກ</div>
+
+<!-- Tab switcher -->
+<div style="display:flex;gap:8px;margin-bottom:14px">
+  <button id="btn-cat-tab-browse" style="flex:1;padding:10px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;background:#1a56db;color:#fff;border:none">📦 ເບິ່ງສິນຄ້າ</button>
+  <button id="btn-cat-tab-maker" style="flex:1;padding:10px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;background:#f3f4f6;color:#6b7280;border:none">🎨 ສ້າງ Catalog</button>
+</div>
+
+<!-- ===== BROWSE TAB ===== -->
+<div id="cat-tab-browse">
 <div class="card" style="padding:10px">
   <input type="text" id="cat-search" placeholder="🔍 ຄົ້ນຫາສິນຄ້າຂ້າມທຸກໝວດ..." style="width:100%;padding:10px 14px;border:2px solid #d1d5db;border-radius:10px;font-size:15px;font-family:inherit;outline:none">
 </div>
@@ -540,6 +549,62 @@ input,textarea{-webkit-user-select:text!important;user-select:text!important;-we
 </div>
 </div>
 
+<!-- ===== MAKER TAB ===== -->
+<div id="cat-tab-maker" style="display:none">
+
+  <!-- Admin: manage logos/promo -->
+  <div class="card" id="cm-admin-panel" style="display:none">
+    <div class="cl">⚙️ ຈັດການ Logo ສິນເຊື່ອ / ຮູບໂປໂມຊັ່ນ</div>
+    <div style="display:flex;gap:10px;margin-bottom:10px">
+      <div style="flex:1;text-align:center">
+        <label for="cm-promo-upload" style="display:block;border:2px dashed #d1d5db;border-radius:10px;padding:16px;cursor:pointer;color:#9ca3af;font-size:13px">📷 ອັບໂຫລດ ຮູບໂປໂມຊັ່ນ</label>
+        <input type="file" id="cm-promo-upload" accept="image/*" style="display:none">
+      </div>
+    </div>
+    <div id="cm-promo-list" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px"></div>
+  </div>
+
+  <!-- Step 1: Shop info -->
+  <div class="card">
+    <div class="cl">🏪 ຂໍ້ມູນຮ້ານ</div>
+    <input class="inp" id="cm-shop-tel" placeholder="ເບີໂທຮ້ານ (ເຊັ່ນ 020-7776-9999)">
+    <input class="inp" id="cm-staff-tel" placeholder="ເບີໂທພະນັກງານ (ທາງເລືອກ)">
+    <div style="display:flex;gap:10px;margin-top:6px">
+      <label style="flex:1;display:flex;align-items:center;gap:6px;font-size:14px;font-weight:600;color:#6b7280"><input type="checkbox" id="cm-show-eaon" style="width:18px;height:18px"> ສະແດງ EAON</label>
+      <label style="flex:1;display:flex;align-items:center;gap:6px;font-size:14px;font-weight:600;color:#6b7280"><input type="checkbox" id="cm-show-krungsri" style="width:18px;height:18px"> ສະແດງ Krungsri</label>
+    </div>
+  </div>
+
+  <!-- Step 2: Promo banner select -->
+  <div class="card">
+    <div class="cl">🎉 ຮູບໂປໂມຊັ່ນ (ທາງເລືອກ)</div>
+    <div id="cm-promo-select" style="display:flex;gap:8px;flex-wrap:wrap">
+      <div class="ld">ຍັງບໍ່ມີຮູບໂປໂມຊັ່ນ</div>
+    </div>
+  </div>
+
+  <!-- Step 3: Add products -->
+  <div class="card">
+    <div class="cl">📦 ເລືອກສິນຄ້າ (ຈາກຊ່ອງສິນຄ້າ)</div>
+    <div style="display:flex;gap:8px;margin-bottom:10px">
+      <input type="text" id="cm-prod-search" placeholder="ພິມຊື່ ຫຼື ບາໂຄ້ດ ສິນຄ້າ..." style="flex:1;padding:10px 14px;border:2px solid #d1d5db;border-radius:10px;font-size:15px;font-family:inherit;outline:none">
+      <button id="btn-cm-prod-search" style="background:#1a56db;color:#fff;border:none;padding:10px 16px;border-radius:10px;font-size:15px;cursor:pointer;font-family:inherit">🔍</button>
+    </div>
+    <div id="cm-prod-search-results"></div>
+  </div>
+
+  <!-- Selected products list -->
+  <div class="card">
+    <div class="cl">✅ ສິນຄ້າທີ່ເລືອກ (<span id="cm-selected-count">0</span>)</div>
+    <div id="cm-selected-list"><div class="ld">ຍັງບໍ່ໄດ້ເລືອກສິນຄ້າ</div></div>
+  </div>
+
+  <!-- Generate button -->
+  <button class="pb" id="btn-cm-generate" style="background:linear-gradient(90deg,#16a34a,#15803d);font-size:16px;padding:14px">🎨 ສ້າງ Catalog</button>
+
+</div>
+
+</div>
 <!-- SETUP -->
 <div id="sec-setup" class="sec">
 <div class="pt">⚙️ ຕັ້ງຄ່າ</div>
@@ -787,7 +852,7 @@ function showPage(id) {
   if (id === 'users') initUsers();
   if (id === 'quotation') initQuotation();
   if (id === 'sales') initProductSalesSearch();
-  if (id === 'catalog') initCatalog();
+  if (id === 'catalog') { initCatalog(); initCatalogTabs(); }
   if (id === 'docs') initDocs();
   if (id === 'finance') initFinance();
   if (id === 'setup') initSetup();
@@ -3332,6 +3397,361 @@ function exportCatalogSelection() {
       win.document.write('<br><a href="'+url+'" download="catalog.png" style="display:block;text-align:center;padding:15px;background:#16a34a;color:#fff;text-decoration:none;font-size:18px;font-weight:700">📥 Download</a>');
     }, 'image/png');
   });
+}
+
+
+
+// === CATALOG MAKER ===
+var cmSelectedProducts = [];
+var cmPromoImages = [];
+var cmSelectedPromo = null;
+var cmLogoUrls = { eaon: '/docs/doc_1784863698123.png', krungsri: '/docs/doc_1784863698949.png' };
+
+function initCatalogTabs() {
+  var btnBrowse = document.getElementById('btn-cat-tab-browse');
+  var btnMaker = document.getElementById('btn-cat-tab-maker');
+  if(btnBrowse && !btnBrowse.dataset.bound) {
+    btnBrowse.dataset.bound = '1';
+    btnBrowse.addEventListener('click', function(){
+      document.getElementById('cat-tab-browse').style.display = 'block';
+      document.getElementById('cat-tab-maker').style.display = 'none';
+      btnBrowse.style.background = '#1a56db'; btnBrowse.style.color = '#fff';
+      btnMaker.style.background = '#f3f4f6'; btnMaker.style.color = '#6b7280';
+    });
+  }
+  if(btnMaker && !btnMaker.dataset.bound) {
+    btnMaker.dataset.bound = '1';
+    btnMaker.addEventListener('click', function(){
+      document.getElementById('cat-tab-browse').style.display = 'none';
+      document.getElementById('cat-tab-maker').style.display = 'block';
+      btnMaker.style.background = '#1a56db'; btnMaker.style.color = '#fff';
+      btnBrowse.style.background = '#f3f4f6'; btnBrowse.style.color = '#6b7280';
+      initCatalogMaker();
+    });
+  }
+}
+
+function initCatalogMaker() {
+  var isAdmin = currentUser && currentUser.role === 'admin';
+  var adminPanel = document.getElementById('cm-admin-panel');
+  if(adminPanel) adminPanel.style.display = isAdmin ? 'block' : 'none';
+
+  loadCmPromoList();
+
+  var promoUpload = document.getElementById('cm-promo-upload');
+  if(promoUpload && !promoUpload.dataset.bound) {
+    promoUpload.dataset.bound = '1';
+    promoUpload.addEventListener('change', function(){
+      var file = this.files[0];
+      if(!file) return;
+      var reader = new FileReader();
+      reader.onload = function(e){
+        fetch(POS_URL+'/upload-doc', {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({filename:'promo_'+Date.now()+'.jpg', data:e.target.result})
+        }).then(function(r){return r.json();}).then(function(res){
+          if(res.ok){
+            var promos = JSON.parse(localStorage.getItem('cmPromoList')||'[]');
+            promos.push('/docs/'+res.filename);
+            localStorage.setItem('cmPromoList', JSON.stringify(promos));
+            loadCmPromoList();
+            alert('✅ ອັບໂຫລດສຳເລັດ');
+          }
+        });
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  var prodSearchBtn = document.getElementById('btn-cm-prod-search');
+  var prodSearchInp = document.getElementById('cm-prod-search');
+  if(prodSearchBtn && !prodSearchBtn.dataset.bound) {
+    prodSearchBtn.dataset.bound = '1';
+    prodSearchBtn.addEventListener('click', doCmProductSearch);
+    prodSearchInp.addEventListener('keypress', function(e){ if(e.key==='Enter') doCmProductSearch(); });
+  }
+
+  var genBtn = document.getElementById('btn-cm-generate');
+  if(genBtn && !genBtn.dataset.bound) {
+    genBtn.dataset.bound = '1';
+    genBtn.addEventListener('click', generateCatalogPoster);
+  }
+
+  renderCmSelectedList();
+}
+
+function loadCmPromoList() {
+  var promos = JSON.parse(localStorage.getItem('cmPromoList')||'[]');
+  cmPromoImages = promos;
+  var listBox = document.getElementById('cm-promo-list');
+  var selectBox = document.getElementById('cm-promo-select');
+  if(!promos.length) {
+    if(listBox) listBox.innerHTML = '<div style="font-size:12px;color:#9ca3af">ຍັງບໍ່ມີຮູບ</div>';
+    if(selectBox) selectBox.innerHTML = '<div class="ld">ຍັງບໍ່ມີຮູບໂປໂມຊັ່ນ</div>';
+    return;
+  }
+  if(listBox) {
+    listBox.innerHTML = promos.map(function(p,i){
+      return '<div style="position:relative"><img src="'+POS_URL+p+'" style="width:60px;height:60px;object-fit:cover;border-radius:8px"><button data-idx="'+i+'" class="cm-promo-del" style="position:absolute;top:-6px;right:-6px;background:#dc2626;color:#fff;border:none;border-radius:50%;width:20px;height:20px;font-size:12px;cursor:pointer">×</button></div>';
+    }).join('');
+    listBox.querySelectorAll('.cm-promo-del').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var idx = parseInt(this.getAttribute('data-idx'));
+        promos.splice(idx,1);
+        localStorage.setItem('cmPromoList', JSON.stringify(promos));
+        loadCmPromoList();
+      });
+    });
+  }
+  if(selectBox) {
+    selectBox.innerHTML = promos.map(function(p,i){
+      return '<img src="'+POS_URL+p+'" data-idx="'+i+'" class="cm-promo-pick" style="width:70px;height:70px;object-fit:cover;border-radius:8px;cursor:pointer;border:3px solid transparent">';
+    }).join('');
+    selectBox.querySelectorAll('.cm-promo-pick').forEach(function(img){
+      img.addEventListener('click', function(){
+        selectBox.querySelectorAll('.cm-promo-pick').forEach(function(i){i.style.border='3px solid transparent';});
+        var idx = parseInt(this.getAttribute('data-idx'));
+        if(cmSelectedPromo === promos[idx]) { cmSelectedPromo = null; }
+        else { cmSelectedPromo = promos[idx]; this.style.border='3px solid #16a34a'; }
+      });
+    });
+  }
+}
+
+
+function doCmProductSearch() {
+  var q = document.getElementById('cm-prod-search').value.trim();
+  if(!q) return;
+  var box = document.getElementById('cm-prod-search-results');
+  box.innerHTML = '<div class="ld">⏳ ກຳລັງຄົ້ນຫາ...</div>';
+
+  fetch(POS_URL+'/product/search?q='+encodeURIComponent(q))
+  .then(function(r){return r.json();})
+  .then(function(res){
+    if(!res.ok || !res.data.length) { box.innerHTML = '<div class="ld">ບໍ່ພົບສິນຄ້າ</div>'; return; }
+
+    fetch(POS_URL+'/product-images').then(function(r){return r.json();}).then(function(imgRes){
+      var images = imgRes.data || {};
+      var html2 = res.data.slice(0,20).map(function(p){
+        var img = images[p.id] ? POS_URL+images[p.id] : null;
+        return '<div class="cm-prod-result" data-id="'+p.id+'" style="display:flex;align-items:center;gap:10px;padding:8px;border:1px solid #e5e7eb;border-radius:8px;margin-bottom:6px;cursor:pointer">'
+          + (img ? '<img src="'+img+'" style="width:40px;height:40px;object-fit:cover;border-radius:6px">' : '<div style="width:40px;height:40px;background:#f3f4f6;border-radius:6px;display:flex;align-items:center;justify-content:center">📦</div>')
+          + '<div style="flex:1"><div style="font-weight:600;font-size:13px">'+p.name+'</div><div style="font-size:11px;color:#9ca3af">₭'+(p.price||0).toLocaleString()+'</div></div>'
+          + '<button style="background:#16a34a;color:#fff;border:none;padding:6px 10px;border-radius:6px;font-size:12px;cursor:pointer;font-family:inherit">+ ເພີ່ມ</button>'
+          + '</div>';
+      }).join('');
+      box.innerHTML = html2;
+
+      box.querySelectorAll('.cm-prod-result').forEach(function(el, idx){
+        el.addEventListener('click', function(){
+          var p = res.data[idx];
+          var img = images[p.id] ? POS_URL+images[p.id] : null;
+          if(cmSelectedProducts.find(function(x){return x.id===p.id;})) { alert('ເລືອກແລ້ວ'); return; }
+          cmSelectedProducts.push({ id:p.id, name:p.name, price:p.price||0, img:img, spec:'' });
+          renderCmSelectedList();
+          alert('✅ ເພີ່ມແລ້ວ');
+        });
+      });
+    });
+  }).catch(function(){ box.innerHTML = '<div class="ld" style="color:#dc2626">❌ ຄົ້ນຫາຜິດ</div>'; });
+}
+
+function renderCmSelectedList() {
+  var box = document.getElementById('cm-selected-list');
+  document.getElementById('cm-selected-count').textContent = cmSelectedProducts.length;
+
+  if(!cmSelectedProducts.length) {
+    box.innerHTML = '<div class="ld">ຍັງບໍ່ໄດ້ເລືອກສິນຄ້າ</div>';
+    return;
+  }
+
+  box.innerHTML = cmSelectedProducts.map(function(p, idx){
+    return '<div style="display:flex;align-items:center;gap:10px;padding:8px;border:1px solid #e5e7eb;border-radius:8px;margin-bottom:6px">'
+      + (p.img ? '<img src="'+p.img+'" style="width:44px;height:44px;object-fit:cover;border-radius:6px">' : '<div style="width:44px;height:44px;background:#f3f4f6;border-radius:6px;display:flex;align-items:center;justify-content:center">📦</div>')
+      + '<div style="flex:1">'
+      + '<div style="font-weight:600;font-size:13px">'+p.name+'</div>'
+      + '<input type="text" placeholder="ສະເປັກ (ທາງເລືອກ)" value="'+(p.spec||'')+'" data-idx="'+idx+'" class="cm-spec-inp" style="width:100%;padding:4px 8px;border:1px solid #d1d5db;border-radius:6px;font-size:11px;margin-top:4px;font-family:inherit">'
+      + '</div>'
+      + '<div style="font-weight:700;color:#1a56db;font-size:13px">₭'+p.price.toLocaleString()+'</div>'
+      + '<button data-idx="'+idx+'" class="cm-remove-btn" style="background:#fef2f2;color:#dc2626;border:none;padding:6px 8px;border-radius:6px;cursor:pointer;font-family:inherit">🗑</button>'
+      + '</div>';
+  }).join('');
+
+  box.querySelectorAll('.cm-spec-inp').forEach(function(inp){
+    inp.addEventListener('input', function(){
+      var idx = parseInt(this.getAttribute('data-idx'));
+      cmSelectedProducts[idx].spec = this.value;
+    });
+  });
+
+  box.querySelectorAll('.cm-remove-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var idx = parseInt(this.getAttribute('data-idx'));
+      cmSelectedProducts.splice(idx,1);
+      renderCmSelectedList();
+    });
+  });
+}
+
+
+function generateCatalogPoster() {
+  if(!cmSelectedProducts.length) { alert('ເລືອກສິນຄ້າກ່ອນ'); return; }
+
+  var shopTel = document.getElementById('cm-shop-tel').value.trim() || '020-7776-9999';
+  var staffTel = document.getElementById('cm-staff-tel').value.trim();
+  var showEaon = document.getElementById('cm-show-eaon').checked;
+  var showKrungsri = document.getElementById('cm-show-krungsri').checked;
+
+  var W = 1080;
+  var cols = cmSelectedProducts.length <= 2 ? cmSelectedProducts.length : (cmSelectedProducts.length <= 6 ? 2 : 3);
+  var rows = Math.ceil(cmSelectedProducts.length / cols);
+  var cardW = (W - 60 - (cols-1)*20) / cols;
+  var cardH = cardW * 1.25;
+  var headerH = cmSelectedPromo ? 320 : 180;
+  var footerH = 130;
+  var H = headerH + rows*(cardH+20) + footerH + 40;
+
+  var canvas = document.createElement('canvas');
+  canvas.width = W; canvas.height = H;
+  var ctx = canvas.getContext('2d');
+
+  // Background
+  ctx.fillStyle = '#f9fafb'; ctx.fillRect(0,0,W,H);
+
+  // Header gradient
+  var g = ctx.createLinearGradient(0,0,W,0);
+  g.addColorStop(0,'#1a56db'); g.addColorStop(1,'#1e40af');
+  ctx.fillStyle = g; ctx.fillRect(0,0,W,headerH);
+
+  var imgPromises = [];
+  var promoImg = null, logoImg = null, eaonImg = null, krungsriImg = null;
+
+  function loadImg(src) {
+    return new Promise(function(resolve){
+      if(!src){ resolve(null); return; }
+      var img = new Image(); img.crossOrigin = 'anonymous';
+      img.onload = function(){ resolve(img); };
+      img.onerror = function(){ resolve(null); };
+      img.src = src;
+    });
+  }
+
+  Promise.all([
+    loadImg(cmSelectedPromo ? POS_URL+cmSelectedPromo : null),
+    loadImg(cmLogoUrls.eaon ? POS_URL+cmLogoUrls.eaon : null),
+    loadImg(cmLogoUrls.krungsri ? POS_URL+cmLogoUrls.krungsri : null),
+    Promise.all(cmSelectedProducts.map(function(p){ return loadImg(p.img); }))
+  ]).then(function(results){
+    promoImg = results[0]; eaonImg = results[1]; krungsriImg = results[2];
+    var prodImages = results[3];
+
+    // Draw header
+    if(promoImg) {
+      var pw = W, ph = headerH - 60;
+      var scale = Math.max(pw/promoImg.width, ph/promoImg.height);
+      var dw = promoImg.width*scale, dh = promoImg.height*scale;
+      ctx.save();
+      ctx.beginPath(); ctx.rect(0,0,W,ph); ctx.clip();
+      ctx.drawImage(promoImg, (pw-dw)/2, (ph-dh)/2, dw, dh);
+      ctx.restore();
+      ctx.fillStyle='#fff'; ctx.textAlign='center'; ctx.font='800 34px sans-serif';
+      ctx.fillText('🛍 JCOM ICT SERVICE', W/2, headerH-20);
+    } else {
+      ctx.fillStyle='#fff'; ctx.textAlign='center';
+      ctx.font='800 42px sans-serif';
+      ctx.fillText('🛍 JCOM ICT SERVICE', W/2, headerH/2+15);
+    }
+
+    // Product grid
+    var startY = headerH + 20;
+    cmSelectedProducts.forEach(function(p, i){
+      var col = i % cols, row = Math.floor(i/cols);
+      var x = 30 + col*(cardW+20);
+      var y = startY + row*(cardH+20);
+
+      // Card bg
+      ctx.fillStyle = '#fff';
+      roundRectCM(ctx, x, y, cardW, cardH, 14); ctx.fill();
+      ctx.strokeStyle = '#e5e7eb'; ctx.lineWidth = 1;
+      roundRectCM(ctx, x, y, cardW, cardH, 14); ctx.stroke();
+
+      var imgH = cardW * 0.6;
+      var img = prodImages[i];
+      if(img) {
+        ctx.save();
+        roundRectCM(ctx, x+8, y+8, cardW-16, imgH, 10); ctx.clip();
+        var scale2 = Math.max((cardW-16)/img.width, imgH/img.height);
+        var dw2 = img.width*scale2, dh2 = img.height*scale2;
+        ctx.drawImage(img, x+8+(cardW-16-dw2)/2, y+8+(imgH-dh2)/2, dw2, dh2);
+        ctx.restore();
+      } else {
+        ctx.fillStyle = '#f3f4f6';
+        roundRectCM(ctx, x+8, y+8, cardW-16, imgH, 10); ctx.fill();
+        ctx.fillStyle = '#9ca3af'; ctx.font = '40px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText('📦', x+cardW/2, y+8+imgH/2+15);
+      }
+
+      // Name
+      ctx.fillStyle = '#1a1a2e'; ctx.textAlign = 'left'; ctx.font = '700 15px sans-serif';
+      var name = p.name.length > 22 ? p.name.slice(0,22)+'...' : p.name;
+      ctx.fillText(name, x+10, y+imgH+30);
+
+      // Spec
+      if(p.spec) {
+        ctx.fillStyle = '#6b7280'; ctx.font = '11px sans-serif';
+        var spec = p.spec.length > 30 ? p.spec.slice(0,30)+'...' : p.spec;
+        ctx.fillText(spec, x+10, y+imgH+48);
+      }
+
+      // Price
+      ctx.fillStyle = '#dc2626'; ctx.font = '800 20px sans-serif';
+      ctx.fillText('₭'+p.price.toLocaleString(), x+10, y+cardH-14);
+    });
+
+    // Footer
+    var footY = startY + rows*(cardH+20);
+    ctx.fillStyle = '#1a1a2e'; ctx.fillRect(0, footY, W, footerH);
+
+    ctx.fillStyle = '#fff'; ctx.textAlign = 'left'; ctx.font = '700 22px sans-serif';
+    ctx.fillText('📞 '+shopTel, 30, footY+45);
+    if(staffTel) {
+      ctx.font = '600 16px sans-serif'; ctx.fillStyle='#d1d5db';
+      ctx.fillText('👤 '+staffTel, 30, footY+72);
+    }
+
+    // Credit logos
+    var logoX = W - 30;
+    var logoY = footY + 20;
+    if(showKrungsri && krungsriImg) {
+      var kw = 80, kh = 80*(krungsriImg.height/krungsriImg.width);
+      ctx.drawImage(krungsriImg, logoX-kw, logoY, kw, kh);
+      logoX -= kw+15;
+    }
+    if(showEaon && eaonImg) {
+      var ew = 80, eh = 80*(eaonImg.height/eaonImg.width);
+      ctx.drawImage(eaonImg, logoX-ew, logoY, ew, eh);
+    }
+
+    // Show result
+    canvas.toBlob(function(blob){
+      var url = URL.createObjectURL(blob);
+      var win = window.open('', '_blank');
+      win.document.write('<div style="text-align:center;padding:20px;font-family:sans-serif">');
+      win.document.write('<img src="'+url+'" style="max-width:100%;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,.15)">');
+      win.document.write('<br><a href="'+url+'" download="jcom-catalog-'+Date.now()+'.png" style="display:inline-block;margin-top:20px;padding:15px 40px;background:#16a34a;color:#fff;text-decoration:none;font-size:18px;font-weight:700;border-radius:10px">📥 ດາວໂຫລດ</a>');
+      win.document.write('</div>');
+    }, 'image/png');
+  });
+}
+
+function roundRectCM(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x+r, y);
+  ctx.arcTo(x+w, y, x+w, y+h, r);
+  ctx.arcTo(x+w, y+h, x, y+h, r);
+  ctx.arcTo(x, y+h, x, y, r);
+  ctx.arcTo(x, y, x+w, y, r);
+  ctx.closePath();
 }
 
 </script>
