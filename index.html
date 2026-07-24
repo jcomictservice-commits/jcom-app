@@ -3573,7 +3573,7 @@ function generateCatalogPoster() {
   var cardW = (W - 60 - (cols-1)*20) / cols;
   var cardH = cardW * 1.25;
   var headerH = cmSelectedPromo ? 320 : 180;
-  var footerH = 220;
+  var footerH = 300;
   var H = headerH + rows*(cardH+20) + footerH + 40;
 
   var canvas = document.createElement('canvas');
@@ -3613,7 +3613,7 @@ function generateCatalogPoster() {
     var prodImages = results[3];
 
     // Draw header
-    var topBarH = 130;
+    var topBarH = 195;
     var promoY = topBarH;
     var promoH = headerH - topBarH;
 
@@ -3622,26 +3622,26 @@ function generateCatalogPoster() {
 
     // JCOM Logo (left, large)
     if(logoImg) {
-      var lh = 95, lw = 95*(logoImg.width/logoImg.height);
+      var lh = 142, lw = 142*(logoImg.width/logoImg.height);
       ctx.drawImage(logoImg, 25, (topBarH-lh)/2, lw, lh);
 
       // Shop name next to logo
       ctx.fillStyle = '#1a1a2e'; ctx.textAlign = 'left';
-      ctx.font = '900 32px sans-serif';
-      ctx.fillText('JCOM ICT SERVICE', 25+lw+18, topBarH/2-8);
+      ctx.font = '900 48px sans-serif';
+      ctx.fillText('JCOM ICT SERVICE', 25+lw+18, topBarH/2-12);
 
       // Phone numbers next to logo
-      ctx.fillStyle = '#1a56db'; ctx.font = '700 20px sans-serif';
-      ctx.fillText('📞 '+shopTels.join(' | '), 25+lw+18, topBarH/2+24);
+      ctx.fillStyle = '#1a56db'; ctx.font = '700 30px sans-serif';
+      ctx.fillText('📞 '+shopTels.join(' | '), 25+lw+18, topBarH/2+36);
     } else {
-      ctx.fillStyle = '#1a1a2e'; ctx.textAlign = 'left'; ctx.font = '900 36px sans-serif';
-      ctx.fillText('JCOM ICT SERVICE', 25, topBarH/2+10);
+      ctx.fillStyle = '#1a1a2e'; ctx.textAlign = 'left'; ctx.font = '900 54px sans-serif';
+      ctx.fillText('JCOM ICT SERVICE', 25, topBarH/2+15);
     }
 
     // Credit logos (right, top)
     var creditX = W - 25;
     var creditY = 15;
-    var creditH = 55;
+    var creditH = 82;
     if(showKrungsri && krungsriImg) {
       var kw = creditH*(krungsriImg.width/krungsriImg.height);
       ctx.drawImage(krungsriImg, creditX-kw, creditY, kw, creditH);
@@ -3696,19 +3696,19 @@ function generateCatalogPoster() {
       }
 
       // Name
-      ctx.fillStyle = '#1a1a2e'; ctx.textAlign = 'left'; ctx.font = '700 15px sans-serif';
+      ctx.fillStyle = '#1a1a2e'; ctx.textAlign = 'left'; ctx.font = '700 22px sans-serif';
       var name = p.name.length > 22 ? p.name.slice(0,22)+'...' : p.name;
       ctx.fillText(name, x+10, y+imgH+30);
 
       // Spec
       if(p.spec) {
-        ctx.fillStyle = '#6b7280'; ctx.font = '11px sans-serif';
+        ctx.fillStyle = '#6b7280'; ctx.font = '16px sans-serif';
         var spec = p.spec.length > 30 ? p.spec.slice(0,30)+'...' : p.spec;
         ctx.fillText(spec, x+10, y+imgH+48);
       }
 
       // Price
-      ctx.fillStyle = '#dc2626'; ctx.font = '800 20px sans-serif';
+      ctx.fillStyle = '#dc2626'; ctx.font = '800 30px sans-serif';
       ctx.fillText('₭'+p.price.toLocaleString(), x+10, y+cardH-14);
     });
 
@@ -3719,25 +3719,25 @@ function generateCatalogPoster() {
     ctx.textAlign = 'left';
     var fy = footY + 30;
 
-    ctx.fillStyle = '#fff'; ctx.font = '700 17px sans-serif';
-    ctx.fillText('⏰ ເວລາເປິດ: 8:00-17:30 ວັນຈັນ-ວັນອາທິດ', 30, fy); fy += 26;
+    ctx.fillStyle = '#fff'; ctx.font = '700 25px sans-serif';
+    ctx.fillText('⏰ ເວລາເປິດ: 8:00-17:30 ວັນຈັນ-ວັນອາທິດ', 30, fy); fy += 38;
 
-    ctx.font = '600 15px sans-serif'; ctx.fillStyle = '#d1d5db';
-    ctx.fillText('📍 ບ້ານໂພນໄຊ ເມືອງປາກເຊ ແຂວງຈຳປາສັກ', 30, fy); fy += 24;
+    ctx.font = '600 22px sans-serif'; ctx.fillStyle = '#d1d5db';
+    ctx.fillText('📍 ບ້ານໂພນໄຊ ເມືອງປາກເຊ ແຂວງຈຳປາສັກ', 30, fy); fy += 34;
 
-    ctx.fillText('💬 WhatsApp: '+shopTels.join(' | '), 30, fy); fy += 24;
+    ctx.fillText('💬 WhatsApp: '+shopTels.join(' | '), 30, fy); fy += 34;
 
-    ctx.fillText('📘 Facebook: @Jcomictservice   🎵 TikTok: Jcompakse69999', 30, fy); fy += 24;
+    ctx.fillText('📘 Facebook: @Jcomictservice   🎵 TikTok: Jcompakse69999', 30, fy); fy += 34;
 
-    ctx.fillStyle = '#93c5fd'; ctx.font = '700 15px sans-serif';
-    ctx.fillText('🌐 www.jcomictservice.com', 30, fy); fy += 24;
+    ctx.fillStyle = '#93c5fd'; ctx.font = '700 22px sans-serif';
+    ctx.fillText('🌐 www.jcomictservice.com', 30, fy); fy += 34;
 
     if(extraNote) {
-      ctx.font = '500 14px sans-serif'; ctx.fillStyle='#fbbf24';
+      ctx.font = '500 20px sans-serif'; ctx.fillStyle='#fbbf24';
       var noteLines = extraNote.split(String.fromCharCode(10));
       noteLines.slice(0,2).forEach(function(line){
         ctx.fillText(line, 30, fy);
-        fy += 20;
+        fy += 28;
       });
     }
 
