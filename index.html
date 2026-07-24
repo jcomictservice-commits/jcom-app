@@ -3562,7 +3562,7 @@ function renderCmSelectedList() {
 function generateCatalogPoster() {
   if(!cmSelectedProducts.length) { alert('ເລືອກສິນຄ້າກ່ອນ'); return; }
 
-  var shopTels = ['020-7776-9999', '020-5907-8888', '020-5970-7444'];
+  var shopTels = ['020-7776-9999', '020-5907-8888', '020-5907-4444'];
   var extraNote = (document.getElementById('cm-extra-note')||{}).value || '';
   var showEaon = true;
   var showKrungsri = true;
@@ -3716,10 +3716,8 @@ function generateCatalogPoster() {
     var footY = startY + rows*(cardH+20);
     ctx.fillStyle = '#1a1a2e'; ctx.fillRect(0, footY, W, footerH);
 
-    ctx.fillStyle = '#fff'; ctx.textAlign = 'left'; ctx.font = '700 20px sans-serif';
-    ctx.fillText('📞 '+shopTels.join(' | '), 30, footY+40);
-
     if(extraNote) {
+      ctx.fillStyle = '#fff'; ctx.textAlign = 'left';
       ctx.font = '500 14px sans-serif'; ctx.fillStyle='#d1d5db';
       var noteLines = extraNote.split('\\n');
       var ny = footY + 68;
@@ -3729,18 +3727,7 @@ function generateCatalogPoster() {
       });
     }
 
-    // Credit logos
-    var logoX = W - 30;
-    var logoY = footY + 20;
-    if(showKrungsri && krungsriImg) {
-      var kw = 80, kh = 80*(krungsriImg.height/krungsriImg.width);
-      ctx.drawImage(krungsriImg, logoX-kw, logoY, kw, kh);
-      logoX -= kw+15;
-    }
-    if(showEaon && eaonImg) {
-      var ew = 80, eh = 80*(eaonImg.height/eaonImg.width);
-      ctx.drawImage(eaonImg, logoX-ew, logoY, ew, eh);
-    }
+
 
     // Show result
     canvas.toBlob(function(blob){
