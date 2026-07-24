@@ -3613,24 +3613,57 @@ function generateCatalogPoster() {
     var prodImages = results[3];
 
     // Draw header
+    var topBarH = 130;
+    var promoY = topBarH;
+    var promoH = headerH - topBarH;
+
+    // Top bar background (white)
+    ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, W, topBarH);
+
+    // JCOM Logo (left, large)
+    if(logoImg) {
+      var lh = 95, lw = 95*(logoImg.width/logoImg.height);
+      ctx.drawImage(logoImg, 25, (topBarH-lh)/2, lw, lh);
+
+      // Shop name next to logo
+      ctx.fillStyle = '#1a1a2e'; ctx.textAlign = 'left';
+      ctx.font = '900 32px sans-serif';
+      ctx.fillText('JCOM ICT SERVICE', 25+lw+18, topBarH/2-8);
+
+      // Phone numbers next to logo
+      ctx.fillStyle = '#1a56db'; ctx.font = '700 20px sans-serif';
+      ctx.fillText('📞 '+shopTels.join(' | '), 25+lw+18, topBarH/2+24);
+    } else {
+      ctx.fillStyle = '#1a1a2e'; ctx.textAlign = 'left'; ctx.font = '900 36px sans-serif';
+      ctx.fillText('JCOM ICT SERVICE', 25, topBarH/2+10);
+    }
+
+    // Credit logos (right, top)
+    var creditX = W - 25;
+    var creditY = 15;
+    var creditH = 55;
+    if(showKrungsri && krungsriImg) {
+      var kw = creditH*(krungsriImg.width/krungsriImg.height);
+      ctx.drawImage(krungsriImg, creditX-kw, creditY, kw, creditH);
+      creditX -= kw+12;
+    }
+    if(showEaon && eaonImg) {
+      var ew = creditH*(eaonImg.width/eaonImg.height);
+      ctx.drawImage(eaonImg, creditX-ew, creditY, ew, creditH);
+    }
+
+    // Promo image below top bar
     if(promoImg) {
-      var pw = W, ph = headerH - 70;
-      var scale = Math.max(pw/promoImg.width, ph/promoImg.height);
+      var scale = Math.max(W/promoImg.width, promoH/promoImg.height);
       var dw = promoImg.width*scale, dh = promoImg.height*scale;
       ctx.save();
-      ctx.beginPath(); ctx.rect(0,0,W,ph); ctx.clip();
-      ctx.drawImage(promoImg, (pw-dw)/2, (ph-dh)/2, dw, dh);
+      ctx.beginPath(); ctx.rect(0,promoY,W,promoH); ctx.clip();
+      ctx.drawImage(promoImg, (W-dw)/2, promoY+(promoH-dh)/2, dw, dh);
       ctx.restore();
-    }
-    if(logoImg) {
-      var lh = 60, lw = 60*(logoImg.width/logoImg.height);
-      ctx.fillStyle='#fff';
-      roundRectCM(ctx, W/2-lw/2-8, headerH-lh-18, lw+16, lh+16, 10); ctx.fill();
-      ctx.drawImage(logoImg, W/2-lw/2, headerH-lh-10, lw, lh);
     } else {
-      ctx.fillStyle='#fff'; ctx.textAlign='center';
-      ctx.font='800 34px sans-serif';
-      ctx.fillText('🛍 JCOM ICT SERVICE', W/2, headerH-20);
+      var g2 = ctx.createLinearGradient(0,promoY,W,promoY);
+      g2.addColorStop(0,'#1a56db'); g2.addColorStop(1,'#1e40af');
+      ctx.fillStyle = g2; ctx.fillRect(0,promoY,W,promoH);
     }
 
     // Product grid
