@@ -3679,20 +3679,20 @@ function generateCatalogPoster() {
       ctx.strokeStyle = '#e5e7eb'; ctx.lineWidth = 1;
       roundRectCM(ctx, x, y, cardW, cardH, 14); ctx.stroke();
 
-      var imgH = cardW * 0.6;
+      var imgH = cardW * 0.75;
       var img = prodImages[i];
       if(img) {
         ctx.save();
-        roundRectCM(ctx, x+8, y+8, cardW-16, imgH, 10); ctx.clip();
-        var scale2 = Math.max((cardW-16)/img.width, imgH/img.height);
+        roundRectCM(ctx, x, y, cardW, imgH, 14); ctx.clip();
+        var scale2 = Math.max(cardW/img.width, imgH/img.height);
         var dw2 = img.width*scale2, dh2 = img.height*scale2;
-        ctx.drawImage(img, x+8+(cardW-16-dw2)/2, y+8+(imgH-dh2)/2, dw2, dh2);
+        ctx.drawImage(img, x+(cardW-dw2)/2, y+(imgH-dh2)/2, dw2, dh2);
         ctx.restore();
       } else {
         ctx.fillStyle = '#f3f4f6';
-        roundRectCM(ctx, x+8, y+8, cardW-16, imgH, 10); ctx.fill();
+        roundRectCM(ctx, x, y, cardW, imgH, 14); ctx.fill();
         ctx.fillStyle = '#9ca3af'; ctx.font = '40px sans-serif'; ctx.textAlign = 'center';
-        ctx.fillText('📦', x+cardW/2, y+8+imgH/2+15);
+        ctx.fillText('📦', x+cardW/2, y+imgH/2+15);
       }
 
       // Name
@@ -3720,7 +3720,7 @@ function generateCatalogPoster() {
     var fy = footY + 30;
 
     ctx.fillStyle = '#fff'; ctx.font = '700 17px sans-serif';
-    ctx.fillText('⏰ ຫາດສັຈຈັນ-ອາທິດ 8:00-17:20', 30, fy); fy += 26;
+    ctx.fillText('⏰ ເວລາເປິດ: 8:00-17:30 ວັນຈັນ-ວັນອາທິດ', 30, fy); fy += 26;
 
     ctx.font = '600 15px sans-serif'; ctx.fillStyle = '#d1d5db';
     ctx.fillText('📍 ບ້ານໂພນໄຊ ເມືອງປາກເຊ ແຂວງຈຳປາສັກ', 30, fy); fy += 24;
