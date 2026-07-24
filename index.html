@@ -3687,9 +3687,12 @@ function generateCatalogPoster() {
       // Product image (fixed height zone at top)
       var img = prodImages[i];
       if(img) {
+        // White background for the image area, then draw image fully contained (no crop)
+        ctx.fillStyle = '#fff';
+        roundRectCM(ctx, x, y, cardW, imgH, 14); ctx.fill();
         ctx.save();
         roundRectCM(ctx, x, y, cardW, imgH, 14); ctx.clip();
-        var scale2 = Math.max(cardW/img.width, imgH/img.height);
+        var scale2 = Math.min(cardW/img.width, imgH/img.height);
         var dw2 = img.width*scale2, dh2 = img.height*scale2;
         ctx.drawImage(img, x+(cardW-dw2)/2, y+(imgH-dh2)/2, dw2, dh2);
         ctx.restore();
