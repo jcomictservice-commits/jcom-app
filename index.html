@@ -1890,6 +1890,7 @@ function renderCustomInfo() {
       + (item.addedBy ? '<div style="font-size:12px;color:#9ca3af;margin-bottom:8px">👤 '+item.addedBy+'</div>' : '')
       + '<div style="display:flex;gap:8px">'
       + '<button data-idx="'+idx+'" class="btn-share-custom-info" style="flex:1;background:#25d366;color:#fff;border:none;padding:8px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">📤 ແຊໃຫ້ລູກຄ້າ</button>'
+      + '<button data-idx="'+idx+'" class="btn-edit-custom-info" style="background:#eff6ff;color:#1a56db;border:1px solid #bfdbfe;padding:8px 12px;border-radius:8px;font-size:14px;cursor:pointer;font-family:inherit">✏️</button>'
       + '<button data-idx="'+idx+'" class="btn-del-custom-info" style="background:#fef2f2;color:#dc2626;border:1px solid #fecaca;padding:8px 12px;border-radius:8px;font-size:14px;cursor:pointer;font-family:inherit">🗑</button>'
       + '</div>'
       + '</div>';
@@ -1915,6 +1916,21 @@ function renderCustomInfo() {
       if (!confirm('ລຶບຂໍ້ມູນນີ້?')) return;
       customInfoList.splice(idx, 1);
       saveCustomInfo().then(function() { renderCustomInfo(); });
+    });
+  }
+  // Edit handlers
+  var editBtns = box.querySelectorAll('.btn-edit-custom-info');
+  for (var k = 0; k < editBtns.length; k++) {
+    editBtns[k].addEventListener('click', function() {
+      var idx = parseInt(this.getAttribute('data-idx'));
+      var item = customInfoList[idx];
+      var newTitle = prompt('ກ້າຫ້າຊື່/ໝັວຂໍ້:', item.title||'');
+      if (newTitle === null) return;
+      var newDesc = prompt('ກ້າຫ້າລາຍລະອັດ (ສາມາດພິມຫຼາຍແຖວ ບໍ່ຕໍ້ງການ):', item.desc||'');
+      if (newDesc === null) return;
+      customInfoList[idx].title = newTitle;
+      customInfoList[idx].desc = newDesc;
+      saveCustomInfo().then(function() { renderCustomInfo(); alert('✅ ບັນທຶກການແກ້ໄຂສຳເລັດ'); });
     });
   }
 }
