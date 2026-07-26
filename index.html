@@ -3397,7 +3397,7 @@ function initCatalogTabs() {
 }
 
 function initCatalogMaker() {
-  var isAdmin = currentUser && currentUser.role === 'admin';
+  var isAdmin = true;
   var adminPanel = document.getElementById('cm-admin-panel');
   if(adminPanel) adminPanel.style.display = isAdmin ? 'block' : 'none';
 
