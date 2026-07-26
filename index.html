@@ -157,6 +157,12 @@ input,textarea{-webkit-user-select:text!important;user-select:text!important;-we
     <div class="sl" style="color:rgba(255,255,255,.7)" id="d-month-bills">0 ບິນ</div>
   </div>
 </div>
+<div class="card" style="padding:14px">
+  <button id="btn-sync-now" style="width:100%;background:linear-gradient(90deg,#d97706,#b45309);color:#fff;border:none;padding:14px;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px">
+    <span id="sync-now-icon">🔄</span> <span id="sync-now-text">Sync ດ່ວນ (ສິນຄ້າ+ຍອດຂາຍ)</span>
+  </button>
+  <div id="sync-now-status" style="text-align:center;font-size:12px;color:#9ca3af;margin-top:8px"></div>
+</div>
 <div class="card"><div class="cl">👤 ຍອດຂາຍຕາມພະນັກງານ (ມື້ນີ້)</div><div id="d-officers"><div class="ld">⏳ ໂຫຼດ...</div></div></div>
 <div class="card"><div class="cl">📈 ຍອດ 30 ວັນຜ່ານມາ</div><div id="d-monthly"><div class="ld">⏳ ໂຫຼດ...</div></div></div>
 <div class="card">
@@ -818,6 +824,7 @@ function showPage(id) {
   if (id === 'quotation') initQuotation();
   if (id === 'sales') initProductSalesSearch();
   if (id === 'catalog') initCatalogMaker();
+  if (id === 'dash') initSyncNowBtn();
   if (id === 'docs') initDocs();
   if (id === 'finance') initFinance();
   if (id === 'setup') initSetup();
@@ -3837,6 +3844,59 @@ function roundRectCM(ctx, x, y, w, h, r) {
   ctx.arcTo(x, y+h, x, y, r);
   ctx.arcTo(x, y, x+w, y, r);
   ctx.closePath();
+}
+
+
+
+// === SYNC NOW BUTTON ===
+function initSyncNowBtn() {
+  var btn = document.getElementById('btn-sync-now');
+  if (!btn || btn.dataset.bound) return;
+  btn.dataset.bound = '1';
+
+  btn.addEventListener('click', function() {
+    if (!confirm('ຈະສ່ງຄຳຂໍ Sync ດ່ວນ ຈາກ Server ຮ້ານ? (ໃຊ້ເວລາປະມານ 30ວິ - 2 ນາທີ)')) return;
+
+    var icon = document.getElementById('sync-now-icon');
+    var text = document.getElementById('sync-now-text');
+    var status = document.getElementById('sync-now-status');
+
+    btn.disabled = true;
+    icon.textContent = '⏳';
+    text.textContent = 'ກຳລັງສ່ງຄຳຂໍ...';
+
+    fetch(POS_URL + '/trigger-sync', { method: 'POST' })
+      .then(function(r) { return r.json(); })
+      .then(function(res) {
+        if (!res.ok) { throw new Error('trigger failed'); }
+        text.textContent = 'ກຳລັງດຳເນິນການ...';
+        status.textContent = 'ຄໍຍ Server ຮ້ານກຳລັງ Sync ຂໍ້ມູນ...';
+
+        var attempts = 0;
+        var maxAttempts = 24; // 24 * 5s = 120s max wait
+
+        var poll = setInterval(function() {
+          attempts++;
+          fetch(POS_URL + '/sync-request').then(function(r){return r.json();}).then(function(pres){
+            if (!pres.requested || attempts >= maxAttempts) {
+              clearInterval(poll);
+              icon.textContent = '✅';
+              text.textContent = 'Sync ສຳເລັດ! ກໍດເພື່ອ Sync ອີກ';
+              status.textContent = attempts >= maxAttempts ? 'ໝໍດເວລາ - ກະລຸນາກວດຮ້ານແທນ' : 'ສຳເລັດເມື່າ '+new Date().toLocaleTimeString();
+              btn.disabled = false;
+              if(typeof initDash === 'function' && getPage()==='dash') loadDashData();
+              setTimeout(function(){ icon.textContent='🔄'; text.textContent='Sync ດ່ວນ (ສິນຄ້າ+ຍອດຂາຍ)'; }, 4000);
+            }
+          }).catch(function(){});
+        }, 5000);
+      })
+      .catch(function() {
+        icon.textContent = '❌';
+        text.textContent = 'ສ່ງຄຳຂໍບໍ່ໄດ້ ລອງໃໝ່';
+        btn.disabled = false;
+        setTimeout(function(){ icon.textContent='🔄'; text.textContent='Sync ດ່ວນ (ສິນຄ້າ+ຍອດຂາຍ)'; }, 3000);
+      });
+  });
 }
 
 </script>
