@@ -114,6 +114,7 @@ input,textarea{-webkit-user-select:text!important;user-select:text!important;-we
     <a class="nav-a" id="na-sales" href="#sales">📈 ຍອດຂາຍ</a>
     <a class="nav-a" id="na-target" href="#target">🎯 ເປົ້າຍອດຂາຍ</a>
     <a class="nav-a" id="na-products" href="#products">📦 ສິນຄ້າ</a>
+    <a class="nav-a" id="na-stock" href="#stock">📊 ກວດສະຕໍ້ກ</a>
     <a class="nav-a" id="na-quotation" href="#quotation">📄 ໃບສະເໜີລາຄາ</a>
     <a class="nav-a" id="na-shopinfo" href="#shopinfo">🏪 ຂໍ້ມູນຮ້ານ</a>
     undefined
@@ -245,6 +246,19 @@ input,textarea{-webkit-user-select:text!important;user-select:text!important;-we
   <div class="cl" style="margin-bottom:8px">📂 ໝວດສິນຄ້າ — ກົດເພື່ອຄົ້ນຫາ</div>
   <div id="cat-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px"></div>
 </div>
+</div>
+
+<!-- STOCK CHECK -->
+<div id="sec-stock" class="sec">
+<div class="pt">📊 ກວດສະຕໍ້ກ</div>
+<div class="card" style="padding:12px">
+  <div style="display:flex;gap:8px">
+    <input type="search" id="stock-search-inp" style="flex:1;padding:14px 16px;border:2px solid #d1d5db;border-radius:12px;font-size:16px;font-family:inherit;font-weight:600;outline:none" placeholder="ຄໍ້ນຫາຊື່ / Barcode..." autocomplete="off">
+    <button id="btn-stock-search" style="background:linear-gradient(90deg,#1a56db,#1e40af);color:#fff;border:none;padding:0 18px;border-radius:12px;font-size:20px;cursor:pointer;flex-shrink:0">🔍</button>
+  </div>
+</div>
+<div id="stock-hint" style="text-align:center;color:#9ca3af;font-size:13px;margin:10px 0 14px">ພິມຊື່ສິນຄ້າ ໜື Barcode ແລ້ວກໍດຄໍ້ນຫາ</div>
+<div id="stock-list"></div>
 </div>
 
 <!-- CALC -->
@@ -712,7 +726,7 @@ input,textarea{-webkit-user-select:text!important;user-select:text!important;-we
 var POS_URL = 'https://165.22.242.64.nip.io'; 
 
 var PAGE_NAMES = {
-  dash:'Dashboard', sales:'ຍອດຂາຍ', products:'ສິນຄ້າ', catalog:'ກາຕາລ໋ອກ',
+  dash:'Dashboard', sales:'ຍອດຂາຍ', products:'ສິນຄ້າ', stock:'ກວດສະຕໍ້ກ', catalog:'ກາຕາລ໋ອກ',
   staff:'ພະນັກງານ', tasks:'ມອບໝາຍງານ', attend:'ເຂົ້າ-ອອກງານ',
   install:'ສັນຍາຜ່ອນ', calc:'ຄິດໄລ່ຜ່ອນ', crm:'CRM', quotation:'ໃບສະເໜີລາຄາ',
   shopinfo:'ຂໍ້ມູນຮ້ານ', setup:'ຕັ້ງຄ່າ', docs:'ດາວໂຫຼດເອກະສານ', finance:'ບັນຊີລາຍຈ່າຍ', users:'ຈັດການຜູ້ໃຊ້'
@@ -726,6 +740,7 @@ var ALL_PERMS = [
   {id:'sales', label:'📈 ຍອດຂາຍ'},
   {id:'target', label:'🎯 ເປົ້າຍອດຂາຍ'},
   {id:'products', label:'📦 ສິນຄ້າ'},
+  {id:'stock', label:'📊 ກວດສະຕໍ້ກ'},
   {id:'catalog', label:'🛍 ກາຕາລ໋ອກ'},
   {id:'staff', label:'👥 ພະນັກງານ'},
   {id:'tasks', label:'✅ ມອບໝາຍງານ'},
@@ -824,6 +839,7 @@ function showPage(id) {
   if (id === 'quotation') initQuotation();
   if (id === 'sales') initProductSalesSearch();
   if (id === 'catalog') initCatalogMaker();
+  if (id === 'stock') initStockCheck();
   if (id === 'dash') initSyncNowBtn();
   if (id === 'docs') initDocs();
   if (id === 'finance') initFinance();
@@ -3897,6 +3913,75 @@ function initSyncNowBtn() {
         setTimeout(function(){ icon.textContent='🔄'; text.textContent='Sync ດ່ວນ (ສິນຄ້າ+ຍອດຂາຍ)'; }, 3000);
       });
   });
+}
+
+
+
+// === STOCK CHECK ===
+function initStockCheck() {
+  var btn = document.getElementById('btn-stock-search');
+  var inp = document.getElementById('stock-search-inp');
+  if (btn && !btn.dataset.bound) {
+    btn.dataset.bound = '1';
+    btn.addEventListener('click', doStockSearch);
+    inp.addEventListener('keypress', function(e){ if(e.key==='Enter') doStockSearch(); });
+  }
+}
+
+var stockCurPage = 1, stockCurQuery = '', stockTotalPages = 1;
+
+function doStockSearch() {
+  stockCurQuery = document.getElementById('stock-search-inp').value.trim();
+  loadStockPage(1);
+}
+
+function loadStockPage(page) {
+  var box = document.getElementById('stock-list');
+  var hint = document.getElementById('stock-hint');
+
+  box.innerHTML = '<div class="ld">⏳ ກຳລັງຄໍ້ນຫາ...</div>';
+
+  fetch(POS_URL + '/stock/search?q=' + encodeURIComponent(stockCurQuery) + '&page=' + page)
+    .then(function(r){ return r.json(); })
+    .then(function(res){
+      if (!res.ok || !res.data.length) {
+        box.innerHTML = '<div class="ld">ບໍ່ພອບສິນຄ້າ</div>';
+        hint.textContent = '';
+        return;
+      }
+      stockCurPage = res.page; stockTotalPages = res.totalPages;
+      hint.innerHTML = 'ພໍບ ' + res.total.toLocaleString() + ' ລາຍການ (ໜນ້າ ' + res.page + '/' + res.totalPages + ')';
+
+      var itemsHtml = res.data.map(function(p){
+        var stock = parseFloat(p.stock||0);
+        var badge = stock > 0
+          ? '<span style="background:#dcfce7;color:#16a34a;padding:6px 14px;border-radius:8px;font-size:16px;font-weight:800">' + stock + ' ' + (p.unit||'') + '</span>'
+          : '<span style="background:#fee2e2;color:#dc2626;padding:6px 14px;border-radius:8px;font-size:16px;font-weight:800">ໝໍດ</span>';
+        return '<div style="display:flex;align-items:center;gap:12px;padding:14px;border:1px solid #e5e7eb;border-radius:12px;margin-bottom:8px;background:#fff">'
+          + '<div style="flex:1;min-width:0">'
+          + '<div style="font-weight:700;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + (p.name||'') + '</div>'
+          + '<div style="font-size:12px;color:#9ca3af;margin-top:2px">' + ((p.barcode||'').trim()||'ບໍ່ມີ Barcode') + '</div>'
+          + '</div>'
+          + badge
+          + '</div>';
+      }).join('');
+
+      var pagerHtml = '';
+      if (res.totalPages > 1) {
+        pagerHtml = '<div style="display:flex;justify-content:center;align-items:center;gap:14px;margin-top:12px">'
+          + '<button id="stock-prev" ' + (res.page<=1?'disabled':'') + ' style="background:#fff;border:1.5px solid #e5e7eb;border-radius:10px;width:44px;height:44px;font-size:18px;cursor:pointer;color:#1a56db">‹</button>'
+          + '<span style="font-size:14px;font-weight:700;color:#5b6478">' + res.page + ' / ' + res.totalPages + '</span>'
+          + '<button id="stock-next" ' + (res.page>=res.totalPages?'disabled':'') + ' style="background:#fff;border:1.5px solid #e5e7eb;border-radius:10px;width:44px;height:44px;font-size:18px;cursor:pointer;color:#1a56db">›</button>'
+          + '</div>';
+      }
+
+      box.innerHTML = itemsHtml + pagerHtml;
+
+      var prevBtn = document.getElementById('stock-prev');
+      var nextBtn = document.getElementById('stock-next');
+      if (prevBtn) prevBtn.addEventListener('click', function(){ if(stockCurPage>1) loadStockPage(stockCurPage-1); });
+      if (nextBtn) nextBtn.addEventListener('click', function(){ if(stockCurPage<stockTotalPages) loadStockPage(stockCurPage+1); });
+    }).catch(function(){ box.innerHTML = '<div class="ld" style="color:#dc2626">❌ ເຊືອມ Server ບໍ່ໄດ້</div>'; });
 }
 
 </script>
