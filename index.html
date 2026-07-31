@@ -1092,8 +1092,9 @@ function initProducts() {
   .then(function(res) {
     if (!res.ok || !res.data || !res.data.length) { catGrid.innerHTML = '<div class="ld">ຍັງບໍ່ມີໝວດ</div>'; return; }
     var icons = ['📱','💻','🖨','📦','🔌','🖥','⌨','🖱','📷','🎮','🔋','💾','📡','🛠','🎧','🖲','📺','⚡','🔧','🎯'];
+    var sortedData = res.data.slice().sort(function(a,b){ return (a.name||'').localeCompare(b.name||''); });
     catGrid.innerHTML = '';
-    res.data.forEach(function(c, i) {
+    sortedData.forEach(function(c, i) {
       var div = document.createElement('div');
       div.style.cssText = 'background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:14px 12px;display:flex;align-items:center;gap:10px;cursor:pointer';
       div.innerHTML = '<span style="font-size:24px">'+(icons[i%icons.length])+'</span><div><div style="font-weight:600;font-size:15px">'+c.name+'</div><div style="font-size:12px;color:#9ca3af">'+c.count+' ລາຍການ</div></div>';
