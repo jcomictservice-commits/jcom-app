@@ -1083,27 +1083,53 @@ function initSales() {
 }
 
 // ===== PRODUCTS =====
+var categoryIconsCache = {};
+var defaultCategoryIcons = ['📱','💻','🖨','📦','🔌','🖥','⌨','🖱','📷','🎮','🔋','💾','📡','🛠','🎧','🖲','📺','⚡','🔧','🎯'];
+
 function initProducts() {
   loadProductImages();
   var catGrid = document.getElementById('cat-grid');
   catGrid.innerHTML = '<div class="ld">⏳ ໂຫຼດໝວດ...</div>';
-  fetch(POS_URL + '/categories')
-  .then(function(r){return r.json();})
-  .then(function(res) {
+
+  Promise.all([
+    fetch(POS_URL + '/categories').then(function(r){return r.json();}),
+    fetch(POS_URL + '/category-icons').then(function(r){return r.json();})
+  ]).then(function(results){
+    var res = results[0];
+    var iconRes = results[1];
+    categoryIconsCache = (iconRes && iconRes.ok) ? iconRes.data : {};
+
     if (!res.ok || !res.data || !res.data.length) { catGrid.innerHTML = '<div class="ld">ຍັງບໍ່ມີໝວດ</div>'; return; }
-    var icons = ['📱','💻','🖨','📦','🔌','🖥','⌨','🖱','📷','🎮','🔋','💾','📡','🛠','🎧','🖲','📺','⚡','🔧','🎯'];
     var sortedData = res.data.slice().sort(function(a,b){ return (a.name||'').localeCompare(b.name||''); });
     catGrid.innerHTML = '';
     sortedData.forEach(function(c, i) {
+      var icon = categoryIconsCache[c.name] || defaultCategoryIcons[i % defaultCategoryIcons.length];
       var div = document.createElement('div');
       div.style.cssText = 'background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:14px 12px;display:flex;align-items:center;gap:10px;cursor:pointer';
-      div.innerHTML = '<span style="font-size:24px">'+(icons[i%icons.length])+'</span><div><div style="font-weight:600;font-size:15px">'+c.name+'</div><div style="font-size:12px;color:#9ca3af">'+c.count+' ລາຍການ</div></div>';
-      div.addEventListener('click', function() { doSearch(c.name); });
+      div.innerHTML = '<span class="cat-icon-display" data-catname="'+c.name.replace(/"/g,'&quot;')+'" style="font-size:24px;cursor:pointer" title="ກໍດເພື່ອແກ້ໄຂ Icon">'+icon+'</span><div style="flex:1"><div style="font-weight:600;font-size:15px">'+c.name+'</div><div style="font-size:12px;color:#9ca3af">'+c.count+' ລາຍການ</div></div>';
+      div.addEventListener('click', function(e) {
+        if (e.target.classList.contains('cat-icon-display')) return;
+        doSearch(c.name);
+      });
       catGrid.appendChild(div);
     });
-  }).catch(function() { catGrid.innerHTML = '<div class="ld">❌ ເຊື່ອມ Server ບໍ່ໄດ້</div>'; });
-}
 
+    catGrid.querySelectorAll('.cat-icon-display').forEach(function(iconEl){
+      iconEl.addEventListener('click', function(e){
+        e.stopPropagation();
+        var catName = this.getAttribute('data-catname');
+        var newIcon = prompt('ພິມ Emoji Icon ໃໝ່ສຳລັບ "'+catName+'":', this.textContent);
+        if (newIcon === null || !newIcon.trim()) return;
+        var iconTrimmed = newIcon.trim();
+        this.textContent = iconTrimmed;
+        fetch(POS_URL + '/category-icons', {
+          method: 'POST', headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({ name: catName, icon: iconTrimmed })
+        }).then(function(){ categoryIconsCache[catName] = iconTrimmed; });
+      });
+    });
+  }).catch(function() { catGrid.innerHTML = '<div class="ld">❌ ເຊືອມ Server ບໍ່ໄດ້</div>'; });
+}
 function doSearch(q) {
   if (!q || !q.trim()) return;
   q = q.trim();
