@@ -1095,7 +1095,7 @@ function initProducts() {
   catGrid.innerHTML = '<div class="ld">⏳ ໂຫຼດໝວດ...</div>';
 
   Promise.all([
-    fetch(POS_URL + '/catalog/groups').then(function(r){return r.json();}),
+    fetch(POS_URL + '/categories').then(function(r){return r.json();}),
     fetch(POS_URL + '/category-icons').then(function(r){return r.json();})
   ]).then(function(results){
     var res = results[0];
@@ -1110,11 +1110,11 @@ function initProducts() {
       var div = document.createElement('div');
       div.style.cssText = 'background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:14px 12px;display:flex;align-items:center;gap:10px;cursor:pointer';
       div.innerHTML = '<span class="cat-icon-display" style="font-size:24px;flex-shrink:0">'+icon+'</span>'
-        + '<div style="flex:1;min-width:0"><div style="font-weight:600;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+c.name+'</div><div style="font-size:12px;color:#9ca3af">'+c.cnt+' ລາຍການ</div></div>'
+        + '<div style="flex:1;min-width:0"><div style="font-weight:600;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+c.name+'</div><div style="font-size:12px;color:#9ca3af">'+c.count+' ລາຍການ</div></div>'
         + '<button class="cat-edit-btn" data-catname="'+c.name.replace(/"/g,'&quot;')+'" style="background:#eff6ff;color:#1a56db;border:1px solid #bfdbfe;padding:6px 10px;border-radius:8px;font-size:13px;cursor:pointer;flex-shrink:0;font-family:inherit">✏️</button>';
       div.addEventListener('click', function(e) {
         if (e.target.classList.contains('cat-edit-btn')) return;
-        showCategoryProducts(c.groupId, c.name);
+        showCategoryProducts(c.name);
       });
       catGrid.appendChild(div);
     });
@@ -1137,40 +1137,6 @@ function initProducts() {
     });
   }).catch(function() { catGrid.innerHTML = '<div class="ld">❌ ເຊືອມ Server ບໍ່ໄດ້</div>'; });
 }
-
-function renderProductList(resBox, data, emptyMsg) {
-  if (!data || !data.length) { resBox.innerHTML = '<div class="ld">'+(emptyMsg||'🔍 ບໍ່ພອບສິນຄ້າ')+'</div>'; return; }
-  var html2 = '';
-  data.forEach(function(p) {
-    var name = (p.name||'').trim();
-    var price = parseFloat(p.price||0);
-    var stock = parseFloat(p.stock||0);
-    var bc = (p.barcode||'').trim();
-    var stockHtml = stock > 0
-      ? '<span style="background:#dcfce7;color:#16a34a;padding:3px 8px;border-radius:6px;font-size:12px;font-weight:600">✓ '+stock+'</span>'
-      : '<span style="background:#fee2e2;color:#dc2626;padding:3px 8px;border-radius:6px;font-size:12px;font-weight:600">ໝໍດ</span>';
-    var color = (p.color||'').trim();
-    var comment = (p.comment||'').trim();
-    var prodKey = p.id || p.sku || p.barcode || '';
-    var imgSrc = prodKey && productImagesCache[prodKey] ? POS_URL + productImagesCache[prodKey] : null;
-    var imgHtml = imgSrc
-      ? '<img src="'+imgSrc+'" style="width:42px;height:42px;border-radius:10px;object-fit:cover;flex-shrink:0;background:#f3f4f6">'
-      : '<div style="width:42px;height:42px;background:#eff6ff;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">📦</div>';
-    html2 += '<div class="prod-item" data-name="'+name+'" data-price="'+price+'" data-bc="'+bc+'" data-stock="'+stock+'" data-color="'+color+'" data-comment="'+comment.replace(/"/g,'&quot;')+'" style="display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid #f3f4f6;cursor:pointer">'
-      + imgHtml
-      + '<div style="flex:1;min-width:0"><div style="font-weight:600;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+name+'</div>'
-      + '<div style="font-size:12px;color:#9ca3af">'+(bc||'ບໍ່ມີ Barcode')+(color?' - '+color:'')+'</div></div>'
-      + '<div style="text-align:right;flex-shrink:0"><div style="font-weight:700;color:#3b82f6;font-size:15px">₭'+price.toLocaleString()+'</div><div style="margin-top:4px">'+stockHtml+'</div></div></div>';
-  });
-  resBox.innerHTML = html2;
-  var items = resBox.querySelectorAll('.prod-item');
-  for (var i = 0; i < items.length; i++) {
-    items[i].addEventListener('click', function() {
-      selectProduct({ name:this.getAttribute('data-name'), price:parseFloat(this.getAttribute('data-price')), barcode:this.getAttribute('data-bc'), stock:parseFloat(this.getAttribute('data-stock')), color:this.getAttribute('data-color'), comment:this.getAttribute('data-comment') });
-    });
-  }
-}
-
 function doSearch(q) {
   if (!q || !q.trim()) return;
   q = q.trim();
@@ -1190,7 +1156,7 @@ function doSearch(q) {
   }).catch(function() { resBox.innerHTML = '<div class="ld" style="color:#dc2626">❌ ເຊືອມ Server ບໍ່ໄດ້</div>'; });
 }
 
-function showCategoryProducts(groupId, catName) {
+function showCategoryProducts(catName) {
   var catSec = document.getElementById('cat-section');
   var resBox = document.getElementById('search-results');
   var backBtn = document.getElementById('btn-prod-back');
@@ -1200,7 +1166,7 @@ function showCategoryProducts(groupId, catName) {
   if (backBtn) backBtn.style.display = 'block';
   resBox.style.display = 'block';
   resBox.innerHTML = '<div class="ld">⏳ ກຳລັງຄໍ້ນຫາ...</div>';
-  fetch(POS_URL + '/catalog/products?group=' + groupId)
+  fetch(POS_URL + '/products-by-category?name=' + encodeURIComponent(catName))
   .then(function(r){return r.json();})
   .then(function(res) {
     renderProductList(resBox, res.data, '🔍 ບໍ່ພອບສິນຄ້າໃນໝວດນີ້');
