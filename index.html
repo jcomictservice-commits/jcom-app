@@ -1091,6 +1091,7 @@ var defaultCategoryIcons = ['📱','💻','🖨','📦','🔌','🖥','⌨','�
 
 function initProducts() {
   loadProductImages();
+  loadProductImagesMulti();
   var catGrid = document.getElementById('cat-grid');
   catGrid.innerHTML = '<div class="ld">⏳ ໂຫຼດໝວດ...</div>';
 
@@ -1208,6 +1209,12 @@ function showCategoryProducts(catName) {
 }
 
 var productImagesCache = {};
+var productImagesMultiCache = {};
+function loadProductImagesMulti() {
+  fetch(POS_URL + '/product-images-multi').then(function(r){return r.json();}).then(function(res){
+    if (res.ok) productImagesMultiCache = res.data || {};
+  }).catch(function(){});
+}
 
 function shareProductPhoto(imgUrl, name) {
   var img = new Image();
@@ -1240,28 +1247,78 @@ function loadProductImages() {
 
 function selectProduct(p) {
   var box = document.getElementById('prod-selected');
-  var stk = p.stock > 0 ? '<span style="color:#16a34a;font-weight:600">✓ '+p.stock+' ຊິ້ນ</span>' : '<span style="background:#fee2e2;color:#dc2626;padding:2px 8px;border-radius:6px;font-size:12px;font-weight:600">ໝົດ</span>';
+  var stk = p.stock > 0 ? '<span style="color:#16a34a;font-weight:600">✓ '+p.stock+' ຊິ້ນ</span>' : '<span style="background:#fee2e2;color:#dc2626;padding:2px 8px;border-radius:6px;font-size:12px;font-weight:600">ໝໍດ</span>';
   var prodKey = p.id || p.sku || p.barcode || '';
-  var imgUrl = prodKey && productImagesCache[prodKey] ? POS_URL + productImagesCache[prodKey] : null;
+  var multiImgs = (prodKey && productImagesMultiCache[prodKey]) ? productImagesMultiCache[prodKey] : [];
   box.style.display = 'block';
+
+  var galleryHtml = '<div style="margin-bottom:10px">';
+  galleryHtml += '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:8px">';
+  multiImgs.forEach(function(url, idx){
+    galleryHtml += '<div style="position:relative;aspect-ratio:1;border-radius:10px;overflow:hidden;background:#f8fafc">'
+      + '<img src="'+POS_URL+url+'" style="width:100%;height:100%;object-fit:cover">'
+      + '<button class="btn-del-multi-img" data-idx="'+idx+'" style="position:absolute;top:4px;right:4px;background:rgba(220,38,38,.9);color:#fff;border:none;border-radius:50%;width:22px;height:22px;font-size:12px;cursor:pointer;line-height:1">✕</button>'
+      + '</div>';
+  });
+  if (multiImgs.length < 5) {
+    galleryHtml += '<label for="_prod_file_inp_multi" style="aspect-ratio:1;border:2px dashed #d1d5db;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#9ca3af;font-size:12px;cursor:pointer;text-align:center">'
+      + '<span style="font-size:22px">📷</span>+ ເພິ່ມຮູບ</label>';
+  }
+  galleryHtml += '</div>';
+  galleryHtml += '<input type="file" id="_prod_file_inp_multi" accept="image/*" style="display:none">';
+  galleryHtml += '<div style="text-align:center;font-size:12px;color:#9ca3af">'+multiImgs.length+'/5 ຮູບ</div>';
+  galleryHtml += '</div>';
+
   box.innerHTML = '<div class="cl">✅ ສິນຄ້າທີ່ເລືອກ</div>'
-    + (imgUrl
-      ? '<div style="text-align:center;margin-bottom:10px"><img src="'+imgUrl+'" style="max-width:100%;max-height:180px;border-radius:12px;object-fit:contain;background:#f8fafc"><br><label for="_prod_file_inp" style="display:inline-block;margin-top:6px;background:#eff6ff;color:#1a56db;padding:6px 14px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">📷 ປ່ຽນຮູບ</label></div>'
-      : '<label for="_prod_file_inp" style="display:block;border:2px dashed #d1d5db;border-radius:12px;padding:20px;text-align:center;color:#9ca3af;font-size:15px;margin-bottom:10px;cursor:pointer">📷 ກົດເພື່ອເພີ່ມຮູບສິນຄ້າ</label>')
-    + '<input type="file" id="_prod_file_inp" accept="image/*" style="display:none">'
+    + galleryHtml
     + '<div class="row"><span class="ic">📦</span><span style="flex:1;font-weight:600;font-size:16px">'+p.name+'</span></div>'
     + '<div class="row"><span class="ic">💰</span><span style="flex:1">ລາຄາ</span><span style="font-weight:700;color:#3b82f6;font-size:18px">₭'+p.price.toLocaleString()+'</span></div>'
     + '<div class="row"><span class="ic">📊</span><span style="flex:1">ສະຕ໋ອກ</span>'+stk+'</div>'
     + (p.color ? '<div class="row"><span class="ic">🎨</span><span style="flex:1">ສີ</span><span style="font-weight:600">'+p.color+'</span></div>' : '')
     + (p.barcode ? '<div class="row"><span class="ic">🔖</span><span style="flex:1">Barcode</span><span style="font-weight:600;font-family:monospace">'+p.barcode+'</span></div>' : '')
-    + (p.comment ? '<div class="row" style="align-items:flex-start"><span class="ic">📝</span><div style="flex:1"><div style="font-size:13px;color:#9ca3af;margin-bottom:2px">ໝາຍເຫດ</div><div style="font-weight:600">'+p.comment+'</div></div></div>' : '')
+    + (p.comment ? '<div class="row" style="align-items:flex-start"><span class="ic">📝</span><div style="flex:1"><div style="font-size:13px;color:#9ca3af;margin-bottom:2px">ໝາຍເຫັດ</div><div style="font-weight:600">'+p.comment+'</div></div></div>' : '')
     + '<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">'
     + '<button id="btn-go-calc" style="flex:1;background:#3b82f6;color:#fff;border:none;padding:12px;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;min-width:120px">💳 ຜ່ອນ</button>'
     + '<button id="btn-share-prod" style="flex:1;background:#25d366;color:#fff;border:none;padding:12px;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;min-width:120px">🖼 ສ້າງຮູບ ສົ່ງລູກຄ້າ</button>'
-    + (imgUrl
-      ? '<button id="btn-del-img" style="background:#fef2f2;color:#dc2626;border:1px solid #fecaca;padding:12px 14px;border-radius:10px;font-size:15px;cursor:pointer;font-family:inherit">🗑</button>'
-      : '')
     + '</div>';
+
+  var fileInp = document.getElementById('_prod_file_inp_multi');
+  if (fileInp) {
+    fileInp.addEventListener('change', function() {
+      var file = this.files[0];
+      if (!file) return;
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        fetch(POS_URL+'/product-image-multi', {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ productId: prodKey, imageData: e.target.result })
+        }).then(function(r){return r.json();}).then(function(res){
+          if (res.ok) {
+            productImagesMultiCache[prodKey] = res.data;
+            selectProduct(p);
+          } else {
+            alert(res.error || 'ອັບໂຫລດບໍ່ໄດ້');
+          }
+        });
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  box.querySelectorAll('.btn-del-multi-img').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      if (!confirm('ລຶບຮູບນີ້?')) return;
+      var idx = this.getAttribute('data-idx');
+      fetch(POS_URL+'/product-image-multi/'+prodKey+'/'+idx, { method:'DELETE' })
+        .then(function(r){return r.json();}).then(function(res){
+          if (res.ok) {
+            productImagesMultiCache[prodKey] = res.data;
+            selectProduct(p);
+          }
+        });
+    });
+  });
+
   document.getElementById('btn-go-calc').addEventListener('click', function() {
     location.hash = 'calc';
     setTimeout(function() {
