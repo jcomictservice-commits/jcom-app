@@ -337,16 +337,24 @@ input,textarea{-webkit-user-select:text!important;user-select:text!important;-we
 
 <!-- ATTEND -->
 <div id="sec-attend" class="sec">
-<div class="pt">⏰ ເຂົ້າ-ອອກງານ</div>
+<div class="pt">⏰ ເຂ້າ-ອອກງານ</div>
+
 <div class="card">
-  <div class="cl">📅 ບັນທຶກ</div>
-  <input class="inp" id="atn" placeholder="ຊື່ພະນັກງານ">
+  <div class="cl">📍 ບັນທຶກເວລາ (GPS)</div>
+  <div id="atn-name-display" style="text-align:center;font-size:18px;font-weight:700;color:#1a1a2e;margin-bottom:14px"></div>
+  <div id="atn-status" style="text-align:center;font-size:13px;color:#9ca3af;margin-bottom:14px">ກໍດປຸ່ມດ້ານລຸ່ມ ເພື່ອບັນທຶກເວລາ</div>
   <div style="display:flex;gap:8px">
-    <button class="pb" style="flex:1;margin:0" id="btn-in">▶ ເຂົ້າງານ</button>
+    <button class="pb" style="flex:1;margin:0" id="btn-in">▶ ເຂ້າງານ</button>
     <button class="pb" style="flex:1;margin:0;background:#16a34a" id="btn-out">⏹ ອອກງານ</button>
   </div>
 </div>
-<div class="card"><div class="cl">📊 ປະຫວັດ</div><div id="att-lst"><div class="ld">ໂຫຼດ...</div></div></div>
+
+<div class="card"><div class="cl">📊 ປະໜວດຂໍ້ງທ່ານ</div><div id="att-lst"><div class="ld">ໂຫຼດ...</div></div></div>
+
+<div class="card" id="atn-admin-panel" style="display:none">
+  <div class="cl">⚙️ ຕັ້ງຄ່າພິກັດສາຂາ (Admin)</div>
+  <div id="branch-loc-editor"></div>
+</div>
 </div>
 
 <!-- INSTALL -->
@@ -840,6 +848,7 @@ function showPage(id) {
   if (id === 'sales') initProductSalesSearch();
   if (id === 'catalog') initCatalogMaker();
   if (id === 'stock') initStockCheck();
+  if (id === 'attend') initAttend();
   if (id === 'dash') initSyncNowBtn();
   if (id === 'docs') initDocs();
   if (id === 'finance') initFinance();
@@ -2565,25 +2574,9 @@ window.addEventListener('load', function() {
     document.getElementById('tkn').value=''; document.getElementById('tka').selectedIndex=0; document.getElementById('tkd').value='';
   });
 
-  // Attend
-  document.getElementById('btn-in').addEventListener('click', function() {
-    var n = document.getElementById('atn').value.trim(); if (!n) { alert('ໃສ່ຊື່'); return; }
-    var now = new Date(); var t = String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
-    var lst = document.getElementById('att-lst');
-    var div = document.createElement('div'); div.className='row';
-    div.innerHTML = '<span class="ic">👤</span><span style="flex:1">'+n+'</span><span class="bdg bg">▶ '+t+'</span>';
-    if (lst.querySelector('.ld')) lst.innerHTML = '';
-    lst.appendChild(div);
-  });
-  document.getElementById('btn-out').addEventListener('click', function() {
-    var n = document.getElementById('atn').value.trim(); if (!n) { alert('ໃສ່ຊື່'); return; }
-    var now = new Date(); var t = String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
-    var lst = document.getElementById('att-lst');
-    var div = document.createElement('div'); div.className='row';
-    div.innerHTML = '<span class="ic">👤</span><span style="flex:1">'+n+'</span><span class="bdg by">⏹ '+t+'</span>';
-    if (lst.querySelector('.ld')) lst.innerHTML = '';
-    lst.appendChild(div);
-  });
+  // Attend - GPS based
+  document.getElementById('btn-in').addEventListener('click', function() { doAttendCheckin('in'); });
+  document.getElementById('btn-out').addEventListener('click', function() { doAttendCheckin('out'); });
 
   // CRM
   document.getElementById('btn-crm').addEventListener('click', function() {
@@ -4100,6 +4093,122 @@ function loadStockPage(page) {
       if (prevBtn) prevBtn.addEventListener('click', function(){ if(stockCurPage>1) loadStockPage(stockCurPage-1); });
       if (nextBtn) nextBtn.addEventListener('click', function(){ if(stockCurPage<stockTotalPages) loadStockPage(stockCurPage+1); });
     }).catch(function(){ box.innerHTML = '<div class="ld" style="color:#dc2626">❌ ເຊືອມ Server ບໍ່ໄດ້</div>'; });
+}
+
+
+
+// === ATTENDANCE WITH GPS ===
+function initAttend() {
+  var nameDisplay = document.getElementById('atn-name-display');
+  var empName = (currentUser && currentUser.name) ? currentUser.name : (currentUser && currentUser.username ? currentUser.username : '');
+  if (nameDisplay) nameDisplay.textContent = '👤 ' + (empName || 'ບໍ່ມີຊື່');
+
+  loadAttendHistory();
+
+  var isAdmin = currentUser && currentUser.role === 'admin';
+  var adminPanel = document.getElementById('atn-admin-panel');
+  if (adminPanel) {
+    adminPanel.style.display = isAdmin ? 'block' : 'none';
+    if (isAdmin) loadBranchLocEditor();
+  }
+}
+
+function doAttendCheckin(type) {
+  var empName = (currentUser && currentUser.name) ? currentUser.name : (currentUser && currentUser.username ? currentUser.username : '');
+  if (!empName) { alert('ກະລຸນາ Login ກ່ອນ'); return; }
+
+  var statusEl = document.getElementById('atn-status');
+  statusEl.textContent = 'ກຳລັງກວດຕຳແໜ່ງ...';
+
+  if (!navigator.geolocation) {
+    statusEl.textContent = 'ມືຖືນີ້ບໍ່ຮອງຮັບ GPS';
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(function(pos) {
+    var lat = pos.coords.latitude;
+    var lng = pos.coords.longitude;
+
+    fetch(POS_URL + '/attendance-checkin', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ employeeName: empName, type: type, lat: lat, lng: lng })
+    }).then(function(r){return r.json();}).then(function(res){
+      if (!res.ok) { statusEl.textContent = res.error || 'ບັນທຶກບໍ່ໄດ້'; return; }
+      var rec = res.data;
+      var typeLabel = type === 'in' ? 'ເຂົ້າງານ' : 'ອອກງານ';
+      if (rec.withinRange) {
+        statusEl.innerHTML = 'ບັນທຶກ ' + typeLabel + ' ສຳເລັດ! (' + rec.branch + ', ຫ່າງ ' + rec.distance + 'm)';
+        statusEl.style.color = '#16a34a';
+      } else if (rec.branch) {
+        statusEl.innerHTML = 'ບັນທຶກແລ້ວ ແຕ່ຫ່າງໄກ (' + rec.branch + ', ຫ່າງ ' + rec.distance + 'm)';
+        statusEl.style.color = '#d97706';
+      } else {
+        statusEl.innerHTML = 'ບັນທຶກແລ້ວ (ບໍ່ມີສາຂາອ້າງອີງ)';
+        statusEl.style.color = '#d97706';
+      }
+      loadAttendHistory();
+    }).catch(function(){ statusEl.textContent = 'ຈອດການບໍ່ໄດ້'; });
+  }, function(err) {
+    statusEl.textContent = 'ບໍ່ໄດ້ຮັບອະນຸຍາດ GPS: ' + err.message;
+    statusEl.style.color = '#dc2626';
+  }, { enableHighAccuracy: true, timeout: 10000 });
+}
+
+function loadAttendHistory() {
+  var empName = (currentUser && currentUser.name) ? currentUser.name : (currentUser && currentUser.username ? currentUser.username : '');
+  var lst = document.getElementById('att-lst');
+  var isAdmin = currentUser && currentUser.role === 'admin';
+  var url = POS_URL + '/attendance-records?limit=50' + (isAdmin ? '' : '&employeeName=' + encodeURIComponent(empName));
+
+  fetch(url).then(function(r){return r.json();}).then(function(res){
+    if (!res.ok || !res.data.length) { lst.innerHTML = '<div class="ld">ຍັງບໍ່ມີປະຫວັດ</div>'; return; }
+    lst.innerHTML = res.data.map(function(rec){
+      var d = new Date(rec.timestamp);
+      var dateStr = d.toLocaleDateString('lo-LA') + ' ' + String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+      var typeLabel = rec.type === 'in' ? 'ເຂົ້າ' : 'ອອກ';
+      var badgeColor = rec.type === 'in' ? '#16a34a' : '#dc2626';
+      var rangeIcon = rec.withinRange ? '✅' : (rec.branch ? '⚠️' : '❓');
+      return '<div class="row"><span class="ic">👤</span>'
+        + '<div style="flex:1"><div style="font-weight:600">' + (isAdmin ? rec.employeeName : dateStr) + '</div>'
+        + '<div style="font-size:12px;color:#9ca3af">' + (isAdmin ? dateStr : (rec.branch || 'ບໍ່ຮູ້ສາຂາ')) + '</div></div>'
+        + '<span class="bdg" style="background:' + badgeColor + '22;color:' + badgeColor + '">' + typeLabel + '</span>'
+        + '<span style="margin-left:6px">' + rangeIcon + '</span>'
+        + '</div>';
+    }).join('');
+  }).catch(function(){ lst.innerHTML = '<div class="ld" style="color:#dc2626">ເຊື່ອມ Server ບໍ່ໄດ້</div>'; });
+}
+
+function loadBranchLocEditor() {
+  var box = document.getElementById('branch-loc-editor');
+  fetch(POS_URL + '/branch-locations').then(function(r){return r.json();}).then(function(res){
+    if (!res.ok) return;
+    var data = res.data;
+    box.innerHTML = Object.keys(data).map(function(name){
+      var loc = data[name];
+      return '<div style="margin-bottom:12px;padding:10px;background:#f8fafc;border-radius:10px">'
+        + '<div style="font-weight:700;margin-bottom:6px">' + name + '</div>'
+        + '<div style="display:flex;gap:6px">'
+        + '<input class="inp" style="margin:0" data-field="lat" data-branch="' + name + '" placeholder="Lat" value="' + (loc.lat||'') + '">'
+        + '<input class="inp" style="margin:0" data-field="lng" data-branch="' + name + '" placeholder="Lng" value="' + (loc.lng||'') + '">'
+        + '<input class="inp" style="margin:0;max-width:80px" data-field="radius" data-branch="' + name + '" placeholder="m" value="' + (loc.radius||300) + '">'
+        + '</div></div>';
+    }).join('') + '<button class="pb" id="btn-save-branch-loc">ບັນທຶກພິກັດ</button>';
+
+    document.getElementById('btn-save-branch-loc').addEventListener('click', function(){
+      var inputs = box.querySelectorAll('input[data-branch]');
+      var newData = JSON.parse(JSON.stringify(data));
+      inputs.forEach(function(inp){
+        var b = inp.getAttribute('data-branch');
+        var f = inp.getAttribute('data-field');
+        var v = inp.value.trim();
+        newData[b][f] = v === '' ? null : parseFloat(v);
+      });
+      fetch(POS_URL + '/branch-locations', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify(newData)
+      }).then(function(r){return r.json();}).then(function(){ alert('ບັນທຶກສຳເລັດ'); });
+    });
+  });
 }
 
 </script>
