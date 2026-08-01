@@ -4242,8 +4242,8 @@ function loadBranchLocEditor() {
 
 // === LEAVE REQUESTS ===
 var leaveTypeLabels = { annual: 'ລາພັກ', long: 'ລາພັກຍາວ', sick: 'ລາປ່ວຍ' };
-var leaveStatusLabels = { pending: 'ລໍຖ້າອະນຸມັດ', approved: 'ອະນຸມັດແລ້ວ', rejected: 'ປະຕິເສດ' };
-var leaveStatusColors = { pending: '#d97706', approved: '#16a34a', rejected: '#dc2626' };
+var deductionTypeLabels = { quota: 'ຕັດຈາກວັນພັກປະຈຳປີ', salary: 'ວັນຂາດ ຫັກເງິນ' };
+var deductionTypeColors = { quota: '#16a34a', salary: '#dc2626' };
 
 function initLeaveRequests() {
   var empName = (currentUser && currentUser.name) ? currentUser.name : (currentUser && currentUser.username ? currentUser.username : '');
@@ -4292,22 +4292,37 @@ function loadMyLeaveRequests() {
   var box = document.getElementById('lv-my-list');
   if (!box) return;
 
-  fetch(POS_URL + '/leave-requests?employeeName=' + encodeURIComponent(empName))
-    .then(function(r){return r.json();}).then(function(res){
-      if (!res.ok || !res.data.length) { box.innerHTML = '<div class="ld">ຍັງບໍ່ມີໃບລາ</div>'; return; }
-      box.innerHTML = res.data.map(function(rec){
-        var color = leaveStatusColors[rec.status];
-        return '<div class="row" style="align-items:flex-start">'
-          + '<div style="flex:1">'
-          + '<div style="font-weight:600">' + leaveTypeLabels[rec.type] + ' (' + rec.days + ' ວັນ)</div>'
-          + '<div style="font-size:12px;color:#9ca3af">' + rec.startDate + ' → ' + rec.endDate + '</div>'
-          + (rec.reason ? '<div style="font-size:12px;color:#6b7280;margin-top:2px">' + rec.reason + '</div>' : '')
-          + (rec.reviewNote ? '<div style="font-size:12px;color:#dc2626;margin-top:2px">ໝາຍເຫດ: ' + rec.reviewNote + '</div>' : '')
-          + '</div>'
-          + '<span class="bdg" style="background:' + color + '22;color:' + color + '">' + leaveStatusLabels[rec.status] + '</span>'
-          + '</div>';
-      }).join('');
-    }).catch(function(){ box.innerHTML = '<div class="ld" style="color:#dc2626">ໂຫລດບໍ່ໄດ້</div>'; });
+  Promise.all([
+    fetch(POS_URL + '/leave-requests?employeeName=' + encodeURIComponent(empName)).then(function(r){return r.json();}),
+    fetch(POS_URL + '/leave-quota/' + encodeURIComponent(empName)).then(function(r){return r.json();})
+  ]).then(function(results){
+    var res = results[0];
+    var quotaRes = results[1];
+
+    var quotaHtml = '';
+    if (quotaRes.ok) {
+      var q = quotaRes.data;
+      quotaHtml = '<div style="background:#eff6ff;border-radius:10px;padding:12px;margin-bottom:12px;text-align:center">'
+        + '<div style="font-size:13px;color:#6b7280">ວັນພັກປະຈຳປີເຫຼືອ</div>'
+        + '<div style="font-size:24px;font-weight:800;color:#1a56db">' + q.remaining + ' / ' + q.totalQuota + ' ວັນ</div>'
+        + '</div>';
+    }
+
+    if (!res.ok || !res.data.length) { box.innerHTML = quotaHtml + '<div class="ld">ຍັງບໍ່ມີໃບລາ</div>'; return; }
+
+    box.innerHTML = quotaHtml + res.data.map(function(rec){
+      var color = deductionTypeColors[rec.deductionType] || '#9ca3af';
+      var label = deductionTypeLabels[rec.deductionType] || rec.deductionType;
+      return '<div class="row" style="align-items:flex-start">'
+        + '<div style="flex:1">'
+        + '<div style="font-weight:600">' + leaveTypeLabels[rec.type] + ' (' + rec.days + ' ວັນ)</div>'
+        + '<div style="font-size:12px;color:#9ca3af">' + rec.startDate + ' → ' + rec.endDate + '</div>'
+        + (rec.reason ? '<div style="font-size:12px;color:#6b7280;margin-top:2px">' + rec.reason + '</div>' : '')
+        + '</div>'
+        + '<span class="bdg" style="background:' + color + '22;color:' + color + '">' + label + '</span>'
+        + '</div>';
+    }).join('');
+  }).catch(function(){ box.innerHTML = '<div class="ld" style="color:#dc2626">ໂຫລດບໍ່ໄດ້</div>'; });
 }
 
 function loadAdminLeaveRequests() {
@@ -4316,59 +4331,21 @@ function loadAdminLeaveRequests() {
 
   fetch(POS_URL + '/leave-requests').then(function(r){return r.json();}).then(function(res){
     if (!res.ok || !res.data.length) { box.innerHTML = '<div class="ld">ຍັງບໍ່ມີໃບລາ</div>'; return; }
-    var pending = res.data.filter(function(r){ return r.status === 'pending'; });
-    var others = res.data.filter(function(r){ return r.status !== 'pending'; });
-
-    var html2 = '';
-    if (pending.length) {
-      html2 += '<div style="font-weight:700;color:#d97706;margin-bottom:8px">ລໍຖ້າອະນຸມັດ (' + pending.length + ')</div>';
-      html2 += pending.map(renderAdminLeaveItem).join('');
-    }
-    if (others.length) {
-      html2 += '<div style="font-weight:700;color:#9ca3af;margin:14px 0 8px">ປະຫວັດ</div>';
-      html2 += others.map(renderAdminLeaveItem).join('');
-    }
-    box.innerHTML = html2;
-
-    box.querySelectorAll('.btn-lv-approve').forEach(function(btn){
-      btn.addEventListener('click', function(){ reviewLeaveRequest(this.getAttribute('data-id'), 'approved'); });
-    });
-    box.querySelectorAll('.btn-lv-reject').forEach(function(btn){
-      btn.addEventListener('click', function(){ reviewLeaveRequest(this.getAttribute('data-id'), 'rejected'); });
-    });
+    box.innerHTML = res.data.map(renderAdminLeaveItem).join('');
   }).catch(function(){ box.innerHTML = '<div class="ld" style="color:#dc2626">ໂຫລດບໍ່ໄດ້</div>'; });
 }
 
 function renderAdminLeaveItem(rec) {
-  var color = leaveStatusColors[rec.status];
-  var actions = rec.status === 'pending'
-    ? '<div style="display:flex;gap:6px;margin-top:8px">'
-      + '<button class="btn-lv-approve" data-id="' + rec.id + '" style="flex:1;background:#dcfce7;color:#16a34a;border:none;padding:8px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">✓ ອະນຸມັດ</button>'
-      + '<button class="btn-lv-reject" data-id="' + rec.id + '" style="flex:1;background:#fee2e2;color:#dc2626;border:none;padding:8px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">✕ ປະຕິເສດ</button>'
-      + '</div>'
-    : '';
+  var color = deductionTypeColors[rec.deductionType] || '#9ca3af';
+  var label = deductionTypeLabels[rec.deductionType] || rec.deductionType;
   return '<div style="padding:10px;border:1px solid #e5e7eb;border-radius:10px;margin-bottom:8px">'
     + '<div style="display:flex;justify-content:space-between;align-items:flex-start">'
     + '<div><div style="font-weight:700">' + rec.employeeName + '</div>'
-    + '<div style="font-size:13px;color:#6b7280">' + leaveTypeLabels[rec.type] + ' · ' + rec.days + ' ວັນ (' + rec.startDate + ' → ' + rec.endDate + ')</div>'
+    + '<div style="font-size:13px;color:#6b7280">' + leaveTypeLabels[rec.type] + ' \u00b7 ' + rec.days + ' ວັນ (' + rec.startDate + ' \u2192 ' + rec.endDate + ')</div>'
     + (rec.reason ? '<div style="font-size:12px;color:#9ca3af;margin-top:2px">' + rec.reason + '</div>' : '')
     + '</div>'
-    + '<span class="bdg" style="background:' + color + '22;color:' + color + '">' + leaveStatusLabels[rec.status] + '</span>'
-    + '</div>' + actions + '</div>';
-}
-
-function reviewLeaveRequest(id, status) {
-  var note = status === 'rejected' ? prompt('ໝາຍເຫດ (ທາງເລືອກ):') : null;
-  if (status === 'rejected' && note === null) return;
-
-  var reviewer = (currentUser && currentUser.name) ? currentUser.name : (currentUser && currentUser.username ? currentUser.username : 'Admin');
-
-  fetch(POS_URL + '/leave-request/' + id + '/review', {
-    method: 'POST', headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({ status: status, reviewedBy: reviewer, reviewNote: note })
-  }).then(function(r){return r.json();}).then(function(res){
-    if (res.ok) { loadAdminLeaveRequests(); }
-  });
+    + '<span class="bdg" style="background:' + color + '22;color:' + color + '">' + label + '</span>'
+    + '</div></div>';
 }
 
 </script>
