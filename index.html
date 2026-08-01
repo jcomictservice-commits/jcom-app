@@ -3727,7 +3727,7 @@ function generateCatalogPoster() {
   var cols = cmSelectedProducts.length <= 2 ? cmSelectedProducts.length : (cmSelectedProducts.length <= 6 ? 2 : 3);
   var rows = Math.ceil(cmSelectedProducts.length / cols);
   var cardW = (W - 60 - (cols-1)*20) / cols;
-  var cardH = cardW * 0.5 + 130;
+  var cardH = cardW * 0.75 + 130;
   var headerH = cmSelectedPromo ? 320 : 180;
   var footerH = 210;
   var H = headerH + rows*(cardH+20) + footerH + 40;
@@ -3827,7 +3827,7 @@ function generateCatalogPoster() {
 
     // Product grid
     var startY = headerH + 20;
-    var imgH = cardW * 0.5;       // image takes 50% of card width as height
+    var imgH = cardW * 0.75;       // image takes 75% of card width as height
     var textAreaH = cardH - imgH - 10;   // remaining space for text
     var nameY = imgH + 32;
     var specY = nameY + 26;
