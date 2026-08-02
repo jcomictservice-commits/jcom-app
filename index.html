@@ -743,9 +743,19 @@ input,textarea{-webkit-user-select:text!important;user-select:text!important;-we
 <div class="card">
   <div class="cl" id="user-form-title">+ ສ້າງຜູ້ໃຊ້ໃໝ່</div>
   <input type="hidden" id="uf-id" value="">
+  <div class="cl" style="margin-top:4px">ເລືອກຊື່ພະນັກງານ (ທາງເລືອກ)</div>
+  <select class="inp" id="uf-officer-select"><option value="">-- ພິມຊື່ເອງ / ບໍ່ເລືອກ --</option></select>
   <input class="inp" id="uf-username" placeholder="Username">
   <input class="inp" id="uf-password" placeholder="Password (ປະຫວ່າງ = ບໍ່ປ່ຽນ)">
   <input class="inp" id="uf-name" placeholder="ຊື່ສະແດງ">
+  <div class="cl" style="margin-top:4px">ຕຳແໝງ (Preset ສິດ)</div>
+  <select class="inp" id="uf-position-preset">
+    <option value="">-- ເລືອກຕຳແໝງ --</option>
+    <option value="admin">Admin (ທຸກມືນ)</option>
+    <option value="manager">ຜູ້ຈັດການ</option>
+    <option value="hr">HR</option>
+    <option value="sales">ຝ່າຍຂາຍ</option>
+  </select>
   <div class="cl" style="margin-top:4px">ສິດເຂົ້າເຖິງເມນູ</div>
   <div id="perm-checkboxes" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px"></div>
   <div style="display:flex;gap:8px">
@@ -1926,6 +1936,13 @@ function saveStaffUser() {
 var allUsersAdmin = [];
 var editingAdminUserId = null;
 
+var POSITION_PRESETS = {
+  admin: ALL_PERMS.map(function(p){return p.id;}),
+  manager: ALL_PERMS.filter(function(p){return p.id !== 'users';}).map(function(p){return p.id;}),
+  hr: ['dash','staff','attend','finance','docs'],
+  sales: ['dash','sales','products','stock','catalog','quotation','crm','calc','attend']
+};
+
 function initUsers() {
   var box = document.getElementById('perm-checkboxes');
   if (box && !box.innerHTML) {
@@ -1933,6 +1950,36 @@ function initUsers() {
       return '<label style="display:flex;align-items:center;gap:6px;font-size:14px;font-weight:600;padding:6px;background:#f8fafc;border-radius:8px;cursor:pointer"><input type="checkbox" class="perm-cb" value="'+p.id+'" style="width:18px;height:18px"> '+p.label+'</label>';
     }).join('');
   }
+
+  var officerSelect = document.getElementById('uf-officer-select');
+  if (officerSelect && !officerSelect.dataset.bound) {
+    officerSelect.dataset.bound = '1';
+    fetch(POS_URL + '/officers').then(function(r){return r.json();}).then(function(res){
+      if (res.ok) {
+        officerSelect.innerHTML = '<option value="">-- 📥 ພິມຊື່ເອງ / ບໍ່ເລືອກ --</option>'
+          + res.data.map(function(o){ return '<option value="'+(o.name||'').replace(/"/g,'&quot;')+'">'+o.name+'</option>'; }).join('');
+      }
+    }).catch(function(){});
+
+    officerSelect.addEventListener('change', function(){
+      if (this.value) {
+        document.getElementById('uf-name').value = this.value;
+      }
+    });
+  }
+
+  var presetSelect = document.getElementById('uf-position-preset');
+  if (presetSelect && !presetSelect.dataset.bound) {
+    presetSelect.dataset.bound = '1';
+    presetSelect.addEventListener('change', function(){
+      var preset = POSITION_PRESETS[this.value];
+      if (!preset) return;
+      document.querySelectorAll('.perm-cb').forEach(function(cb){
+        cb.checked = preset.indexOf(cb.value) > -1;
+      });
+    });
+  }
+
   loadUsersAdminList();
 }
 
