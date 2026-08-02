@@ -382,6 +382,16 @@ input,textarea{-webkit-user-select:text!important;user-select:text!important;-we
   <div class="cl">⚙️ ຕັ້ງຄ່າພິກັດສາຂາ (Admin)</div>
   <div id="branch-loc-editor"></div>
 </div>
+
+<div class="card" id="atn-summary-panel" style="display:none">
+  <div class="cl">📊 ສະໜລຸປປະຈຳເດືອນ (Admin)</div>
+  <div style="display:flex;gap:8px;margin-bottom:12px">
+    <select class="inp" id="atn-summary-month" style="margin:0"></select>
+    <select class="inp" id="atn-summary-year" style="margin:0;max-width:100px"></select>
+    <button class="pb" id="btn-atn-summary-load" style="margin:0;flex-shrink:0;width:auto;padding:0 16px">🔍</button>
+  </div>
+  <div id="atn-summary-table"><div class="ld">ກໍດຄໍ້ນຫາ</div></div>
+</div>
 </div>
 
 <!-- INSTALL -->
@@ -4138,6 +4148,74 @@ function initAttend() {
     adminPanel.style.display = isAdmin ? 'block' : 'none';
     if (isAdmin) loadBranchLocEditor();
   }
+
+  var summaryPanel = document.getElementById('atn-summary-panel');
+  if (summaryPanel) {
+    summaryPanel.style.display = isAdmin ? 'block' : 'none';
+    if (isAdmin) initAttendSummary();
+  }
+}
+
+function initAttendSummary() {
+  var monthSel = document.getElementById('atn-summary-month');
+  var yearSel = document.getElementById('atn-summary-year');
+  if (!monthSel || monthSel.dataset.bound) return;
+  monthSel.dataset.bound = '1';
+
+  var monthNames = ['ມັງກໍນ','ກຸມພາ','ມີນາ','ມັງສະຜຸນ','ພຶດສະພາ','ມິຖຸນາ','ກໍລະກົດ','ສິງຫາ','ກັນຍາ','ຕຸລາ','ພະຈິກ','ທັນວາ'];
+  var now = new Date();
+  monthSel.innerHTML = monthNames.map(function(name, i){
+    return '<option value="' + (i+1) + '"' + (i+1 === now.getMonth()+1 ? ' selected' : '') + '>' + name + '</option>';
+  }).join('');
+
+  var years = [now.getFullYear()-1, now.getFullYear(), now.getFullYear()+1];
+  yearSel.innerHTML = years.map(function(y){
+    return '<option value="' + y + '"' + (y === now.getFullYear() ? ' selected' : '') + '>' + y + '</option>';
+  }).join('');
+
+  document.getElementById('btn-atn-summary-load').addEventListener('click', loadAttendSummaryTable);
+  loadAttendSummaryTable();
+}
+
+function loadAttendSummaryTable() {
+  var month = document.getElementById('atn-summary-month').value;
+  var year = document.getElementById('atn-summary-year').value;
+  var box = document.getElementById('atn-summary-table');
+  box.innerHTML = '<div class="ld">⏳ ກຳລັງຄໍ້ນຫາ...</div>';
+
+  fetch(POS_URL + '/attendance-monthly-summary-all?year=' + year + '&month=' + month)
+    .then(function(r){return r.json();}).then(function(res){
+      if (!res.ok || !res.data.length) { box.innerHTML = '<div class="ld">ຍັງບໍ່ມີຂໍ້ມູນ</div>'; return; }
+
+      var html2 = '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:13px">'
+        + '<thead><tr style="background:#eff6ff">'
+        + '<th style="padding:8px 6px;text-align:left">ພະນັກງານ</th>'
+        + '<th style="padding:8px 6px;text-align:center">ມາ (ຄັ້ງ)</th>'
+        + '<th style="padding:8px 6px;text-align:center">ຊ້າ</th>'
+        + '<th style="padding:8px 6px;text-align:center">ຊ້າເຄີ່ງມື້</th>'
+        + '<th style="padding:8px 6px;text-align:center">ຂາດ (ວັນ)</th>'
+        + '<th style="padding:8px 6px;text-align:right">ໜັກ (₭)</th>'
+        + '<th style="padding:8px 6px;text-align:right">ໂບນັດ</th>'
+        + '<th style="padding:8px 6px;text-align:right">ສຸທຘິ</th>'
+        + '</tr></thead><tbody>';
+
+      res.data.forEach(function(rec){
+        var netColor = rec.netAdjustment >= 0 ? '#16a34a' : '#dc2626';
+        html2 += '<tr style="border-bottom:1px solid #f3f4f6">'
+          + '<td style="padding:8px 6px;font-weight:600">' + rec.employeeName + '</td>'
+          + '<td style="padding:8px 6px;text-align:center">' + rec.totalCheckIns + '</td>'
+          + '<td style="padding:8px 6px;text-align:center">' + rec.lateCount + '</td>'
+          + '<td style="padding:8px 6px;text-align:center">' + rec.halfDayLateCount + '</td>'
+          + '<td style="padding:8px 6px;text-align:center">' + rec.absentDays + '</td>'
+          + '<td style="padding:8px 6px;text-align:right;color:#dc2626">' + rec.totalDeduction.toLocaleString() + '</td>'
+          + '<td style="padding:8px 6px;text-align:right;color:#16a34a">' + rec.bonusAmount.toLocaleString() + '</td>'
+          + '<td style="padding:8px 6px;text-align:right;font-weight:700;color:' + netColor + '">' + (rec.netAdjustment >= 0 ? '+' : '') + rec.netAdjustment.toLocaleString() + '</td>'
+          + '</tr>';
+      });
+
+      html2 += '</tbody></table></div>';
+      box.innerHTML = html2;
+    }).catch(function(){ box.innerHTML = '<div class="ld" style="color:#dc2626">ໂຫລດບໍ່ໄດ້</div>'; });
 }
 
 function doAttendCheckin(type) {
