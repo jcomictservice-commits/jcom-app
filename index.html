@@ -347,6 +347,7 @@ input,textarea{-webkit-user-select:text!important;user-select:text!important;-we
     <button class="pb" style="flex:1;margin:0" id="btn-in">▶ ເຂ້າງານ</button>
     <button class="pb" style="flex:1;margin:0;background:#16a34a" id="btn-out">⏹ ອອກງານ</button>
   </div>
+  <input type="file" id="atn-camera-inp" accept="image/*" capture="user" style="display:none">
 </div>
 
 <div class="card"><div class="cl">📊 ປະໜວດຂໍ້ງທ່ານ</div><div id="att-lst"><div class="ld">ໂຫຼດ...</div></div></div>
@@ -2660,6 +2661,18 @@ window.addEventListener('load', function() {
 
   // Attend - GPS based
   document.getElementById('btn-in').addEventListener('click', function() { doAttendCheckin('in'); });
+  var camInp = document.getElementById('atn-camera-inp');
+  if (camInp && !camInp.dataset.bound) {
+    camInp.dataset.bound = '1';
+    camInp.addEventListener('change', function() {
+      var file = this.files[0];
+      if (!file) return;
+      var reader = new FileReader();
+      reader.onload = function(e) { submitAttendWithPhoto(e.target.result); };
+      reader.readAsDataURL(file);
+      this.value = '';
+    });
+  }
   document.getElementById('btn-out').addEventListener('click', function() { doAttendCheckin('out'); });
 
   // CRM
@@ -4265,45 +4278,57 @@ function loadAttendSummaryTable() {
     }).catch(function(){ box.innerHTML = '<div class="ld" style="color:#dc2626">ໂຫລດບໍ່ໄດ້</div>'; });
 }
 
+var atnPendingType = null;
+var atnPendingLat = null;
+var atnPendingLng = null;
+
 function doAttendCheckin(type) {
   var empName = (currentUser && currentUser.name) ? currentUser.name : (currentUser && currentUser.username ? currentUser.username : '');
-  if (!empName) { alert('ກະລຸນາ Login ກ່ອນ'); return; }
-
+  if (!empName) { alert('ກະລຸນາ Login ກໍນ'); return; }
   var statusEl = document.getElementById('atn-status');
-  statusEl.textContent = 'ກຳລັງກວດຕຳແໜ່ງ...';
+  statusEl.textContent = 'ກຳລັງກວດຕຳແໝ່ງ...';
 
   if (!navigator.geolocation) {
-    statusEl.textContent = 'ມືຖືນີ້ບໍ່ຮອງຮັບ GPS';
+    statusEl.textContent = 'ມືຮໍ້ານີ້ບໍ່ຮອງຮັບ GPS';
     return;
   }
 
   navigator.geolocation.getCurrentPosition(function(pos) {
-    var lat = pos.coords.latitude;
-    var lng = pos.coords.longitude;
-
-    fetch(POS_URL + '/attendance-checkin', {
-      method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ employeeName: empName, type: type, lat: lat, lng: lng })
-    }).then(function(r){return r.json();}).then(function(res){
-      if (!res.ok) { statusEl.textContent = res.error || 'ບັນທຶກບໍ່ໄດ້'; return; }
-      var rec = res.data;
-      var typeLabel = type === 'in' ? 'ເຂົ້າງານ' : 'ອອກງານ';
-      if (rec.withinRange) {
-        statusEl.innerHTML = 'ບັນທຶກ ' + typeLabel + ' ສຳເລັດ! (' + rec.branch + ', ຫ່າງ ' + rec.distance + 'm)';
-        statusEl.style.color = '#16a34a';
-      } else if (rec.branch) {
-        statusEl.innerHTML = 'ບັນທຶກແລ້ວ ແຕ່ຫ່າງໄກ (' + rec.branch + ', ຫ່າງ ' + rec.distance + 'm)';
-        statusEl.style.color = '#d97706';
-      } else {
-        statusEl.innerHTML = 'ບັນທຶກແລ້ວ (ບໍ່ມີສາຂາອ້າງອີງ)';
-        statusEl.style.color = '#d97706';
-      }
-      loadAttendHistory();
-    }).catch(function(){ statusEl.textContent = 'ຈອດການບໍ່ໄດ້'; });
+    atnPendingType = type;
+    atnPendingLat = pos.coords.latitude;
+    atnPendingLng = pos.coords.longitude;
+    statusEl.textContent = '📷 ກະລຸນາຖ່າຍຮູບ Selfie ເພື່ອຍືນຍັນຕ໋ວຕົນ';
+    document.getElementById('atn-camera-inp').click();
   }, function(err) {
     statusEl.textContent = 'ບໍ່ໄດ້ຮັບອະນຸຍາດ GPS: ' + err.message;
     statusEl.style.color = '#dc2626';
   }, { enableHighAccuracy: true, timeout: 10000 });
+}
+
+function submitAttendWithPhoto(photoDataUrl) {
+  var empName = (currentUser && currentUser.name) ? currentUser.name : (currentUser && currentUser.username ? currentUser.username : '');
+  var statusEl = document.getElementById('atn-status');
+  statusEl.textContent = 'ກຳລັງບັນທຶກ...';
+
+  fetch(POS_URL + '/attendance-checkin', {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ employeeName: empName, type: atnPendingType, lat: atnPendingLat, lng: atnPendingLng, photo: photoDataUrl })
+  }).then(function(r){return r.json();}).then(function(res){
+    if (!res.ok) { statusEl.textContent = res.error || 'ບັນທຶກບໍ່ໄດ້'; statusEl.style.color = '#dc2626'; return; }
+    var rec = res.data;
+    var typeLabel = atnPendingType === 'in' ? 'ເຂ້າງານ' : 'ອອກງານ';
+    if (rec.withinRange) {
+      statusEl.innerHTML = 'ບັນທຶກ ' + typeLabel + ' ສຳເລັດ! (' + rec.branch + ', ຫ່າງ ' + rec.distance + 'm)';
+      statusEl.style.color = '#16a34a';
+    } else if (rec.branch) {
+      statusEl.innerHTML = 'ບັນທຶກແລ້ວ ແຕ່ຫ່າງໄກ (' + rec.branch + ', ຫ່າງ ' + rec.distance + 'm)';
+      statusEl.style.color = '#d97706';
+    } else {
+      statusEl.innerHTML = 'ບັນທຶກແລ້ວ (ບໍ່ມີສາຂາອ້າງອິງ)';
+      statusEl.style.color = '#d97706';
+    }
+    loadAttendHistory();
+  }).catch(function(){ statusEl.textContent = 'ຈໍດການບໍ່ໄດ້'; statusEl.style.color = '#dc2626'; });
 }
 
 function loadAttendHistory() {
