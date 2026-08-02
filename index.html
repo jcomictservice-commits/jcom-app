@@ -904,7 +904,7 @@ function showPage(id) {
   if (id === 'shopinfo') loadCustomInfo();
 }
 
-function getPage() { return location.hash.replace('#','') || 'dash'; }
+function getPage() { return location.hash.replace('#','') || 'attend'; }
 window.addEventListener('hashchange', function() {
   if (!currentUser) { checkLogin(); return; }
   showPage(getPage());
