@@ -1013,9 +1013,15 @@ function loadSalesData() {
   if (!month) { alert('ເລືອກເດືອນກ່ອນ'); return; }
   var box = document.getElementById('sal-table');
   box.innerHTML = '<div class="ld">⏳ ໂຫຼດ...</div>';
-  fetch(POS_URL + '/sales/dashboard')
-  .then(function(r){return r.json();})
-  .then(function(res) {
+  var parts = month.split('-');
+  var yr = parts[0]; var mo = parseInt(parts[1]);
+
+  Promise.all([
+    fetch(POS_URL + '/sales/dashboard').then(function(r){return r.json();}),
+    fetch(POS_URL + '/officer-sales-by-month?year=' + yr + '&month=' + mo).then(function(r){return r.json();})
+  ]).then(function(results){
+    var res = results[0];
+    var officerRes = results[1];
     if (!res.ok) return;
     var d = res.data;
     var monthly = d.monthly || [];
@@ -1024,8 +1030,8 @@ function loadSalesData() {
     filtered.forEach(function(m) { mTotal += parseFloat(m.total)||0; mBills += parseInt(m.bills)||0; });
     document.getElementById('sm-total').textContent = '₭' + mTotal.toLocaleString();
     document.getElementById('sm-bills').textContent = mBills + ' ບິນ';
-    var today = new Date().toISOString().slice(0,7);
-    var officers = (month === today && d.today_by_officer) ? d.today_by_officer : [];
+
+    var officers = (officerRes.ok && officerRes.data.length) ? officerRes.data : [];
     document.getElementById('sm-officers').textContent = officers.length || '-';
     if (!officers.length) {
       box.innerHTML = '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:15px">'
