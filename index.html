@@ -228,6 +228,11 @@ input,textarea{-webkit-user-select:text!important;user-select:text!important;-we
   <div class="cl">📊 ຕາຕາລາງຍອດຕາມພະນັກງານ</div>
   <div id="sal-table"><div class="ld">ກົດ 🔍 ໂຫຼດ ເພື່ອສະແດງ</div></div>
 </div>
+<div class="card">
+  <div class="cl">💰 ຄອມປະຈຳເດືອນ (0.25%/1%)</div>
+  <div style="font-size:12px;color:#9ca3af;margin-bottom:10px">ສິນຄ້າມືຖື/ຄອມ/ເຄື່ອງພິ້ນ/ສະແກນ/ສ້ອມແປງ/IT = 0.25% • ໝວດອື່ນໆ = 1%</div>
+  <div id="commission-table"><div class="ld">ກົດ 🔍 ໂຫຼດ ເພື່ອຄິດໄລ່ຄອມ</div></div>
+</div>
 </div>
 
 <!-- PRODUCTS -->
@@ -2604,7 +2609,7 @@ window.addEventListener('load', function() {
   document.getElementById('btn-cancel-edit').addEventListener('click', resetAdminUserForm);
 
   // Sales target moved to target page
-  document.getElementById('btn-sal-load').addEventListener('click', loadSalesData);
+  document.getElementById('btn-sal-load').addEventListener('click', function(){ loadSalesData(); loadCommissionData(); });
   document.getElementById('btn-sal-load-day').addEventListener('click', loadSalesByDay);
 
   // Mode toggle
@@ -4496,6 +4501,52 @@ function renderAdminLeaveItem(rec) {
     + '</div>'
     + '<span class="bdg" style="background:' + color + '22;color:' + color + '">' + label + '</span>'
     + '</div></div>';
+}
+
+
+
+// === SALES COMMISSION ===
+function loadCommissionData() {
+  var monthVal = document.getElementById('sal-month').value;
+  var box = document.getElementById('commission-table');
+  if (!monthVal) { box.innerHTML = '<div class="ld">ກະລຸນາເລືອກເດືອນກ່ອນ</div>'; return; }
+  var parts = monthVal.split('-');
+  var year = parts[0]; var month = parseInt(parts[1]);
+
+  box.innerHTML = '<div class="ld">⏳ ກຳລັງຄິດໄລ...</div>';
+
+  fetch(POS_URL + '/sales-commission?year=' + year + '&month=' + month)
+    .then(function(r){return r.json();}).then(function(res){
+      if (!res.ok || !res.data.length) { box.innerHTML = '<div class="ld">ຍັງບໍ່ມີຂໍ້ມູນ</div>'; return; }
+
+      var html2 = '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:13px">'
+        + '<thead><tr style="background:#eff6ff">'
+        + '<th style="padding:8px 6px;text-align:left">ພະນັກງານ</th>'
+        + '<th style="padding:8px 6px;text-align:right">ຍອດລວມ</th>'
+        + '<th style="padding:8px 6px;text-align:right">0.25% (₭)</th>'
+        + '<th style="padding:8px 6px;text-align:right">1% (₭)</th>'
+        + '<th style="padding:8px 6px;text-align:right;font-weight:800">ຮວມຄອມ</th>'
+        + '</tr></thead><tbody>';
+
+      var grandTotal = 0;
+      res.data.forEach(function(rec){
+        grandTotal += rec.totalCommission;
+        html2 += '<tr style="border-bottom:1px solid #f3f4f6">'
+          + '<td style="padding:8px 6px;font-weight:600">' + rec.officer + '</td>'
+          + '<td style="padding:8px 6px;text-align:right">₭' + rec.totalSales.toLocaleString() + '</td>'
+          + '<td style="padding:8px 6px;text-align:right;color:#16a34a">₭' + rec.lowCommission.toLocaleString() + '</td>'
+          + '<td style="padding:8px 6px;text-align:right;color:#1a56db">₭' + rec.highCommission.toLocaleString() + '</td>'
+          + '<td style="padding:8px 6px;text-align:right;font-weight:800;color:#dc2626">₭' + rec.totalCommission.toLocaleString() + '</td>'
+          + '</tr>';
+      });
+
+      html2 += '</tbody><tfoot><tr style="background:#f8fafc;font-weight:800">'
+        + '<td style="padding:8px 6px" colspan="4">ຮວມທັງໝົດ</td>'
+        + '<td style="padding:8px 6px;text-align:right;color:#dc2626">₭' + grandTotal.toLocaleString() + '</td>'
+        + '</tr></tfoot></table></div>';
+
+      box.innerHTML = html2;
+    }).catch(function(){ box.innerHTML = '<div class="ld" style="color:#dc2626">ໂຫລດບໍ່ໄດ້</div>'; });
 }
 
 </script>
