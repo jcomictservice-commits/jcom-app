@@ -232,6 +232,7 @@ input,textarea{-webkit-user-select:text!important;user-select:text!important;-we
   <div class="cl">💰 ຄອມປະຈຳເດືອນ (0.25%/1%)</div>
   <div style="font-size:12px;color:#9ca3af;margin-bottom:10px">ສິນຄ້າມືຖື/ຄອມ/ເຄື່ອງພິ້ນ/ສະແກນ/ສ້ອມແປງ/IT = 0.25% • ໝວດອື່ນໆ = 1%</div>
   <div id="commission-table"><div class="ld">ກົດ 🔍 ໂຫຼດ ເພື່ອຄິດໄລ່ຄອມ</div></div>
+  <button id="btn-commission-csv" style="display:none;width:100%;margin-top:10px;background:#16a34a;color:#fff;border:none;padding:12px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">📥 Download CSV (Google Sheets/Excel)</button>
 </div>
 </div>
 
@@ -2610,6 +2611,11 @@ window.addEventListener('load', function() {
 
   // Sales target moved to target page
   document.getElementById('btn-sal-load').addEventListener('click', function(){ loadSalesData(); loadCommissionData(); });
+  var csvBtnEl = document.getElementById('btn-commission-csv');
+  if (csvBtnEl && !csvBtnEl.dataset.bound) {
+    csvBtnEl.dataset.bound = '1';
+    csvBtnEl.addEventListener('click', downloadCommissionCSV);
+  }
   document.getElementById('btn-sal-load-day').addEventListener('click', loadSalesByDay);
 
   // Mode toggle
@@ -4283,6 +4289,34 @@ function loadAttendSummaryTable() {
     }).catch(function(){ box.innerHTML = '<div class="ld" style="color:#dc2626">ໂຫລດບໍ່ໄດ້</div>'; });
 }
 
+var lastCommissionData = null;
+var lastCommissionMonth = null;
+
+function downloadCommissionCSV() {
+  if (!lastCommissionData) return;
+  var rows = [['ພະນັກງານ','ຍອດລວມ','ຄອມ 0.25%','ຄອມ 1%','ຮວມຄອມ']];
+  lastCommissionData.forEach(function(rec){
+    rows.push([rec.officer, rec.totalSales, rec.lowCommission, rec.highCommission, rec.totalCommission]);
+  });
+  var csv = rows.map(function(r){
+    return r.map(function(cell){
+      var s = String(cell);
+      if (s.indexOf(',') > -1 || s.indexOf('"') > -1) { s = '"' + s.replace(/"/g,'""') + '"'; }
+      return s;
+    }).join(',');
+  }).join('\r\n');
+  var blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = 'commission_' + (lastCommissionMonth||'export') + '.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+}
+
+
 var atnPendingType = null;
 var atnPendingLat = null;
 var atnPendingLng = null;
@@ -4517,7 +4551,12 @@ function loadCommissionData() {
 
   fetch(POS_URL + '/sales-commission?year=' + year + '&month=' + month)
     .then(function(r){return r.json();}).then(function(res){
-      if (!res.ok || !res.data.length) { box.innerHTML = '<div class="ld">ຍັງບໍ່ມີຂໍ້ມູນ</div>'; return; }
+      var csvBtn = document.getElementById('btn-commission-csv');
+      if (!res.ok || !res.data.length) { box.innerHTML = '<div class="ld">ຍັງບໍ່ມີຂໍ້ມູນ</div>'; if(csvBtn) csvBtn.style.display='none'; return; }
+
+      lastCommissionData = res.data;
+      lastCommissionMonth = year + '-' + String(month).padStart(2,'0');
+      if (csvBtn) csvBtn.style.display = 'block';
 
       var html2 = '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:13px">'
         + '<thead><tr style="background:#eff6ff">'
@@ -4548,6 +4587,34 @@ function loadCommissionData() {
       box.innerHTML = html2;
     }).catch(function(){ box.innerHTML = '<div class="ld" style="color:#dc2626">ໂຫລດບໍ່ໄດ້</div>'; });
 }
+
+var lastCommissionData = null;
+var lastCommissionMonth = null;
+
+function downloadCommissionCSV() {
+  if (!lastCommissionData) return;
+  var rows = [['ພະນັກງານ','ຍອດລວມ','ຄອມ 0.25%','ຄອມ 1%','ຮວມຄອມ']];
+  lastCommissionData.forEach(function(rec){
+    rows.push([rec.officer, rec.totalSales, rec.lowCommission, rec.highCommission, rec.totalCommission]);
+  });
+  var csv = rows.map(function(r){
+    return r.map(function(cell){
+      var s = String(cell);
+      if (s.indexOf(',') > -1 || s.indexOf('"') > -1) { s = '"' + s.replace(/"/g,'""') + '"'; }
+      return s;
+    }).join(',');
+  }).join('\r\n');
+  var blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = 'commission_' + (lastCommissionMonth||'export') + '.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+}
+
 
 </script>
 <input type="file" id="ci-img-inp-global" accept="image/*" style="display:none">
