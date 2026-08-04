@@ -3430,7 +3430,6 @@ function loadFinanceList(month, fromSheet) {
           var entry = rows[idx];
           if(!entry) return;
           if(!confirm('ລຶບລາຍການ: '+entry.category+' ₭'+parseFloat(entry.amount).toLocaleString()+'?')) return;
-          if(!confirm('⚠️ ຢືນຢັນອີກຄັ້ງ! ຂໍ້ມູນຈະລຶບຖາວອນ ບໍ່ສາມາດກູ້ຄືນໄດ້\n\nຕ້ອງການລຶບແທ້ບໍ່?')) return;
           fetch(POS_URL+'/finance/'+idx, {method:'DELETE'})
           .then(function(r){return r.json();}).then(function(res){
             if(res.ok){ alert('✅ ລຶບສຳເລັດ'); loadFinanceList(document.getElementById('fin-filter-month').value); }
