@@ -3377,8 +3377,7 @@ function loadFinanceList(month, fromSheet) {
       }).join('')
       + '</tbody></table></div>';
   // Bind edit buttons
-    setTimeout(function(){
-      box.querySelectorAll('.fin-edit-btn').forEach(function(btn){
+    box.querySelectorAll('.fin-edit-btn').forEach(function(btn){
         btn.addEventListener('click', function(){
           var idx = parseInt(this.getAttribute('data-idx'));
           var entry = rows[idx];
@@ -3438,7 +3437,6 @@ function loadFinanceList(month, fromSheet) {
         });
       });
       });
-    }, 100);
   }).catch(function(){ box.innerHTML='<div class="ld" style="color:#dc2626">❌ ໂຫຼດບໍ່ໄດ້</div>'; });
 }
 
