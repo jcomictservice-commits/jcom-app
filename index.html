@@ -3301,13 +3301,20 @@ function initFinance() {
       btnSyncSheet.style.display = 'none';
     }
     btnSyncSheet.addEventListener('click', function(){
-      if(!confirm('⚠ Sync ຈະດຶງຂໍ້ມູນຈາກ Sheet ມາທັບຂໍ້ມູນໃນ App\nໃຊ້ສະເພາະເວລາພິມໃນ Sheet ໂດຍກົງ\nຕ້ອງການ Sync ຈິງໆບໍ?')) return;
+      var month = document.getElementById('fin-filter-month').value;
+      if(!month) { alert('ກະລຸນາເລືອກເດືອນກ່ອນ Sync'); return; }
       var btn = this;
       btn.textContent = '⏳ Syncing...'; btn.disabled = true;
-      fetch(POS_URL+'/finance/sync-from-sheet')
+      fetch(POS_URL+'/finance/sync-bidirectional', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ monthKey: month })
+      })
       .then(function(r){return r.json();})
       .then(function(res){
-        if(res.ok){ alert('✅ Sync ສຳເລັດ! '+res.count+' ລາຍການ'); loadFinanceList(document.getElementById('fin-filter-month').value); }
+        if(res.ok){
+          alert('✅ Sync ສຳເລັດ!\n📥 ດຶງໃໝ່ຈາກ Sheet: '+res.addedFromSheet+' ລາຍການ\n📤 ອັບເດດໄປ Sheet: '+res.pushedToSheet+' ລາຍການ\n📊 ລວມທັງໝົດເດືອນນີ້: '+res.totalInMonth+' ລາຍການ');
+          loadFinanceList(month);
+        }
         else { alert('❌ '+( res.error||'Sync ຜິດ')); }
         btn.textContent = '🔄 Sync Sheet'; btn.disabled = false;
       }).catch(function(){ alert('❌ ເຊື່ອມ Server ບໍ່ໄດ້'); btn.textContent = '🔄 Sync Sheet'; btn.disabled = false; });
