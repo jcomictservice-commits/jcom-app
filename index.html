@@ -297,6 +297,13 @@ input,textarea{-webkit-user-select:text!important;user-select:text!important;-we
     <div id="pur-manual-fields" style="display:none">
       <input class="inp" id="pur-manual-name" placeholder="ຊື່ສິນຄ້າໃໝ່">
       <input class="inp" id="pur-manual-model" placeholder="ລຸ້ນ/ສະເປັກ (ທາງເລືອກ)">
+      <div id="pur-photo-preview" style="display:none;margin-bottom:10px;text-align:center">
+        <img id="pur-photo-img" style="max-width:100%;max-height:180px;border-radius:12px;object-fit:contain;background:#f8fafc">
+      </div>
+      <label for="pur-camera-inp" style="display:flex;align-items:center;justify-content:center;gap:8px;border:2px dashed #d1d5db;border-radius:12px;padding:14px;margin-bottom:10px;color:#6b7280;font-size:15px;font-weight:600;cursor:pointer" id="pur-photo-label">
+        <span>📷</span><span>ຖ່າຍຮູບສິນຄ້າ (ທາງເລືອກ)</span>
+      </label>
+      <input type="file" id="pur-camera-inp" accept="image/*" capture="environment" style="display:none">
     </div>
 
     <input class="inp" id="pur-current-stock" type="number" placeholder="ຈຳນວນທີ່ຍັງເຫືອໃນສະຕ໋ກຈິງ (ຊິ້ນ)">
@@ -858,7 +865,7 @@ input,textarea{-webkit-user-select:text!important;user-select:text!important;-we
 <div class="bnav">
   <button class="bn" id="bn-products"><svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>ສິນຄ້າ</button>
   <button class="bn" id="bn-calc"><svg viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="12" y2="14"/></svg>ຄິດໄລ່ຜ່ອນ</button>
-  <button class="bn" id="bn-tasks"><svg viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>ມອບໝາຍງານ</button>
+  <button class="bn" id="bn-purchase"><svg viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>ຈັດຊື້ສິນຄ້າ</button>
   <button class="bn" id="bn-shopinfo"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>ຂໍ້ມູນຮ້ານ</button>
 </div>
 
@@ -2604,7 +2611,7 @@ window.addEventListener('load', function() {
 
   document.getElementById('bn-products').addEventListener('click', function() { location.hash = 'products'; });
   document.getElementById('bn-calc').addEventListener('click', function() { location.hash = 'calc'; });
-  document.getElementById('bn-tasks').addEventListener('click', function() { location.hash = 'tasks'; });
+  document.getElementById('bn-purchase').addEventListener('click', function() { location.hash = 'purchase'; });
   document.getElementById('bn-shopinfo').addEventListener('click', function() { location.hash = 'shopinfo'; });
 
   document.getElementById('btn-calc').addEventListener('click', calcInstall);
@@ -4709,6 +4716,7 @@ function downloadCommissionCSV() {
 
 // === PURCHASE WORKFLOW ===
 var purSelectedProduct = null;
+var purPhotoData = null;
 
 function initPurchase() {
   var tab1Btn = document.getElementById('btn-pur-tab1');
@@ -4728,6 +4736,24 @@ function initPurchase() {
     });
 
     document.getElementById('btn-pur-submit').addEventListener('click', submitPurchaseRequest);
+
+    var purCamInp = document.getElementById('pur-camera-inp');
+    if (purCamInp) {
+      purCamInp.addEventListener('change', function() {
+        var file = this.files[0];
+        if (!file) return;
+        var reader = new FileReader();
+        reader.onload = function(e) {
+          purPhotoData = e.target.result;
+          var preview = document.getElementById('pur-photo-preview');
+          var img = document.getElementById('pur-photo-img');
+          img.src = purPhotoData;
+          preview.style.display = 'block';
+          document.getElementById('pur-photo-label').querySelector('span:last-child').textContent = '✅ ມີຮູບແລ້ວ (ກໍດເພື່ອປ່ຣນ)';
+        };
+        reader.readAsDataURL(file);
+      });
+    }
   }
 
   loadPurMyReports();
@@ -4824,6 +4850,7 @@ function submitPurchaseRequest() {
     body: JSON.stringify({
       reportedBy: empName, productSource: source, productId: productId,
       productName: productName, productModel: productModel, productImage: productImage,
+      photo: purPhotoData,
       currentStock: currentStock, requestedQty: requestedQty,
       customerName: customerName, customerPhone: customerTel
     })
@@ -4840,6 +4867,11 @@ function submitPurchaseRequest() {
       document.getElementById('pur-customer-tel').value = '';
       document.getElementById('pur-selected-product').style.display = 'none';
       purSelectedProduct = null;
+      purPhotoData = null;
+      var purPreview = document.getElementById('pur-photo-preview');
+      if (purPreview) purPreview.style.display = 'none';
+      var purLabel = document.getElementById('pur-photo-label');
+      if (purLabel) purLabel.querySelector('span:last-child').textContent = 'ຖ່າຍຮູບສິນຄ້າ (ທາງເລືອກ)';
       loadPurMyReports();
       loadPurPendingList();
     } else { alert('❌ ' + (res.error||'ແຈ້ງບໍ່ໄດ້')); }
