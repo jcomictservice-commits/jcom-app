@@ -115,6 +115,7 @@ input,textarea{-webkit-user-select:text!important;user-select:text!important;-we
     <a class="nav-a" id="na-target" href="#target">🎯 ເປົ້າຍອດຂາຍ</a>
     <a class="nav-a" id="na-products" href="#products">📦 ສິນຄ້າ</a>
     <a class="nav-a" id="na-stock" href="#stock">📊 ກວດສະຕໍ້ກ</a>
+    <a class="nav-a" id="na-purchase" href="#purchase">🛒 ຈັດຊື້ສິນຄ້າ</a>
     <a class="nav-a" id="na-quotation" href="#quotation">📄 ໃບສະເໜີລາຄາ</a>
     <a class="nav-a" id="na-shopinfo" href="#shopinfo">🏪 ຂໍ້ມູນຮ້ານ</a>
     undefined
@@ -265,6 +266,77 @@ input,textarea{-webkit-user-select:text!important;user-select:text!important;-we
 </div>
 <div id="stock-hint" style="text-align:center;color:#9ca3af;font-size:13px;margin:10px 0 14px">ພິມຊື່ສິນຄ້າ ໜື Barcode ແລ້ວກໍດຄໍ້ນຫາ</div>
 <div id="stock-list"></div>
+</div>
+
+<!-- PURCHASE WORKFLOW -->
+<div id="sec-purchase" class="sec">
+<div class="pt">🛒 ຈັດຊື້ສິນຄ້າ</div>
+
+<div style="display:flex;gap:6px;margin-bottom:14px">
+  <button id="btn-pur-tab1" class="pur-tab-btn pur-tab-active" style="flex:1;padding:10px 6px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;background:#1a56db;color:#fff;border:none">📢 ສິນຄ້າຂາດ</button>
+  <button id="btn-pur-tab2" class="pur-tab-btn" style="flex:1;padding:10px 6px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;background:#f3f4f6;color:#6b7280;border:none">📋 ການສັ່ງ</button>
+  <button id="btn-pur-tab3" class="pur-tab-btn" style="flex:1;padding:10px 6px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;background:#f3f4f6;color:#6b7280;border:none">📦 ຮັບສິນຄ້າ</button>
+</div>
+
+<!-- TAB 1: Report out of stock -->
+<div id="pur-tab1-content">
+  <div class="card">
+    <div class="cl">+ ແຈ້ງສິນຄ້າໝໍດ/ໃກ້ໝໍດ</div>
+    <div style="display:flex;gap:8px;margin-bottom:10px">
+      <button id="btn-pur-src-existing" style="flex:1;padding:10px;border-radius:8px;border:2px solid #1a56db;background:#eff6ff;color:#1a56db;font-weight:700;cursor:pointer;font-family:inherit">🔍 ເລືອກຈາກລະບົບ</button>
+      <button id="btn-pur-src-manual" style="flex:1;padding:10px;border-radius:8px;border:2px solid #d1d5db;background:#f9fafb;color:#6b7280;font-weight:700;cursor:pointer;font-family:inherit">✏️ ພິມເອງ</button>
+    </div>
+    <input type="hidden" id="pur-source" value="existing">
+
+    <div id="pur-existing-search">
+      <input class="inp" id="pur-search-inp" placeholder="ຄໍ້ນຫາຊື່ສິນຄ້າ/Barcode...">
+      <div id="pur-search-results" style="display:none;border:1px solid #e5e7eb;border-radius:14px;overflow:hidden;background:#fff;margin-bottom:10px;max-height:240px;overflow-y:auto"></div>
+      <div id="pur-selected-product" style="display:none;margin-bottom:10px"></div>
+    </div>
+
+    <div id="pur-manual-fields" style="display:none">
+      <input class="inp" id="pur-manual-name" placeholder="ຊື່ສິນຄ້າໃໝ່">
+      <input class="inp" id="pur-manual-model" placeholder="ລຸ້ນ/ສະເປັກ (ທາງເລືອກ)">
+    </div>
+
+    <input class="inp" id="pur-current-stock" type="number" placeholder="ຈຳນວນທີ່ຍັງເຫືອໃນສະຕ໋ກຈິງ (ຊິ້ນ)">
+    <input class="inp" id="pur-requested-qty" type="number" placeholder="ຈຳນວນທີ່ຕ້ອງການສັ່ງ (ຊິ້ນ)">
+    <div class="cl" style="margin-top:8px;font-size:13px;color:#9ca3af">ໂດຍເຕືອນ: ຖ້າມີລູກຄ້າອອເດີຣ</div>
+    <input class="inp" id="pur-customer-name" placeholder="ຊື່ລູກຄ້າ (ທາງເລືອກ)">
+    <input class="inp" id="pur-customer-tel" placeholder="ເບີໂທ (ທາງເລືອກ)">
+    <button class="pb" id="btn-pur-submit">📤 ກໍດແຈ້ງ</button>
+  </div>
+
+  <div class="card">
+    <div class="cl">📋 ລາຍການທີ່ແຈ້ງ</div>
+    <div id="pur-my-reports"><div class="ld">ໂຫຼດ...</div></div>
+  </div>
+</div>
+
+<!-- TAB 2: Order status -->
+<div id="pur-tab2-content" style="display:none">
+  <div class="card">
+    <div class="cl">📋 ຮອງດຳເນິນການສັ່ງ</div>
+    <div id="pur-pending-list"><div class="ld">ໂຫຼດ...</div></div>
+  </div>
+  <div class="card">
+    <div class="cl">✅ ສັ່ງແລ້ວ (ປານຕໍ່ຫາຮໍດ)</div>
+    <div id="pur-ordered-list"><div class="ld">ໂຫຼດ...</div></div>
+  </div>
+</div>
+
+<!-- TAB 3: Receiving report -->
+<div id="pur-tab3-content" style="display:none">
+  <div class="card">
+    <div class="cl">📦 ຮອງຮັບສິນຄ້າ</div>
+    <div id="pur-awaiting-list"><div class="ld">ໂຫຼດ...</div></div>
+  </div>
+  <div class="card">
+    <div class="cl">📜 ປະໜວດຮັບເຂ້າຣະບົບ</div>
+    <div id="pur-received-list"><div class="ld">ໂຫຼດ...</div></div>
+  </div>
+</div>
+
 </div>
 
 <!-- CALC -->
@@ -795,7 +867,7 @@ input,textarea{-webkit-user-select:text!important;user-select:text!important;-we
 var POS_URL = 'https://165.22.242.64.nip.io'; 
 
 var PAGE_NAMES = {
-  dash:'Dashboard', sales:'ຍອດຂາຍ', products:'ສິນຄ້າ', stock:'ກວດສະຕໍ້ກ', catalog:'ກາຕາລ໋ອກ',
+  dash:'Dashboard', sales:'ຍອດຂາຍ', products:'ສິນຄ້າ', stock:'ກວດສະຕໍ້ກ', purchase:'ຈັດຊື້ສິນຄ້າ', catalog:'ກາຕາລ໋ອກ',
   staff:'ພະນັກງານ', tasks:'ມອບໝາຍງານ', attend:'ເຂົ້າ-ອອກງານ',
   install:'ສັນຍາຜ່ອນ', calc:'ຄິດໄລ່ຜ່ອນ', crm:'CRM', quotation:'ໃບສະເໜີລາຄາ',
   shopinfo:'ຂໍ້ມູນຮ້ານ', setup:'ຕັ້ງຄ່າ', docs:'ດາວໂຫຼດເອກະສານ', finance:'ບັນຊີລາຍຈ່າຍ', users:'ຈັດການຜູ້ໃຊ້'
@@ -810,6 +882,7 @@ var ALL_PERMS = [
   {id:'target', label:'🎯 ເປົ້າຍອດຂາຍ'},
   {id:'products', label:'📦 ສິນຄ້າ'},
   {id:'stock', label:'📊 ກວດສະຕໍ້ກ'},
+  {id:'purchase', label:'🛒 ຈັດຊື້ສິນຄ້າ'},
   {id:'catalog', label:'🛍 ກາຕາລ໋ອກ'},
   {id:'staff', label:'👥 ພະນັກງານ'},
   {id:'tasks', label:'✅ ມອບໝາຍງານ'},
@@ -910,6 +983,7 @@ function showPage(id) {
   if (id === 'catalog') initCatalogMaker();
   if (id === 'stock') initStockCheck();
   if (id === 'attend') { initAttend(); initLeaveRequests(); }
+  if (id === 'purchase') initPurchase();
   if (id === 'dash') initSyncNowBtn();
   if (id === 'docs') initDocs();
   if (id === 'finance') initFinance();
@@ -4630,6 +4704,279 @@ function downloadCommissionCSV() {
   setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
 }
 
+
+
+
+// === PURCHASE WORKFLOW ===
+var purSelectedProduct = null;
+
+function initPurchase() {
+  var tab1Btn = document.getElementById('btn-pur-tab1');
+  if (tab1Btn && !tab1Btn.dataset.bound) {
+    tab1Btn.dataset.bound = '1';
+    document.getElementById('btn-pur-tab1').addEventListener('click', function(){ switchPurTab(1); });
+    document.getElementById('btn-pur-tab2').addEventListener('click', function(){ switchPurTab(2); });
+    document.getElementById('btn-pur-tab3').addEventListener('click', function(){ switchPurTab(3); });
+
+    document.getElementById('btn-pur-src-existing').addEventListener('click', function(){ setPurSource('existing'); });
+    document.getElementById('btn-pur-src-manual').addEventListener('click', function(){ setPurSource('manual'); });
+
+    document.getElementById('pur-search-inp').addEventListener('input', function(){
+      var v = this.value.trim();
+      if (v.length < 2) { document.getElementById('pur-search-results').style.display = 'none'; return; }
+      doPurSearch(v);
+    });
+
+    document.getElementById('btn-pur-submit').addEventListener('click', submitPurchaseRequest);
+  }
+
+  loadPurMyReports();
+  loadPurPendingList();
+  loadPurOrderedList();
+  loadPurAwaitingList();
+  loadPurReceivedList();
+}
+
+function switchPurTab(n) {
+  [1,2,3].forEach(function(i){
+    document.getElementById('pur-tab'+i+'-content').style.display = (i===n) ? 'block' : 'none';
+    var btn = document.getElementById('btn-pur-tab'+i);
+    if (i===n) { btn.style.background = '#1a56db'; btn.style.color = '#fff'; }
+    else { btn.style.background = '#f3f4f6'; btn.style.color = '#6b7280'; }
+  });
+}
+
+function setPurSource(src) {
+  document.getElementById('pur-source').value = src;
+  var existingBtn = document.getElementById('btn-pur-src-existing');
+  var manualBtn = document.getElementById('btn-pur-src-manual');
+  if (src === 'existing') {
+    existingBtn.style.background = '#eff6ff'; existingBtn.style.color = '#1a56db'; existingBtn.style.borderColor = '#1a56db';
+    manualBtn.style.background = '#f9fafb'; manualBtn.style.color = '#6b7280'; manualBtn.style.borderColor = '#d1d5db';
+    document.getElementById('pur-existing-search').style.display = 'block';
+    document.getElementById('pur-manual-fields').style.display = 'none';
+  } else {
+    manualBtn.style.background = '#eff6ff'; manualBtn.style.color = '#1a56db'; manualBtn.style.borderColor = '#1a56db';
+    existingBtn.style.background = '#f9fafb'; existingBtn.style.color = '#6b7280'; existingBtn.style.borderColor = '#d1d5db';
+    document.getElementById('pur-existing-search').style.display = 'none';
+    document.getElementById('pur-manual-fields').style.display = 'block';
+    purSelectedProduct = null;
+    document.getElementById('pur-selected-product').style.display = 'none';
+  }
+}
+
+function doPurSearch(q) {
+  var box = document.getElementById('pur-search-results');
+  box.style.display = 'block';
+  box.innerHTML = '<div class="ld">⏳ ກຳລັງຄໍ້ນຫາ...</div>';
+  fetch(POS_URL + '/product/search?q=' + encodeURIComponent(q))
+    .then(function(r){return r.json();}).then(function(res){
+      if (!res.ok || !res.data.length) { box.innerHTML = '<div class="ld">🔍 ບໍ່ພອບ</div>'; return; }
+      box.innerHTML = res.data.slice(0,20).map(function(p){
+        var prodKey = p.id || p.sku || p.barcode || '';
+        var imgSrc = prodKey && productImagesCache[prodKey] ? POS_URL + productImagesCache[prodKey] : null;
+        var imgHtml = imgSrc ? '<img src="'+imgSrc+'" style="width:38px;height:38px;border-radius:8px;object-fit:cover;flex-shrink:0">' : '<div style="width:38px;height:38px;background:#eff6ff;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0">📦</div>';
+        return '<div class="pur-prod-item" data-name="'+(p.name||'').replace(/"/g,'&quot;')+'" data-id="'+(p.id||'')+'" data-img="'+(imgSrc||'')+'" style="display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid #f3f4f6;cursor:pointer">'
+          + imgHtml + '<div style="flex:1;font-size:14px;font-weight:600">'+p.name+'</div></div>';
+      }).join('');
+      box.querySelectorAll('.pur-prod-item').forEach(function(item){
+        item.addEventListener('click', function(){
+          purSelectedProduct = { id: this.getAttribute('data-id'), name: this.getAttribute('data-name'), image: this.getAttribute('data-img') };
+          document.getElementById('pur-search-inp').value = purSelectedProduct.name;
+          box.style.display = 'none';
+          var sel = document.getElementById('pur-selected-product');
+          sel.style.display = 'block';
+          sel.innerHTML = '<div style="display:flex;align-items:center;gap:10px;padding:10px;background:#f0fdf4;border-radius:10px;border:1px solid #bbf7d0">'
+            + (purSelectedProduct.image ? '<img src="'+purSelectedProduct.image+'" style="width:44px;height:44px;border-radius:8px;object-fit:cover">' : '<span style="font-size:24px">📦</span>')
+            + '<div style="flex:1;font-weight:700;font-size:14px">✅ '+purSelectedProduct.name+'</div></div>';
+        });
+      });
+    }).catch(function(){ box.innerHTML = '<div class="ld" style="color:#dc2626">❌ ເຊືອມ Server ບໍ່ໄດ້</div>'; });
+}
+
+function submitPurchaseRequest() {
+  var empName = (currentUser && currentUser.name) ? currentUser.name : (currentUser && currentUser.username ? currentUser.username : '');
+  var source = document.getElementById('pur-source').value;
+  var currentStock = document.getElementById('pur-current-stock').value;
+  var requestedQty = document.getElementById('pur-requested-qty').value;
+  var customerName = document.getElementById('pur-customer-name').value.trim();
+  var customerTel = document.getElementById('pur-customer-tel').value.trim();
+
+  if (!requestedQty) { alert('ໃສ່ຈຳນວນທີ່ຕ້ອງການສັ່ງ'); return; }
+
+  var productName, productModel = '', productId = null, productImage = null;
+  if (source === 'existing') {
+    if (!purSelectedProduct) { alert('ກະລຸນາເລືອກສິນຄ້າ'); return; }
+    productName = purSelectedProduct.name;
+    productId = purSelectedProduct.id;
+    productImage = purSelectedProduct.image;
+  } else {
+    productName = document.getElementById('pur-manual-name').value.trim();
+    productModel = document.getElementById('pur-manual-model').value.trim();
+    if (!productName) { alert('ໃສ່ຊື່ສິນຄ້າ'); return; }
+  }
+
+  var btn = document.getElementById('btn-pur-submit');
+  btn.disabled = true; btn.textContent = '⏳ ກຳລັງສ່ງ...';
+
+  fetch(POS_URL + '/purchase-request', {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({
+      reportedBy: empName, productSource: source, productId: productId,
+      productName: productName, productModel: productModel, productImage: productImage,
+      currentStock: currentStock, requestedQty: requestedQty,
+      customerName: customerName, customerPhone: customerTel
+    })
+  }).then(function(r){return r.json();}).then(function(res){
+    btn.disabled = false; btn.textContent = '📤 ກໍດແຈ້ງ';
+    if (res.ok) {
+      alert('✅ ແຈ້ງສຳເລັດ!');
+      document.getElementById('pur-search-inp').value = '';
+      document.getElementById('pur-manual-name').value = '';
+      document.getElementById('pur-manual-model').value = '';
+      document.getElementById('pur-current-stock').value = '';
+      document.getElementById('pur-requested-qty').value = '';
+      document.getElementById('pur-customer-name').value = '';
+      document.getElementById('pur-customer-tel').value = '';
+      document.getElementById('pur-selected-product').style.display = 'none';
+      purSelectedProduct = null;
+      loadPurMyReports();
+      loadPurPendingList();
+    } else { alert('❌ ' + (res.error||'ແຈ້ງບໍ່ໄດ້')); }
+  }).catch(function(){ btn.disabled = false; btn.textContent = '📤 ກໍດແຈ້ງ'; alert('❌ ເຊືອມ Server ບໍ່ໄດ້'); });
+}
+
+
+var purStatusLabels = { reported: 'ລໍຖ້າພິຈາລະນາ', ordered: 'ສັ່ງແລ້ວ', stopped: 'ຢຸດການນຳເຂົ້າ', received: 'ຮັບເຂົ້າແລ້ວ' };
+var purStatusColors = { reported: '#d97706', ordered: '#1a56db', stopped: '#dc2626', received: '#16a34a' };
+
+
+var isAdminOrPurchase = function(){ return currentUser && (currentUser.role === 'admin' || (currentUser.perms||[]).indexOf('purchase') > -1); };
+
+function renderPurItem(rec, showActions) {
+  var imgHtml = rec.productImage
+    ? '<img src="'+rec.productImage+'" style="width:44px;height:44px;border-radius:8px;object-fit:cover;flex-shrink:0">'
+    : '<div style="width:44px;height:44px;background:#eff6ff;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px">📦</div>';
+  var color = purStatusColors[rec.status] || '#9ca3af';
+  var label = purStatusLabels[rec.status] || rec.status;
+
+  var infoHtml = '<div style="flex:1;min-width:0">'
+    + '<div style="font-weight:700;font-size:14px">' + rec.productName + (rec.productModel ? ' ('+rec.productModel+')' : '') + '</div>'
+    + '<div style="font-size:12px;color:#9ca3af">👤 ' + rec.reportedBy + ' · 📦 ຍັງເຫຼືອ ' + rec.currentStock + ' · 🛒 ຕ້ອງການ ' + rec.requestedQty + '</div>'
+    + (rec.customerName ? '<div style="font-size:12px;color:#6b7280">👥 ' + rec.customerName + (rec.customerPhone?' - '+rec.customerPhone:'') + '</div>' : '')
+    + (rec.expectedDeliveryDate ? '<div style="font-size:12px;color:#1a56db">📅 ຄາດມາຮອດ: ' + rec.expectedDeliveryDate + '</div>' : '')
+    + (rec.stopReason ? '<div style="font-size:12px;color:#dc2626">⚠️ ' + rec.stopReason + '</div>' : '')
+    + (rec.receivedQty !== null && rec.receivedQty !== undefined ? '<div style="font-size:12px;color:#16a34a">✅ ຮັບເຂົ້າ: ' + rec.receivedQty + '</div>' : '')
+    + '</div>';
+
+  var actionsHtml = '';
+  if (showActions === 'order' && isAdminOrPurchase()) {
+    actionsHtml = '<div style="display:flex;gap:6px;margin-top:8px">'
+      + '<button class="pur-btn-order" data-id="'+rec.id+'" style="flex:1;background:#eff6ff;color:#1a56db;border:none;padding:8px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">✓ ສັ່ງຊື້</button>'
+      + '<button class="pur-btn-stop" data-id="'+rec.id+'" style="flex:1;background:#fef2f2;color:#dc2626;border:none;padding:8px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">✕ ຢຸດການນຳເຂົ້າ</button>'
+      + '</div>';
+  } else if (showActions === 'receive' && isAdminOrPurchase()) {
+    actionsHtml = '<div style="margin-top:8px">'
+      + '<button class="pur-btn-receive" data-id="'+rec.id+'" data-qty="'+rec.requestedQty+'" style="width:100%;background:#f0fdf4;color:#16a34a;border:none;padding:8px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">✅ ຮັບເຂົ້າລະບົບແລ້ວ</button>'
+      + '</div>';
+  }
+
+  return '<div style="padding:12px;border:1px solid #e5e7eb;border-radius:12px;margin-bottom:10px">'
+    + '<div style="display:flex;gap:10px">' + imgHtml + infoHtml
+    + '<span class="bdg" style="background:'+color+'22;color:'+color+';height:fit-content;flex-shrink:0">'+label+'</span>'
+    + '</div>' + actionsHtml + '</div>';
+}
+
+function loadPurMyReports() {
+  var empName = (currentUser && currentUser.name) ? currentUser.name : (currentUser && currentUser.username ? currentUser.username : '');
+  var box = document.getElementById('pur-my-reports');
+  if (!box) return;
+  fetch(POS_URL + '/purchase-requests').then(function(r){return r.json();}).then(function(res){
+    if (!res.ok) { box.innerHTML = '<div class="ld">ຂໍ້ມູນບໍ່ໄດ້</div>'; return; }
+    var mine = res.data.filter(function(rec){ return rec.reportedBy === empName; });
+    if (!mine.length) { box.innerHTML = '<div class="ld">ຍັງບໍ່ມີລາຍການ</div>'; return; }
+    box.innerHTML = mine.slice(0,30).map(function(rec){ return renderPurItem(rec, null); }).join('');
+  }).catch(function(){ box.innerHTML = '<div class="ld" style="color:#dc2626">ໂຫລດບໍ່ໄດ້</div>'; });
+}
+
+function loadPurPendingList() {
+  var box = document.getElementById('pur-pending-list');
+  if (!box) return;
+  fetch(POS_URL + '/purchase-requests?status=reported').then(function(r){return r.json();}).then(function(res){
+    if (!res.ok || !res.data.length) { box.innerHTML = '<div class="ld">ຍັງບໍ່ມີລາຍການລໍຖ້າ</div>'; return; }
+    box.innerHTML = res.data.map(function(rec){ return renderPurItem(rec, 'order'); }).join('');
+    bindPurActionButtons(box);
+  }).catch(function(){ box.innerHTML = '<div class="ld" style="color:#dc2626">ໂຫລດບໍ່ໄດ້</div>'; });
+}
+
+function loadPurOrderedList() {
+  var box = document.getElementById('pur-ordered-list');
+  if (!box) return;
+  fetch(POS_URL + '/purchase-requests?status=ordered').then(function(r){return r.json();}).then(function(res){
+    if (!res.ok || !res.data.length) { box.innerHTML = '<div class="ld">ຍັງບໍ່ມີລາຍການ</div>'; return; }
+    box.innerHTML = res.data.map(function(rec){ return renderPurItem(rec, null); }).join('');
+  }).catch(function(){ box.innerHTML = '<div class="ld" style="color:#dc2626">ໂຫລດບໍ່ໄດ້</div>'; });
+}
+
+function loadPurAwaitingList() {
+  var box = document.getElementById('pur-awaiting-list');
+  if (!box) return;
+  fetch(POS_URL + '/purchase-requests?status=ordered').then(function(r){return r.json();}).then(function(res){
+    if (!res.ok || !res.data.length) { box.innerHTML = '<div class="ld">ຍັງບໍ່ມີລາຍການ</div>'; return; }
+    box.innerHTML = res.data.map(function(rec){ return renderPurItem(rec, 'receive'); }).join('');
+    bindPurActionButtons(box);
+  }).catch(function(){ box.innerHTML = '<div class="ld" style="color:#dc2626">ໂຫລດບໍ່ໄດ້</div>'; });
+}
+
+function loadPurReceivedList() {
+  var box = document.getElementById('pur-received-list');
+  if (!box) return;
+  fetch(POS_URL + '/purchase-requests?status=received').then(function(r){return r.json();}).then(function(res){
+    if (!res.ok || !res.data.length) { box.innerHTML = '<div class="ld">ຍັງບໍ່ມີປະຫວັດ</div>'; return; }
+    box.innerHTML = res.data.slice(0,30).map(function(rec){ return renderPurItem(rec, null); }).join('');
+  }).catch(function(){ box.innerHTML = '<div class="ld" style="color:#dc2626">ໂຫລດບໍ່ໄດ້</div>'; });
+}
+
+function bindPurActionButtons(box) {
+  var empName = (currentUser && currentUser.name) ? currentUser.name : (currentUser && currentUser.username ? currentUser.username : '');
+
+  box.querySelectorAll('.pur-btn-order').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var id = this.getAttribute('data-id');
+      var deliveryDate = prompt('ກຳນົດວັນທີ່ມາຮອດຮ້ານ (YYYY-MM-DD):', new Date().toISOString().slice(0,10));
+      if (deliveryDate === null) return;
+      fetch(POS_URL + '/purchase-request/' + id + '/order', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ orderedBy: empName, expectedDeliveryDate: deliveryDate })
+      }).then(function(r){return r.json();}).then(function(){ loadPurPendingList(); loadPurOrderedList(); loadPurAwaitingList(); });
+    });
+  });
+
+  box.querySelectorAll('.pur-btn-stop').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var id = this.getAttribute('data-id');
+      var reason = prompt('ເຫດຜົນທີ່ຢຸດການນຳເຂົ້າ:');
+      if (reason === null) return;
+      fetch(POS_URL + '/purchase-request/' + id + '/stop', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ stoppedBy: empName, stopReason: reason })
+      }).then(function(r){return r.json();}).then(function(){ loadPurPendingList(); });
+    });
+  });
+
+  box.querySelectorAll('.pur-btn-receive').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var id = this.getAttribute('data-id');
+      var defaultQty = this.getAttribute('data-qty');
+      var qty = prompt('ຈຳນວນທີ່ຮັບໄດ້ຈິງ:', defaultQty);
+      if (qty === null) return;
+      fetch(POS_URL + '/purchase-request/' + id + '/receive', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ receivedBy: empName, receivedQty: qty })
+      }).then(function(r){return r.json();}).then(function(){ loadPurAwaitingList(); loadPurReceivedList(); });
+    });
+  });
+}
 
 </script>
 <input type="file" id="ci-img-inp-global" accept="image/*" style="display:none">
