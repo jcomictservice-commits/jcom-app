@@ -3345,11 +3345,15 @@ function loadFinanceList(month, fromSheet) {
       + '<th style="padding:8px 6px;text-align:right">ຈຳນວນ</th>'
       + '<th style="padding:8px 6px;text-align:center">ປະເພດ</th>'
       + '<th style="padding:8px 6px;text-align:center">ຈ່າຍ</th>'
+      + '<th style="padding:8px 6px;text-align:center">ຮູບ</th>'
       + '<th style="padding:8px 6px;text-align:center">ແກ້ໄຂ</th>'
       + '</tr></thead><tbody>'
       + rows.map(function(r){
         var isIncome = r.type==='income';
         var payLabel = r.payment==='transfer'?'📱 ໂອນ':'💵 ສົດ';
+        var photoCell = r.photoUrl
+          ? '<a href="'+r.photoUrl+'" target="_blank" style="font-size:16px;text-decoration:none">🖼</a>'
+          : '<button data-idx="'+rows.indexOf(r)+'" class="fin-addphoto-btn" style="background:#fffbeb;color:#d97706;border:1px solid #fde68a;padding:4px 8px;border-radius:6px;font-size:12px;cursor:pointer;font-family:inherit">📷</button>';
         return '<tr style="border-bottom:1px solid #f3f4f6">'
           +'<td style="padding:8px 6px">'+r.date+'</td>'
           +'<td style="padding:8px 6px;font-weight:600">'+r.category+'</td>'
@@ -3357,6 +3361,7 @@ function loadFinanceList(month, fromSheet) {
           +'<td style="padding:8px 6px;text-align:right;font-weight:700;color:'+(isIncome?'#16a34a':'#dc2626')+'">₭'+parseFloat(r.amount).toLocaleString()+'</td>'
           +'<td style="padding:8px 6px;text-align:center">'+(isIncome?'💰 ຮັບ':'💸 ຈ່າຍ')+'</td>'
           +'<td style="padding:8px 6px;text-align:center">'+payLabel+'</td>'
+          +'<td style="padding:8px 6px;text-align:center">'+photoCell+'</td>'
           +'<td style="padding:8px 6px;text-align:center;white-space:nowrap">'
           +'<button data-idx="'+rows.indexOf(r)+'" class="fin-edit-btn" style="background:#eff6ff;color:#1a56db;border:1px solid #bfdbfe;padding:4px 8px;border-radius:6px;font-size:12px;cursor:pointer;font-family:inherit;margin-right:4px">✏️</button>'
           +'<button data-idx="'+rows.indexOf(r)+'" class="fin-del-btn" style="background:#fef2f2;color:#dc2626;border:1px solid #fecaca;padding:4px 8px;border-radius:6px;font-size:12px;cursor:pointer;font-family:inherit">🗑</button>'
@@ -3383,6 +3388,34 @@ function loadFinanceList(month, fromSheet) {
             else { alert('❌ ແກ້ໄຂຜິດ'); }
           });
         });
+      // Add photo buttons (for entries without a photo yet)
+      box.querySelectorAll('.fin-addphoto-btn').forEach(function(btn){
+        btn.addEventListener('click', function(){
+          var idx = parseInt(this.getAttribute('data-idx'));
+          var tempInp = document.createElement('input');
+          tempInp.type = 'file';
+          tempInp.accept = 'image/*';
+          tempInp.style.display = 'none';
+          document.body.appendChild(tempInp);
+          tempInp.addEventListener('change', function(){
+            var file = this.files[0];
+            if (!file) { document.body.removeChild(tempInp); return; }
+            var reader = new FileReader();
+            reader.onload = function(e){
+              fetch(POS_URL+'/finance/'+idx, {
+                method:'PUT', headers:{'Content-Type':'application/json'},
+                body: JSON.stringify({ photo: e.target.result })
+              }).then(function(r){return r.json();}).then(function(res){
+                if(res.ok){ alert('✅ ເພີ່ມຮູບສຳເລັດ'); loadFinanceList(document.getElementById('fin-filter-month').value); }
+                else { alert('❌ ເພີ່ມຮູບຜິດ'); }
+                document.body.removeChild(tempInp);
+              });
+            };
+            reader.readAsDataURL(file);
+          });
+          tempInp.click();
+        });
+      });
       // Delete buttons
       box.querySelectorAll('.fin-del-btn').forEach(function(btn){
         btn.addEventListener('click', function(){
