@@ -3394,6 +3394,7 @@ function loadFinanceList(month, fromSheet) {
             else { alert('❌ ແກ້ໄຂຜິດ'); }
           });
         });
+      });
       // Add photo buttons (for entries without a photo yet)
       box.querySelectorAll('.fin-addphoto-btn').forEach(function(btn){
         btn.addEventListener('click', function(){
@@ -3435,7 +3436,6 @@ function loadFinanceList(month, fromSheet) {
             else { alert('❌ ລຶບຜິດ'); }
           });
         });
-      });
       });
   }).catch(function(){ box.innerHTML='<div class="ld" style="color:#dc2626">❌ ໂຫຼດບໍ່ໄດ້</div>'; });
 }
