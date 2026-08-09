@@ -675,6 +675,13 @@ input,textarea{-webkit-user-select:text!important;user-select:text!important;-we
 <div id="sec-catalog" class="sec">
 <div class="pt">🛍 ສ້າງ Catalog</div>
 
+<div style="display:flex;gap:6px;margin-bottom:14px">
+  <button id="btn-cat-tab1" style="flex:1;padding:10px 6px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;background:#1a56db;color:#fff;border:none">🛍 Catalog ສິນຄ້າ</button>
+  <button id="btn-cat-tab2" style="flex:1;padding:10px 6px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;background:#f3f4f6;color:#6b7280;border:none">📸 ຂອບໃຈລູກຄ້າ</button>
+</div>
+
+<div id="cat-tab1-content">
+
 <!-- Admin: manage logos/promo -->
 <div class="card" id="cm-admin-panel" style="display:none">
   <div class="cl">⚙️ ອັບໂຫລດຮູບໂປໂມຊັ່ນ</div>
@@ -721,6 +728,42 @@ input,textarea{-webkit-user-select:text!important;user-select:text!important;-we
 <button class="pb" id="btn-cm-generate" style="background:linear-gradient(90deg,#16a34a,#15803d);font-size:16px;padding:14px">🎨 ສ້າງ Catalog</button>
 
 </div>
+
+<!-- TAB 2: Customer Thank You Poster -->
+<div id="cat-tab2-content" style="display:none">
+  <div class="card">
+    <div class="cl">📷 ຮູບພື້ນຫັງ (ສິນຄ້າ+ສັນຜູ່ຜູ້ສະດັງ)</div>
+    <div id="ty-photo-preview" style="display:none;margin-bottom:10px;text-align:center">
+      <img id="ty-photo-img" style="max-width:100%;max-height:280px;border-radius:12px;object-fit:contain;background:#f8fafc">
+    </div>
+    <label for="ty-camera-inp" style="display:flex;align-items:center;justify-content:center;gap:8px;border:2px dashed #d1d5db;border-radius:12px;padding:16px;margin-bottom:10px;color:#9ca3af;font-size:15px;font-weight:600;cursor:pointer" id="ty-photo-label">
+      <span>📷</span><span>ຖ່າຍຮູບ ຫືອ ເລືອກຈາກຄັງ</span>
+    </label>
+    <input type="file" id="ty-camera-inp" accept="image/*" style="display:none">
+  </div>
+
+  <div class="card">
+    <div class="cl">📱 ຊື່ສິນຄ້າ</div>
+    <input class="inp" id="ty-product-name" placeholder="ຊື່ສິນຄ້າ (ເຊັ່ນ Infinix HOT 50i)">
+    <button class="pb" id="btn-ty-ai-spec" style="background:linear-gradient(90deg,#7c3aed,#5b21b6);margin-bottom:10px">✨ AI ແນະນຳ Spec</button>
+    <div id="ty-spec-list"></div>
+    <button id="btn-ty-add-spec" style="width:100%;padding:10px;border:1px dashed #d1d5db;border-radius:10px;background:#f9fafb;color:#6b7280;font-size:14px;cursor:pointer;font-family:inherit;margin-bottom:6px">+ ເພິ່ມຈຸດເດ່ນ</button>
+  </div>
+
+  <div class="card">
+    <div class="cl">💛 ຂໍ້ຄວາມຂອບໃຈ</div>
+    <input class="inp" id="ty-customer-name" placeholder="ຊື່ລູກຄ້າ (ທາງເລືອກ)">
+    <textarea class="inp" id="ty-thankyou-msg" rows="3" placeholder="ຂໍ້ຄວາມຂອບໃຈ (ເຊັ່ນ: ຂອບໃຈທີ່ໄວ້ວາງໃຈເລືອກຊື້ Jcom ICT Service)">ຂອບໃຈທີ່ໄວ້ວາງໃຈເລືອກຊື້ສິນຄ້າກັບ Jcom ICT Service</textarea>
+    <button class="pb" id="btn-ty-generate" style="background:linear-gradient(90deg,#16a34a,#15803d);font-size:16px;padding:14px">🎨 ສ້າງປໍສເຕ໋ດ</button>
+  </div>
+
+  <div class="card" id="ty-result-card" style="display:none">
+    <div class="cl">✅ Poster ສຳເລັດ</div>
+    <canvas id="ty-canvas" style="width:100%;border-radius:12px"></canvas>
+    <button class="pb" id="btn-ty-download" style="background:linear-gradient(90deg,#1a56db,#1e40af);margin-top:10px">📥 ດາວໂຫຼດຮູບ</button>
+  </div>
+</div>
+
 <!-- SETUP -->
 <div id="sec-setup" class="sec">
 <div class="pt">⚙️ ຕັ້ງຄ່າ</div>
@@ -991,6 +1034,7 @@ function showPage(id) {
   if (id === 'stock') initStockCheck();
   if (id === 'attend') { initAttend(); initLeaveRequests(); }
   if (id === 'purchase') initPurchase();
+  if (id === 'catalog') initThankYouPoster();
   if (id === 'dash') initSyncNowBtn();
   if (id === 'docs') initDocs();
   if (id === 'finance') initFinance();
@@ -5046,6 +5090,250 @@ function bindPurActionButtons(box) {
       }).then(function(r){return r.json();}).then(function(){ loadPurAwaitingList(); loadPurReceivedList(); });
     });
   });
+}
+
+
+
+// === CUSTOMER THANK YOU POSTER ===
+var tyPhotoData = null;
+var tySpecs = [];
+
+function initThankYouPoster() {
+  var tab1Btn = document.getElementById('btn-cat-tab1');
+  if (tab1Btn && !tab1Btn.dataset.bound) {
+    tab1Btn.dataset.bound = '1';
+    tab1Btn.addEventListener('click', function(){ switchCatTab(1); });
+    document.getElementById('btn-cat-tab2').addEventListener('click', function(){ switchCatTab(2); });
+
+    var camInp = document.getElementById('ty-camera-inp');
+    camInp.addEventListener('change', function(){
+      var file = this.files[0];
+      if (!file) return;
+      var reader = new FileReader();
+      reader.onload = function(e){
+        tyPhotoData = e.target.result;
+        var preview = document.getElementById('ty-photo-preview');
+        var img = document.getElementById('ty-photo-img');
+        img.src = tyPhotoData;
+        preview.style.display = 'block';
+        document.getElementById('ty-photo-label').querySelector('span:last-child').textContent = '✅ ມີຮູບແລ້ວ (ກົດເພື່ອປ່ຽນ)';
+      };
+      reader.readAsDataURL(file);
+    });
+
+    document.getElementById('btn-ty-ai-spec').addEventListener('click', requestAiSpecSuggestion);
+    document.getElementById('btn-ty-add-spec').addEventListener('click', function(){ addSpecField(''); });
+    document.getElementById('btn-ty-generate').addEventListener('click', generateThankYouPoster);
+    document.getElementById('btn-ty-download').addEventListener('click', downloadThankYouPoster);
+
+    // Start with 4 empty spec fields
+    for (var i=0;i<4;i++) addSpecField('');
+  }
+}
+
+function switchCatTab(n) {
+  document.getElementById('cat-tab1-content').style.display = (n===1) ? 'block' : 'none';
+  document.getElementById('cat-tab2-content').style.display = (n===2) ? 'block' : 'none';
+  var btn1 = document.getElementById('btn-cat-tab1');
+  var btn2 = document.getElementById('btn-cat-tab2');
+  if (n===1) { btn1.style.background='#1a56db'; btn1.style.color='#fff'; btn2.style.background='#f3f4f6'; btn2.style.color='#6b7280'; }
+  else { btn2.style.background='#1a56db'; btn2.style.color='#fff'; btn1.style.background='#f3f4f6'; btn1.style.color='#6b7280'; }
+}
+
+function addSpecField(value) {
+  var box = document.getElementById('ty-spec-list');
+  var idx = box.children.length;
+  var row = document.createElement('div');
+  row.style.cssText = 'display:flex;gap:6px;margin-bottom:8px';
+  row.innerHTML = '<input class="inp" style="margin:0" value="'+(value||'').replace(/"/g,'&quot;')+'" placeholder="ຈຸດເດັ່ນ...">'
+    + '<button style="background:#fef2f2;color:#dc2626;border:none;width:40px;border-radius:8px;cursor:pointer;font-family:inherit">✕</button>';
+  row.querySelector('button').addEventListener('click', function(){ row.remove(); });
+  box.appendChild(row);
+}
+
+function getSpecValues() {
+  var box = document.getElementById('ty-spec-list');
+  var vals = [];
+  box.querySelectorAll('input').forEach(function(inp){
+    if (inp.value.trim()) vals.push(inp.value.trim());
+  });
+  return vals;
+}
+
+function setSpecValues(specs) {
+  var box = document.getElementById('ty-spec-list');
+  box.innerHTML = '';
+  specs.forEach(function(s){ addSpecField(s); });
+}
+
+function requestAiSpecSuggestion() {
+  var productName = document.getElementById('ty-product-name').value.trim();
+  if (!productName) { alert('ກະລຸນາໃສ່ຊື່ສິນຄ້າກ່ອນ'); return; }
+  var btn = document.getElementById('btn-ty-ai-spec');
+  btn.disabled = true; btn.textContent = '⏳ ກຳລັງຄິດ...';
+
+  fetch(POS_URL + '/ai/suggest-spec', {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ productName: productName })
+  }).then(function(r){return r.json();}).then(function(res){
+    btn.disabled = false; btn.textContent = '✨ AI ແນະນຳ Spec';
+    if (res.ok && res.specs && res.specs.length) {
+      setSpecValues(res.specs);
+    } else {
+      alert('❌ ' + (res.error || 'AI ແນະນຳບໍ່ໄດ້'));
+    }
+  }).catch(function(){ btn.disabled = false; btn.textContent = '✨ AI ແນະນຳ Spec'; alert('❌ ເຊື່ອມ Server ບໍ່ໄດ້'); });
+}
+
+
+
+function wrapCanvasText(ctx, text, x, y, maxWidth, lineHeight) {
+  var words = text.split(' ');
+  var line = '';
+  var lines = [];
+  for (var i = 0; i < words.length; i++) {
+    var testLine = line + words[i] + ' ';
+    var metrics = ctx.measureText(testLine);
+    if (metrics.width > maxWidth && i > 0) {
+      lines.push(line);
+      line = words[i] + ' ';
+    } else {
+      line = testLine;
+    }
+  }
+  lines.push(line);
+  lines.forEach(function(l, idx){ ctx.fillText(l.trim(), x, y + idx*lineHeight); });
+  return lines.length;
+}
+
+function generateThankYouPoster() {
+  if (!tyPhotoData) { alert('ກະລຸນາຖ່າຍຮູບ ຫຼື ເລືອກຮູບກ່ອນ'); return; }
+
+  var productName = document.getElementById('ty-product-name').value.trim() || 'ສິນຄ້າ';
+  var specs = getSpecValues();
+  var customerName = document.getElementById('ty-customer-name').value.trim();
+  var thankMsg = document.getElementById('ty-thankyou-msg').value.trim() || 'ຂອບໃຈທີ່ໄວ້ວາງໃຈເລືອກຊື້ສິນຄ້າກັບ Jcom ICT Service';
+
+  var img = new Image();
+  img.onload = function() {
+    var canvasW = 900;
+    var canvasH = Math.round(canvasW * (img.height/img.width));
+    if (canvasH < 1100) canvasH = 1200;
+    if (canvasH > 1600) canvasH = 1600;
+
+    var canvas = document.getElementById('ty-canvas');
+    canvas.width = canvasW;
+    canvas.height = canvasH;
+    var ctx = canvas.getContext('2d');
+
+    // Draw background photo (cover fit)
+    var imgRatio = img.width/img.height;
+    var canvasRatio = canvasW/canvasH;
+    var sx, sy, sw, sh;
+    if (imgRatio > canvasRatio) {
+      sh = img.height; sw = sh*canvasRatio; sx = (img.width-sw)/2; sy = 0;
+    } else {
+      sw = img.width; sh = sw/canvasRatio; sx = 0; sy = (img.height-sh)/2;
+    }
+    ctx.drawImage(img, sx, sy, sw, sh, 0, 0, canvasW, canvasH);
+
+    // Top gradient overlay for product name
+    var topGrad = ctx.createLinearGradient(0,0,0,220);
+    topGrad.addColorStop(0, 'rgba(0,0,0,0.75)');
+    topGrad.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = topGrad;
+    ctx.fillRect(0,0,canvasW,220);
+
+    // "ໃໝ່!" badge
+    ctx.fillStyle = '#7c3aed';
+    ctx.beginPath();
+    ctx.moveTo(0,0); ctx.lineTo(150,0); ctx.lineTo(110,55); ctx.lineTo(0,55);
+    ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 26px sans-serif';
+    ctx.fillText('ໃໝ່!', 25, 38);
+
+    // Product name
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 42px sans-serif';
+    ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 8;
+    wrapCanvasText(ctx, productName, 30, 130, canvasW-60, 50);
+    ctx.shadowBlur = 0;
+
+    // Spec panel (left side, semi-transparent rounded box)
+    if (specs.length) {
+      var panelX = 24, panelY = 230, panelW = 280;
+      var panelH = 40 + specs.length*44;
+      ctx.fillStyle = 'rgba(255,255,255,0.92)';
+      roundRect(ctx, panelX, panelY, panelW, panelH, 16);
+      ctx.fill();
+
+      specs.forEach(function(spec, i){
+        var sy2 = panelY + 34 + i*44;
+        ctx.fillStyle = '#1a56db';
+        ctx.beginPath(); ctx.arc(panelX+24, sy2-8, 6, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#1f2937';
+        ctx.font = '600 18px sans-serif';
+        ctx.fillText(spec, panelX+42, sy2);
+      });
+    }
+
+    // Bottom gradient overlay for thank you message
+    var botGrad = ctx.createLinearGradient(0,canvasH-320,0,canvasH);
+    botGrad.addColorStop(0, 'rgba(0,0,0,0)');
+    botGrad.addColorStop(1, 'rgba(88,28,135,0.92)');
+    ctx.fillStyle = botGrad;
+    ctx.fillRect(0,canvasH-320,canvasW,320);
+
+    var textY = canvasH - 220;
+    if (customerName) {
+      ctx.fillStyle = '#fbbf24';
+      ctx.font = 'bold 24px sans-serif';
+      ctx.fillText('👤 ' + customerName, 30, textY);
+      textY += 40;
+    }
+
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 26px sans-serif';
+    var lineCount = wrapCanvasText(ctx, thankMsg, 30, textY, canvasW-60, 34);
+    textY += lineCount*34 + 30;
+
+    // Footer shop branding
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 22px sans-serif';
+    ctx.fillText('Jcom ICT Service', 30, canvasH-30);
+    ctx.font = '16px sans-serif';
+    ctx.fillStyle = 'rgba(255,255,255,0.8)';
+    ctx.fillText('WhatsApp: 02077769999', 30, canvasH-8);
+
+    document.getElementById('ty-result-card').style.display = 'block';
+    document.getElementById('ty-result-card').scrollIntoView({behavior:'smooth'});
+  };
+  img.src = tyPhotoData;
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);
+  ctx.arcTo(x+w,y,x+w,y+h,r);
+  ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r);
+  ctx.arcTo(x,y,x+w,y,r);
+  ctx.closePath();
+}
+
+function downloadThankYouPoster() {
+  var canvas = document.getElementById('ty-canvas');
+  canvas.toBlob(function(blob){
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'thankyou_poster_' + Date.now() + '.png';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+  }, 'image/png');
 }
 
 </script>
