@@ -5344,27 +5344,35 @@ function generateThankYouPoster() {
 
       // Compact spec list - icon + short label, top-right area (avoids typical center/left face position)
       if (specs.length) {
-        var specStartY = curY + 50;
+        var specStartY = curY + 55;
         var maxSpecsShown = Math.min(specs.length, 6);
+        var specGapY = 128;
         for (var i=0;i<maxSpecsShown;i++) {
-          var sy2 = specStartY + i*88;
-          if (sy2 > 780) break;
+          var sy2 = specStartY + i*specGapY;
+          if (sy2 > 900) break;
 
-          // Icon circle (bigger)
-          ctx.fillStyle = 'rgba(124,58,237,0.92)';
-          ctx.beginPath(); ctx.arc(56, sy2, 32, 0, Math.PI*2); ctx.fill();
+          // Icon circle (white background, above text)
+          ctx.save();
+          ctx.shadowColor = 'rgba(0,0,0,0.4)'; ctx.shadowBlur = 8;
+          ctx.fillStyle = 'rgba(255,255,255,0.96)';
+          ctx.beginPath(); ctx.arc(64, sy2, 34, 0, Math.PI*2); ctx.fill();
+          ctx.restore();
           ctx.font = '30px sans-serif';
           ctx.textAlign = 'center';
-          ctx.fillStyle = '#fff';
-          ctx.fillText(specIcons[i % specIcons.length], 56, sy2+10);
-          ctx.textAlign = 'left';
+          ctx.fillText(specIcons[i % specIcons.length], 64, sy2+11);
 
-          // Label text (bigger, up to 2 lines if long)
+          // Label text (up to 2 lines, centered under icon)
           ctx.fillStyle = '#fff';
-          ctx.font = 'bold 26px sans-serif';
+          ctx.font = 'bold 22px sans-serif';
           ctx.shadowColor = 'rgba(0,0,0,0.8)'; ctx.shadowBlur = 6;
-          wrapCanvasText(ctx, specs[i], 100, sy2-2, canvasW-350, 30);
+          var specLines = (specs[i]||'').split(' ');
+          var midPoint = Math.ceil(specLines.length/2);
+          var line1 = specLines.slice(0, midPoint).join(' ');
+          var line2 = specLines.slice(midPoint).join(' ');
+          ctx.fillText(line1, 64, sy2+52);
+          if (line2) ctx.fillText(line2, 64, sy2+80);
           ctx.shadowBlur = 0;
+          ctx.textAlign = 'left';
         }
       }
 
