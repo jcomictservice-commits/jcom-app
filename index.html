@@ -1445,7 +1445,11 @@ function selectProduct(p) {
   var box = document.getElementById('prod-selected');
   var stk = p.stock > 0 ? '<span style="color:#16a34a;font-weight:600">✓ '+p.stock+' ຊິ້ນ</span>' : '<span style="background:#fee2e2;color:#dc2626;padding:2px 8px;border-radius:6px;font-size:12px;font-weight:600">ໝໍດ</span>';
   var prodKey = p.id || p.sku || p.barcode || '';
-  var multiImgs = (prodKey && productImagesMultiCache[prodKey]) ? productImagesMultiCache[prodKey] : [];
+  var multiImgs = (prodKey && productImagesMultiCache[prodKey] && productImagesMultiCache[prodKey].length) ? productImagesMultiCache[prodKey] : [];
+  // Fallback: if no images in the new multi-image system, check the older single-image cache
+  if (!multiImgs.length && prodKey && productImagesCache && productImagesCache[prodKey]) {
+    multiImgs = [productImagesCache[prodKey]];
+  }
   box.style.display = 'block';
 
   var galleryHtml = '<div style="margin-bottom:10px">';
