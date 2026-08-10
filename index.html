@@ -3077,11 +3077,7 @@ function generateQuotationPDF() {
   html2+='<button class="back-btn" onclick="window.close()" style="background:#6b7280">◀ ກັບຄືນ</button>';
   html2+='<button class="back-btn" onclick="window.print()" style="background:#1a56db">🖨 Print / Save PDF</button>';
   html2+='</div>';
-  html2+='<div id="img-lightbox" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);z-index:9999;align-items:center;justify-content:center;flex-direction:column">
-  <img id="img-lightbox-img" style="max-width:92%;max-height:80%;border-radius:8px;object-fit:contain">
-  <button id="btn-close-lightbox" style="margin-top:16px;background:#fff;color:#1a1a2e;border:none;padding:12px 28px;border-radius:24px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit">✕ ປິດ</button>
-</div>
-</body></html>';
+  html2+='</body></html>';
 
   var win=window.open('','_blank');
   win.document.write(html2);
@@ -5572,5 +5568,9 @@ document.addEventListener('DOMContentLoaded', function(){
 
 </script>
 <input type="file" id="ci-img-inp-global" accept="image/*" style="display:none">
+<div id="img-lightbox" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);z-index:9999;align-items:center;justify-content:center;flex-direction:column">
+  <img id="img-lightbox-img" style="max-width:92%;max-height:80%;border-radius:8px;object-fit:contain">
+  <button id="btn-close-lightbox" style="margin-top:16px;background:#fff;color:#1a1a2e;border:none;padding:12px 28px;border-radius:24px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit">✕ ປິດ</button>
+</div>
 </body>
 </html>
