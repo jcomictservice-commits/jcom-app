@@ -5345,30 +5345,15 @@ function generateThankYouPoster() {
       // Compact spec list - icon + short label, top-right area (avoids typical center/left face position)
       // Spec list removed per user request
 
-      // Product box photo (bottom-left corner, like reference)
-      if (tyBoxPhotoData) {
-        var boxImg = new Image();
-        boxImg.onload = function() {
-          var boxW = 190, boxH = 240;
-          var boxX = 24, boxY = canvasH - 420 - boxH;
-          ctx.save();
-          ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 14; ctx.shadowOffsetY = 6;
-          ctx.fillStyle = '#fff';
-          roundRect(ctx, boxX-6, boxY-6, boxW+12, boxH+12, 10);
-          ctx.fill();
-          ctx.restore();
-          var bRatio = boxImg.width/boxImg.height;
-          var drawW = boxW, drawH = boxW/bRatio;
-          if (drawH > boxH) { drawH = boxH; drawW = boxH*bRatio; }
-          ctx.drawImage(boxImg, boxX + (boxW-drawW)/2, boxY + (boxH-drawH)/2, drawW, drawH);
-          drawBottomSection();
-        };
-        boxImg.src = tyBoxPhotoData;
-      } else {
-        drawBottomSection();
-      }
+      // Product box photo will be drawn beside the thank-you message (bottom-left), see drawBottomSection()
+      drawBottomSection();
 
       function drawBottomSection() {
+        var hasBoxImg = !!tyBoxPhotoData;
+        var boxImgW = hasBoxImg ? 190 : 0;
+        var textStartX = hasBoxImg ? (24 + boxImgW + 20) : 44;
+        var textMaxW = hasBoxImg ? (canvasW - 48 - boxImgW - 20 - 20) : (canvasW-90);
+
         // Bottom gradient overlay (blue tone)
         var botGrad = ctx.createLinearGradient(0,canvasH-420,0,canvasH);
         botGrad.addColorStop(0, 'rgba(15,23,42,0)');
@@ -5384,7 +5369,7 @@ function generateThankYouPoster() {
           var words = thankMsg.split(' '); var line='';
           for (var wi=0; wi<words.length; wi++){
             var testLine = line + words[wi] + ' ';
-            if (ctx.measureText(testLine).width > canvasW-90 && wi>0){ msgLinesPreview.push(line); line = words[wi]+' '; }
+            if (ctx.measureText(testLine).width > textMaxW && wi>0){ msgLinesPreview.push(line); line = words[wi]+' '; }
             else { line = testLine; }
           }
           msgLinesPreview.push(line);
@@ -5392,6 +5377,7 @@ function generateThankYouPoster() {
 
         var msgBoxY = canvasH - 340;
         var msgBoxH = msgLinesPreview.length*46 + (customerName ? 52 : 0) + (warrantyMsg ? 44 : 0) + 40;
+        if (hasBoxImg && msgBoxH < 240) msgBoxH = 240;
         var msgGrad = ctx.createLinearGradient(0,msgBoxY,canvasW,msgBoxY);
         msgGrad.addColorStop(0, 'rgba(219,39,119,0.95)');
         msgGrad.addColorStop(1, 'rgba(124,58,237,0.95)');
@@ -5399,29 +5385,51 @@ function generateThankYouPoster() {
         roundRect(ctx, 24, msgBoxY, canvasW-48, msgBoxH, 16);
         ctx.fill();
 
-        var textY = msgBoxY + 44;
-        if (customerName) {
-          ctx.fillStyle = '#fde047';
-          ctx.font = 'bold 28px sans-serif';
-          ctx.fillText('👤 ' + customerName, 44, textY);
-          textY += 48;
+        function drawTextContent() {
+          var textY = msgBoxY + 44;
+          if (customerName) {
+            ctx.fillStyle = '#fde047';
+            ctx.font = 'bold 28px sans-serif';
+            ctx.fillText('👤 ' + customerName, textStartX, textY);
+            textY += 48;
+          }
+
+          ctx.fillStyle = '#fff';
+          ctx.font = 'bold 36px sans-serif';
+          var lineCount = wrapCanvasText(ctx, thankMsg, textStartX, textY, textMaxW, 46);
+          textY += lineCount*46 + 14;
+
+          if (warrantyMsg) {
+            ctx.fillStyle = '#f5d0fe';
+            ctx.font = '600 22px sans-serif';
+            wrapCanvasText(ctx, warrantyMsg, textStartX, textY, textMaxW, 28);
+          }
+
+          document.getElementById('ty-result-card').style.display = 'block';
+          document.getElementById('ty-result-card').scrollIntoView({behavior:'smooth'});
         }
 
-        ctx.fillStyle = '#fff';
-        ctx.font = 'bold 36px sans-serif';
-        var lineCount = wrapCanvasText(ctx, thankMsg, 44, textY, canvasW-90, 46);
-        textY += lineCount*46 + 14;
-
-        if (warrantyMsg) {
-          ctx.fillStyle = '#f5d0fe';
-          ctx.font = '600 22px sans-serif';
-          wrapCanvasText(ctx, warrantyMsg, 44, textY, canvasW-90, 28);
+        if (hasBoxImg) {
+          var boxImg = new Image();
+          boxImg.onload = function() {
+            var boxW = boxImgW, boxH = msgBoxH - 24;
+            var boxX = 24 + 12, boxY = msgBoxY + 12;
+            ctx.save();
+            ctx.shadowColor = 'rgba(0,0,0,0.4)'; ctx.shadowBlur = 10;
+            ctx.fillStyle = '#fff';
+            roundRect(ctx, boxX, boxY, boxW, boxH, 10);
+            ctx.fill();
+            ctx.restore();
+            var bRatio = boxImg.width/boxImg.height;
+            var drawW = boxW-16, drawH = (boxW-16)/bRatio;
+            if (drawH > boxH-16) { drawH = boxH-16; drawW = (boxH-16)*bRatio; }
+            ctx.drawImage(boxImg, boxX + (boxW-drawW)/2, boxY + (boxH-drawH)/2, drawW, drawH);
+            drawTextContent();
+          };
+          boxImg.src = tyBoxPhotoData;
+        } else {
+          drawTextContent();
         }
-
-        // Footer white bar removed per user request
-
-        document.getElementById('ty-result-card').style.display = 'block';
-        document.getElementById('ty-result-card').scrollIntoView({behavior:'smooth'});
       }
     }
 
