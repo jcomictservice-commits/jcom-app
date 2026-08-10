@@ -743,6 +743,17 @@ input,textarea{-webkit-user-select:text!important;user-select:text!important;-we
   </div>
 
   <div class="card">
+    <div class="cl">📦 ຮູບກ່ອງສິນຄ້າ (ທາງເລືອກ)</div>
+    <div id="ty-box-photo-preview" style="display:none;margin-bottom:10px;text-align:center">
+      <img id="ty-box-photo-img" style="max-width:180px;max-height:220px;border-radius:12px;object-fit:contain;background:#f8fafc">
+    </div>
+    <label for="ty-box-camera-inp" style="display:flex;align-items:center;justify-content:center;gap:8px;border:2px dashed #d1d5db;border-radius:12px;padding:14px;margin-bottom:0;color:#9ca3af;font-size:14px;font-weight:600;cursor:pointer" id="ty-box-photo-label">
+      <span>📦</span><span>ຖ່າຍຮູບ ຫຼື ເລືອກຮູບກ່ອງສິນຄ້າ</span>
+    </label>
+    <input type="file" id="ty-box-camera-inp" accept="image/*" style="display:none">
+  </div>
+
+  <div class="card">
     <div class="cl">📱 ຊື່ສິນຄ້າ</div>
     <input class="inp" id="ty-product-name" placeholder="ຊື່ສິນຄ້າ (ເຊັ່ນ Infinix HOT 50i)">
     <input class="inp" id="ty-tagline" placeholder="ຄຳຂວັນ/ສະໂລແກນ (ທາງເລືອກ, ເຊັ່ນ: ຫ້າຄິດ ຈັບທຸກປະສາການ)">
@@ -756,6 +767,7 @@ input,textarea{-webkit-user-select:text!important;user-select:text!important;-we
     <div class="cl">💛 ຂໍ້ຄວາມຂອບໃຈ</div>
     <input class="inp" id="ty-customer-name" placeholder="ຊື່ລູກຄ້າ (ທາງເລືອກ)">
     <textarea class="inp" id="ty-thankyou-msg" rows="3" placeholder="ຂໍ້ຄວາມຂອບໃຈ (ເຊັ່ນ: ຂອບໃຈທີ່ໄວ້ວາງໃຈເລືອກຊື້ Jcom ICT Service)">ຂອບໃຈທີ່ໄວ້ວາງໃຈເລືອກຊື້ສິນຄ້າກັບ Jcom ICT Service</textarea>
+    <input class="inp" id="ty-warranty-msg" placeholder="ຂໍ້ຄວາມຮັບປະກັນ (ທາງເລືອກ)" value="ສິນຄ້າຮັບປະກັນ 1 ປີ, ຂອງແທ້ 100% ທີ່ຮ້ານ Jcom ICT Service">
     <button class="pb" id="btn-ty-generate" style="background:linear-gradient(90deg,#16a34a,#15803d);font-size:16px;padding:14px">🎨 ສ້າງປໍສເຕ໋ດ</button>
   </div>
 
@@ -5098,6 +5110,7 @@ function bindPurActionButtons(box) {
 
 // === CUSTOMER THANK YOU POSTER ===
 var tyPhotoData = null;
+var tyBoxPhotoData = null;
 var tySpecs = [];
 
 function initThankYouPoster() {
@@ -5119,6 +5132,22 @@ function initThankYouPoster() {
         img.src = tyPhotoData;
         preview.style.display = 'block';
         document.getElementById('ty-photo-label').querySelector('span:last-child').textContent = '✅ ມີຮູບແລ້ວ (ກົດເພື່ອປ່ຽນ)';
+      };
+      reader.readAsDataURL(file);
+    });
+
+    var boxCamInp = document.getElementById('ty-box-camera-inp');
+    boxCamInp.addEventListener('change', function(){
+      var file = this.files[0];
+      if (!file) return;
+      var reader = new FileReader();
+      reader.onload = function(e){
+        tyBoxPhotoData = e.target.result;
+        var preview = document.getElementById('ty-box-photo-preview');
+        var img = document.getElementById('ty-box-photo-img');
+        img.src = tyBoxPhotoData;
+        preview.style.display = 'block';
+        document.getElementById('ty-box-photo-label').querySelector('span:last-child').textContent = '✅ ມີຮູບແລ້ວ (ກົດເພື່ອປ່ຽນ)';
       };
       reader.readAsDataURL(file);
     });
@@ -5217,6 +5246,7 @@ function generateThankYouPoster() {
   var specs = getSpecValues();
   var customerName = document.getElementById('ty-customer-name').value.trim();
   var thankMsg = document.getElementById('ty-thankyou-msg').value.trim() || 'ຂອບໃຈທີ່ໄວ້ວາງໃຈເລືອກຊື້ສິນຄ້າກັບ Jcom ICT Service';
+  var warrantyMsg = document.getElementById('ty-warranty-msg').value.trim();
 
   var specIcons = ['📷','⚡','📶','📱','🌐','💾','🔋','✨'];
 
@@ -5241,163 +5271,202 @@ function generateThankYouPoster() {
     }
     ctx.drawImage(img, sx, sy, sw, sh, 0, 0, canvasW, canvasH);
 
-    // Dark overlay top area for text readability
-    var topGrad = ctx.createLinearGradient(0,0,0,480);
-    topGrad.addColorStop(0, 'rgba(0,0,0,0.55)');
-    topGrad.addColorStop(1, 'rgba(0,0,0,0)');
-    ctx.fillStyle = topGrad;
-    ctx.fillRect(0,0,canvasW,480);
+    function finishPoster() {
+      // Dark overlay top area for text readability
+      var topGrad = ctx.createLinearGradient(0,0,0,420);
+      topGrad.addColorStop(0, 'rgba(0,0,0,0.55)');
+      topGrad.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = topGrad;
+      ctx.fillRect(0,0,canvasW,420);
 
-    // Diagonal "ໃໝ່!" ribbon top-left
-    ctx.save();
-    var ribbonGrad = ctx.createLinearGradient(0,0,180,0);
-    ribbonGrad.addColorStop(0, '#7c3aed');
-    ribbonGrad.addColorStop(1, '#a855f7');
-    ctx.fillStyle = ribbonGrad;
-    ctx.beginPath();
-    ctx.moveTo(0,0); ctx.lineTo(190,0); ctx.lineTo(140,70); ctx.lineTo(0,70);
-    ctx.closePath(); ctx.fill();
-    ctx.fillStyle = '#fff';
-    ctx.font = 'bold 32px sans-serif';
-    ctx.fillText('ໃໝ່!', 30, 48);
-    ctx.restore();
+      // Diagonal "ໃໝ່!" ribbon top-left (blue tone)
+      ctx.save();
+      var ribbonGrad = ctx.createLinearGradient(0,0,180,0);
+      ribbonGrad.addColorStop(0, '#1e3a8a');
+      ribbonGrad.addColorStop(1, '#2563eb');
+      ctx.fillStyle = ribbonGrad;
+      ctx.beginPath();
+      ctx.moveTo(0,0); ctx.lineTo(190,0); ctx.lineTo(140,70); ctx.lineTo(0,70);
+      ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 32px sans-serif';
+      ctx.fillText('ໃໝ່!', 30, 48);
+      ctx.restore();
 
-    var curY = 110;
+      var curY = 110;
 
-    // Badge pill (category tag)
-    if (badgeText) {
-      ctx.font = 'bold 22px sans-serif';
-      var badgeW = ctx.measureText(badgeText).width + 40;
-      ctx.fillStyle = 'rgba(0,0,0,0.85)';
-      roundRect(ctx, 30, curY, badgeW, 46, 23);
+      // Badge pill (category tag)
+      if (badgeText) {
+        ctx.font = 'bold 22px sans-serif';
+        var badgeW = ctx.measureText(badgeText).width + 40;
+        ctx.fillStyle = 'rgba(0,0,0,0.85)';
+        roundRect(ctx, 30, curY, badgeW, 46, 23);
+        ctx.fill();
+        ctx.fillStyle = '#fff';
+        ctx.fillText(badgeText, 50, curY+31);
+        curY += 70;
+      }
+
+      // Product name (blue gradient box)
+      ctx.font = 'bold 50px sans-serif';
+      var nameLinesPreview = [];
+      (function(){
+        var words = productName.split(' '); var line='';
+        for (var wi=0; wi<words.length; wi++){
+          var testLine = line + words[wi] + ' ';
+          if (ctx.measureText(testLine).width > canvasW-90 && wi>0){ nameLinesPreview.push(line); line = words[wi]+' '; }
+          else { line = testLine; }
+        }
+        nameLinesPreview.push(line);
+      })();
+      var nameBoxH = nameLinesPreview.length*56 + 28;
+      var nameGrad = ctx.createLinearGradient(0,curY,canvasW,curY);
+      nameGrad.addColorStop(0, 'rgba(30,58,138,0.93)');
+      nameGrad.addColorStop(1, 'rgba(37,99,235,0.93)');
+      ctx.fillStyle = nameGrad;
+      roundRect(ctx, 24, curY, canvasW-48, nameBoxH, 14);
       ctx.fill();
+
       ctx.fillStyle = '#fff';
-      ctx.fillText(badgeText, 50, curY+31);
-      curY += 70;
-    }
+      ctx.font = 'bold 50px sans-serif';
+      var nameLines = wrapCanvasText(ctx, productName, 44, curY+50, canvasW-90, 56);
+      curY += nameBoxH + 16;
 
-    // Product name (large bold, with colored background box)
-    ctx.font = 'bold 56px sans-serif';
-    var nameLinesPreview = [];
-    (function(){
-      var words = productName.split(' '); var line=''; var testCtx=ctx;
-      for (var wi=0; wi<words.length; wi++){
-        var testLine = line + words[wi] + ' ';
-        if (testCtx.measureText(testLine).width > canvasW-90 && wi>0){ nameLinesPreview.push(line); line = words[wi]+' '; }
-        else { line = testLine; }
+      // Tagline
+      if (tagline) {
+        ctx.fillStyle = '#93c5fd';
+        ctx.font = 'bold 24px sans-serif';
+        ctx.shadowColor = 'rgba(0,0,0,0.6)'; ctx.shadowBlur = 6;
+        wrapCanvasText(ctx, tagline, 30, curY+8, canvasW-60, 30);
+        ctx.shadowBlur = 0;
+        curY += 42;
       }
-      nameLinesPreview.push(line);
-    })();
-    var nameBoxH = nameLinesPreview.length*62 + 30;
-    var nameGrad = ctx.createLinearGradient(0,curY,canvasW,curY);
-    nameGrad.addColorStop(0, 'rgba(124,58,237,0.92)');
-    nameGrad.addColorStop(1, 'rgba(30,64,175,0.92)');
-    ctx.fillStyle = nameGrad;
-    roundRect(ctx, 24, curY, canvasW-48, nameBoxH, 14);
-    ctx.fill();
 
-    ctx.fillStyle = '#fff';
-    ctx.font = 'bold 56px sans-serif';
-    var nameLines = wrapCanvasText(ctx, productName, 44, curY+55, canvasW-90, 62);
-    curY += nameBoxH + 20;
+      // Compact spec list - icon + short label, top-right area (avoids typical center/left face position)
+      if (specs.length) {
+        var specStartY = curY + 40;
+        var maxSpecsShown = Math.min(specs.length, 4);
+        for (var i=0;i<maxSpecsShown;i++) {
+          var sy2 = specStartY + i*72;
+          if (sy2 > 700) break;
 
-    // Tagline
-    if (tagline) {
-      ctx.fillStyle = '#fef08a';
-      ctx.font = 'bold 26px sans-serif';
-      ctx.shadowColor = 'rgba(0,0,0,0.6)'; ctx.shadowBlur = 6;
-      wrapCanvasText(ctx, tagline, 30, curY+10, canvasW-60, 32);
-      ctx.shadowBlur = 0;
-      curY += 50;
-    }
+          // Small icon circle
+          ctx.fillStyle = 'rgba(37,99,235,0.9)';
+          ctx.beginPath(); ctx.arc(48, sy2, 24, 0, Math.PI*2); ctx.fill();
+          ctx.font = '22px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillStyle = '#fff';
+          ctx.fillText(specIcons[i % specIcons.length], 48, sy2+8);
+          ctx.textAlign = 'left';
 
-    // Spec list - icon + 2-line label, directly on photo (no panel), left side
-    var specStartY = Math.max(curY+50, 420);
-    specs.forEach(function(spec, i){
-      var sy2 = specStartY + i*115;
-      if (sy2 > canvasH - 380) return; // avoid overlapping bottom area
-
-      // Icon circle background
-      ctx.fillStyle = 'rgba(255,255,255,0.95)';
-      ctx.beginPath(); ctx.arc(60, sy2, 34, 0, Math.PI*2); ctx.fill();
-      ctx.font = '32px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText(specIcons[i % specIcons.length], 60, sy2+12);
-      ctx.textAlign = 'left';
-
-      // Label text (up to 2 lines), white with shadow
-      ctx.fillStyle = '#fff';
-      ctx.font = 'bold 24px sans-serif';
-      ctx.shadowColor = 'rgba(0,0,0,0.7)'; ctx.shadowBlur = 6;
-      wrapCanvasText(ctx, spec, 30, sy2+58, 170, 28);
-      ctx.shadowBlur = 0;
-    });
-
-    // Bottom gradient overlay + CTA message
-    var botGrad = ctx.createLinearGradient(0,canvasH-380,0,canvasH);
-    botGrad.addColorStop(0, 'rgba(88,28,135,0)');
-    botGrad.addColorStop(0.3, 'rgba(88,28,135,0.85)');
-    botGrad.addColorStop(1, 'rgba(30,10,60,0.97)');
-    ctx.fillStyle = botGrad;
-    ctx.fillRect(0,canvasH-380,canvasW,380);
-
-    // Thank-you message box (solid colored background)
-    ctx.font = 'bold 38px sans-serif';
-    var msgLinesPreview = [];
-    (function(){
-      var words = thankMsg.split(' '); var line=''; 
-      for (var wi=0; wi<words.length; wi++){
-        var testLine = line + words[wi] + ' ';
-        if (ctx.measureText(testLine).width > canvasW-90 && wi>0){ msgLinesPreview.push(line); line = words[wi]+' '; }
-        else { line = testLine; }
+          // Label text (single line, compact)
+          ctx.fillStyle = '#fff';
+          ctx.font = 'bold 20px sans-serif';
+          ctx.shadowColor = 'rgba(0,0,0,0.8)'; ctx.shadowBlur = 5;
+          ctx.fillText(specs[i], 82, sy2+7);
+          ctx.shadowBlur = 0;
+        }
       }
-      msgLinesPreview.push(line);
-    })();
 
-    var msgBoxY = canvasH - 260;
-    var msgBoxH = msgLinesPreview.length*48 + (customerName ? 56 : 0) + 40;
-    var msgGrad = ctx.createLinearGradient(0,msgBoxY,canvasW,msgBoxY);
-    msgGrad.addColorStop(0, 'rgba(219,39,119,0.95)');
-    msgGrad.addColorStop(1, 'rgba(124,58,237,0.95)');
-    ctx.fillStyle = msgGrad;
-    roundRect(ctx, 24, msgBoxY, canvasW-48, msgBoxH, 16);
-    ctx.fill();
+      // Product box photo (bottom-left corner, like reference)
+      if (tyBoxPhotoData) {
+        var boxImg = new Image();
+        boxImg.onload = function() {
+          var boxW = 190, boxH = 240;
+          var boxX = 24, boxY = canvasH - 420 - boxH;
+          ctx.save();
+          ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 14; ctx.shadowOffsetY = 6;
+          ctx.fillStyle = '#fff';
+          roundRect(ctx, boxX-6, boxY-6, boxW+12, boxH+12, 10);
+          ctx.fill();
+          ctx.restore();
+          var bRatio = boxImg.width/boxImg.height;
+          var drawW = boxW, drawH = boxW/bRatio;
+          if (drawH > boxH) { drawH = boxH; drawW = boxH*bRatio; }
+          ctx.drawImage(boxImg, boxX + (boxW-drawW)/2, boxY + (boxH-drawH)/2, drawW, drawH);
+          drawBottomSection();
+        };
+        boxImg.src = tyBoxPhotoData;
+      } else {
+        drawBottomSection();
+      }
 
-    var textY = msgBoxY + 46;
-    if (customerName) {
-      ctx.fillStyle = '#fef08a';
-      ctx.font = 'bold 30px sans-serif';
-      ctx.fillText('👤 ' + customerName, 44, textY);
-      textY += 52;
+      function drawBottomSection() {
+        // Bottom gradient overlay (blue tone)
+        var botGrad = ctx.createLinearGradient(0,canvasH-420,0,canvasH);
+        botGrad.addColorStop(0, 'rgba(15,23,42,0)');
+        botGrad.addColorStop(0.3, 'rgba(15,23,42,0.88)');
+        botGrad.addColorStop(1, 'rgba(10,15,30,0.97)');
+        ctx.fillStyle = botGrad;
+        ctx.fillRect(0,canvasH-420,canvasW,420);
+
+        // Thank-you message box
+        ctx.font = 'bold 36px sans-serif';
+        var msgLinesPreview = [];
+        (function(){
+          var words = thankMsg.split(' '); var line='';
+          for (var wi=0; wi<words.length; wi++){
+            var testLine = line + words[wi] + ' ';
+            if (ctx.measureText(testLine).width > canvasW-90 && wi>0){ msgLinesPreview.push(line); line = words[wi]+' '; }
+            else { line = testLine; }
+          }
+          msgLinesPreview.push(line);
+        })();
+
+        var msgBoxY = canvasH - 340;
+        var msgBoxH = msgLinesPreview.length*46 + (customerName ? 52 : 0) + (warrantyMsg ? 44 : 0) + 40;
+        var msgGrad = ctx.createLinearGradient(0,msgBoxY,canvasW,msgBoxY);
+        msgGrad.addColorStop(0, 'rgba(30,58,138,0.96)');
+        msgGrad.addColorStop(1, 'rgba(37,99,235,0.96)');
+        ctx.fillStyle = msgGrad;
+        roundRect(ctx, 24, msgBoxY, canvasW-48, msgBoxH, 16);
+        ctx.fill();
+
+        var textY = msgBoxY + 44;
+        if (customerName) {
+          ctx.fillStyle = '#fde047';
+          ctx.font = 'bold 28px sans-serif';
+          ctx.fillText('👤 ' + customerName, 44, textY);
+          textY += 48;
+        }
+
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 36px sans-serif';
+        var lineCount = wrapCanvasText(ctx, thankMsg, 44, textY, canvasW-90, 46);
+        textY += lineCount*46 + 14;
+
+        if (warrantyMsg) {
+          ctx.fillStyle = '#bfdbfe';
+          ctx.font = '600 22px sans-serif';
+          wrapCanvasText(ctx, warrantyMsg, 44, textY, canvasW-90, 28);
+        }
+
+        // Footer white bar with trust badges + shop branding
+        var footerH = 90;
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, canvasH-footerH, canvasW, footerH);
+
+        ctx.fillStyle = '#1f2937';
+        ctx.font = '600 15px sans-serif';
+        ctx.fillText('✅ ຂອງແທ້ 100%', 24, canvasH-52);
+        ctx.fillText('🛡️ ຮັບປະກັນສູນ', 24, canvasH-24);
+        ctx.fillText('🚚 ບໍລິການຂົນສົ່ງທົ່ວປະເທດ', 250, canvasH-52);
+
+        ctx.font = 'bold 20px sans-serif';
+        ctx.fillStyle = '#1e40af';
+        ctx.textAlign = 'right';
+        ctx.fillText('Jcom ICT Service', canvasW-24, canvasH-52);
+        ctx.font = '14px sans-serif';
+        ctx.fillStyle = '#6b7280';
+        ctx.fillText('ໃຫ້ບໍລິການເໝືອນຄົນໃນຄອບຄົວ', canvasW-24, canvasH-26);
+        ctx.textAlign = 'left';
+
+        document.getElementById('ty-result-card').style.display = 'block';
+        document.getElementById('ty-result-card').scrollIntoView({behavior:'smooth'});
+      }
     }
 
-    ctx.fillStyle = '#fff';
-    ctx.font = 'bold 38px sans-serif';
-    var lineCount = wrapCanvasText(ctx, thankMsg, 44, textY, canvasW-90, 48);
-    textY += lineCount*48 + 20;
-
-    // Footer white bar with trust badges + shop branding
-    var footerH = 90;
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, canvasH-footerH, canvasW, footerH);
-
-    ctx.fillStyle = '#1f2937';
-    ctx.font = '600 15px sans-serif';
-    ctx.fillText('✅ ຂອງແທ້ 100%', 24, canvasH-52);
-    ctx.fillText('🛡️ ຮັບປະກັນສູນ', 24, canvasH-24);
-    ctx.fillText('🚚 ບໍລິການຂົນສົ່ງທົ່ວປະເທດ', 250, canvasH-52);
-
-    ctx.font = 'bold 20px sans-serif';
-    ctx.fillStyle = '#1a56db';
-    ctx.textAlign = 'right';
-    ctx.fillText('Jcom ICT Service', canvasW-24, canvasH-52);
-    ctx.font = '14px sans-serif';
-    ctx.fillStyle = '#6b7280';
-    ctx.fillText('ໃຫ້ບໍລິການເໝືອນຄົນໃນຄອບຄົວ', canvasW-24, canvasH-26);
-    ctx.textAlign = 'left';
-
-    document.getElementById('ty-result-card').style.display = 'block';
-    document.getElementById('ty-result-card').scrollIntoView({behavior:'smooth'});
+    finishPoster();
   };
   img.src = tyPhotoData;
 }
