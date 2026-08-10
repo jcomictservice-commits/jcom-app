@@ -5409,14 +5409,6 @@ function generateThankYouPoster() {
         var textStartX = hasBoxImg ? (24 + boxImgW + 20) : 44;
         var textMaxW = hasBoxImg ? (canvasW - 48 - boxImgW - 20 - 20) : (canvasW-90);
 
-        // Bottom gradient overlay (blue tone)
-        var botGrad = ctx.createLinearGradient(0,canvasH-420,0,canvasH);
-        botGrad.addColorStop(0, 'rgba(15,23,42,0)');
-        botGrad.addColorStop(0.3, 'rgba(15,23,42,0.88)');
-        botGrad.addColorStop(1, 'rgba(10,15,30,0.97)');
-        ctx.fillStyle = botGrad;
-        ctx.fillRect(0,canvasH-420,canvasW,420);
-
         // Thank-you message box
         ctx.font = 'bold 42px sans-serif';
         var msgLinesPreview = [];
@@ -5430,9 +5422,19 @@ function generateThankYouPoster() {
           msgLinesPreview.push(line);
         })();
 
-        var msgBoxY = canvasH - 460;
         var msgBoxH = msgLinesPreview.length*52 + (customerName ? 54 : 0) + 76 + (warrantyMsg ? 42 : 0) + (contactMsg ? 40 : 0) + 90;
         if (hasBoxImg && msgBoxH < 320) msgBoxH = 320;
+        var msgBoxY = canvasH - msgBoxH - 24;
+
+        // Bottom gradient overlay (blue tone) - dynamically sized to match box position
+        var gradTop = Math.max(0, msgBoxY - 140);
+        var botGrad = ctx.createLinearGradient(0,gradTop,0,canvasH);
+        botGrad.addColorStop(0, 'rgba(15,23,42,0)');
+        botGrad.addColorStop(0.3, 'rgba(15,23,42,0.88)');
+        botGrad.addColorStop(1, 'rgba(10,15,30,0.97)');
+        ctx.fillStyle = botGrad;
+        ctx.fillRect(0,gradTop,canvasW,canvasH-gradTop);
+
         var msgGrad = ctx.createLinearGradient(0,msgBoxY,canvasW,msgBoxY);
         msgGrad.addColorStop(0, 'rgba(219,39,119,0.95)');
         msgGrad.addColorStop(1, 'rgba(124,58,237,0.95)');
