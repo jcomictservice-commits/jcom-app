@@ -745,6 +745,8 @@ input,textarea{-webkit-user-select:text!important;user-select:text!important;-we
   <div class="card">
     <div class="cl">📱 ຊື່ສິນຄ້າ</div>
     <input class="inp" id="ty-product-name" placeholder="ຊື່ສິນຄ້າ (ເຊັ່ນ Infinix HOT 50i)">
+    <input class="inp" id="ty-tagline" placeholder="ຄຳຂວັນ/ສະໂລແກນ (ທາງເລືອກ, ເຊັ່ນ: ຫ້າຄິດ ຈັບທຸກປະສາການ)">
+    <input class="inp" id="ty-badge-text" placeholder="ປ້າຍໝວດໝູ່ (ທາງເລືອກ, ເຊັ່ນ: Infinix AI Phone)">
     <button class="pb" id="btn-ty-ai-spec" style="background:linear-gradient(90deg,#7c3aed,#5b21b6);margin-bottom:10px">✨ AI ແນະນຳ Spec</button>
     <div id="ty-spec-list"></div>
     <button id="btn-ty-add-spec" style="width:100%;padding:10px;border:1px dashed #d1d5db;border-radius:10px;background:#f9fafb;color:#6b7280;font-size:14px;cursor:pointer;font-family:inherit;margin-bottom:6px">+ ເພິ່ມຈຸດເດ່ນ</button>
@@ -5210,23 +5212,25 @@ function generateThankYouPoster() {
   if (!tyPhotoData) { alert('ກະລຸນາຖ່າຍຮູບ ຫຼື ເລືອກຮູບກ່ອນ'); return; }
 
   var productName = document.getElementById('ty-product-name').value.trim() || 'ສິນຄ້າ';
+  var tagline = document.getElementById('ty-tagline').value.trim();
+  var badgeText = document.getElementById('ty-badge-text').value.trim();
   var specs = getSpecValues();
   var customerName = document.getElementById('ty-customer-name').value.trim();
   var thankMsg = document.getElementById('ty-thankyou-msg').value.trim() || 'ຂອບໃຈທີ່ໄວ້ວາງໃຈເລືອກຊື້ສິນຄ້າກັບ Jcom ICT Service';
 
+  var specIcons = ['📷','⚡','📶','📱','🌐','💾','🔋','✨'];
+
   var img = new Image();
   img.onload = function() {
     var canvasW = 900;
-    var canvasH = Math.round(canvasW * (img.height/img.width));
-    if (canvasH < 1100) canvasH = 1200;
-    if (canvasH > 1600) canvasH = 1600;
+    var canvasH = 1600;
 
     var canvas = document.getElementById('ty-canvas');
     canvas.width = canvasW;
     canvas.height = canvasH;
     var ctx = canvas.getContext('2d');
 
-    // Draw background photo (cover fit)
+    // Background photo (cover fit)
     var imgRatio = img.width/img.height;
     var canvasRatio = canvasW/canvasH;
     var sx, sy, sw, sh;
@@ -5237,74 +5241,121 @@ function generateThankYouPoster() {
     }
     ctx.drawImage(img, sx, sy, sw, sh, 0, 0, canvasW, canvasH);
 
-    // Top gradient overlay for product name
-    var topGrad = ctx.createLinearGradient(0,0,0,220);
-    topGrad.addColorStop(0, 'rgba(0,0,0,0.75)');
+    // Dark overlay top area for text readability
+    var topGrad = ctx.createLinearGradient(0,0,0,480);
+    topGrad.addColorStop(0, 'rgba(0,0,0,0.55)');
     topGrad.addColorStop(1, 'rgba(0,0,0,0)');
     ctx.fillStyle = topGrad;
-    ctx.fillRect(0,0,canvasW,220);
+    ctx.fillRect(0,0,canvasW,480);
 
-    // "ໃໝ່!" badge
-    ctx.fillStyle = '#7c3aed';
+    // Diagonal "ໃໝ່!" ribbon top-left
+    ctx.save();
+    var ribbonGrad = ctx.createLinearGradient(0,0,180,0);
+    ribbonGrad.addColorStop(0, '#7c3aed');
+    ribbonGrad.addColorStop(1, '#a855f7');
+    ctx.fillStyle = ribbonGrad;
     ctx.beginPath();
-    ctx.moveTo(0,0); ctx.lineTo(150,0); ctx.lineTo(110,55); ctx.lineTo(0,55);
+    ctx.moveTo(0,0); ctx.lineTo(190,0); ctx.lineTo(140,70); ctx.lineTo(0,70);
     ctx.closePath(); ctx.fill();
     ctx.fillStyle = '#fff';
-    ctx.font = 'bold 26px sans-serif';
-    ctx.fillText('ໃໝ່!', 25, 38);
+    ctx.font = 'bold 32px sans-serif';
+    ctx.fillText('ໃໝ່!', 30, 48);
+    ctx.restore();
 
-    // Product name
-    ctx.fillStyle = '#fff';
-    ctx.font = 'bold 42px sans-serif';
-    ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 8;
-    wrapCanvasText(ctx, productName, 30, 130, canvasW-60, 50);
-    ctx.shadowBlur = 0;
+    var curY = 110;
 
-    // Spec panel (left side, semi-transparent rounded box)
-    if (specs.length) {
-      var panelX = 24, panelY = 230, panelW = 280;
-      var panelH = 40 + specs.length*44;
-      ctx.fillStyle = 'rgba(255,255,255,0.92)';
-      roundRect(ctx, panelX, panelY, panelW, panelH, 16);
+    // Badge pill (category tag)
+    if (badgeText) {
+      ctx.font = 'bold 22px sans-serif';
+      var badgeW = ctx.measureText(badgeText).width + 40;
+      ctx.fillStyle = 'rgba(0,0,0,0.85)';
+      roundRect(ctx, 30, curY, badgeW, 46, 23);
       ctx.fill();
-
-      specs.forEach(function(spec, i){
-        var sy2 = panelY + 34 + i*44;
-        ctx.fillStyle = '#1a56db';
-        ctx.beginPath(); ctx.arc(panelX+24, sy2-8, 6, 0, Math.PI*2); ctx.fill();
-        ctx.fillStyle = '#1f2937';
-        ctx.font = '600 18px sans-serif';
-        ctx.fillText(spec, panelX+42, sy2);
-      });
+      ctx.fillStyle = '#fff';
+      ctx.fillText(badgeText, 50, curY+31);
+      curY += 70;
     }
 
-    // Bottom gradient overlay for thank you message
-    var botGrad = ctx.createLinearGradient(0,canvasH-320,0,canvasH);
-    botGrad.addColorStop(0, 'rgba(0,0,0,0)');
-    botGrad.addColorStop(1, 'rgba(88,28,135,0.92)');
-    ctx.fillStyle = botGrad;
-    ctx.fillRect(0,canvasH-320,canvasW,320);
+    // Product name (large bold)
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 52px sans-serif';
+    ctx.shadowColor = 'rgba(0,0,0,0.6)'; ctx.shadowBlur = 10;
+    var nameLines = wrapCanvasText(ctx, productName, 30, curY+45, canvasW-60, 58);
+    ctx.shadowBlur = 0;
+    curY += nameLines*58 + 20;
 
-    var textY = canvasH - 220;
+    // Tagline
+    if (tagline) {
+      ctx.fillStyle = '#fef08a';
+      ctx.font = 'bold 26px sans-serif';
+      ctx.shadowColor = 'rgba(0,0,0,0.6)'; ctx.shadowBlur = 6;
+      wrapCanvasText(ctx, tagline, 30, curY+10, canvasW-60, 32);
+      ctx.shadowBlur = 0;
+      curY += 50;
+    }
+
+    // Spec list - icon + 2-line label, directly on photo (no panel), left side
+    var specStartY = Math.max(curY+50, 420);
+    specs.forEach(function(spec, i){
+      var sy2 = specStartY + i*115;
+      if (sy2 > canvasH - 380) return; // avoid overlapping bottom area
+
+      // Icon circle background
+      ctx.fillStyle = 'rgba(255,255,255,0.95)';
+      ctx.beginPath(); ctx.arc(60, sy2, 34, 0, Math.PI*2); ctx.fill();
+      ctx.font = '32px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(specIcons[i % specIcons.length], 60, sy2+12);
+      ctx.textAlign = 'left';
+
+      // Label text (up to 2 lines), white with shadow
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 24px sans-serif';
+      ctx.shadowColor = 'rgba(0,0,0,0.7)'; ctx.shadowBlur = 6;
+      wrapCanvasText(ctx, spec, 30, sy2+58, 170, 28);
+      ctx.shadowBlur = 0;
+    });
+
+    // Bottom gradient overlay + CTA message
+    var botGrad = ctx.createLinearGradient(0,canvasH-380,0,canvasH);
+    botGrad.addColorStop(0, 'rgba(88,28,135,0)');
+    botGrad.addColorStop(0.3, 'rgba(88,28,135,0.85)');
+    botGrad.addColorStop(1, 'rgba(30,10,60,0.97)');
+    ctx.fillStyle = botGrad;
+    ctx.fillRect(0,canvasH-380,canvasW,380);
+
+    var textY = canvasH - 280;
     if (customerName) {
       ctx.fillStyle = '#fbbf24';
-      ctx.font = 'bold 24px sans-serif';
+      ctx.font = 'bold 26px sans-serif';
       ctx.fillText('👤 ' + customerName, 30, textY);
-      textY += 40;
+      textY += 42;
     }
 
     ctx.fillStyle = '#fff';
-    ctx.font = 'bold 26px sans-serif';
-    var lineCount = wrapCanvasText(ctx, thankMsg, 30, textY, canvasW-60, 34);
-    textY += lineCount*34 + 30;
+    ctx.font = 'bold 30px sans-serif';
+    var lineCount = wrapCanvasText(ctx, thankMsg, 30, textY, canvasW-60, 40);
+    textY += lineCount*40 + 20;
 
-    // Footer shop branding
-    ctx.fillStyle = '#fff';
-    ctx.font = 'bold 22px sans-serif';
-    ctx.fillText('Jcom ICT Service', 30, canvasH-30);
-    ctx.font = '16px sans-serif';
-    ctx.fillStyle = 'rgba(255,255,255,0.8)';
-    ctx.fillText('WhatsApp: 02077769999', 30, canvasH-8);
+    // Footer white bar with trust badges + shop branding
+    var footerH = 90;
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, canvasH-footerH, canvasW, footerH);
+
+    ctx.fillStyle = '#1f2937';
+    ctx.font = '600 15px sans-serif';
+    ctx.fillText('✅ ຂອງແທ້ 100%', 24, canvasH-52);
+    ctx.fillText('🛡️ ຮັບປະກັນສູນ', 24, canvasH-24);
+    ctx.fillText('🚚 ບໍລິການຂົນສົ່ງທົ່ວປະເທດ', 250, canvasH-52);
+
+    ctx.font = 'bold 20px sans-serif';
+    ctx.fillStyle = '#1a56db';
+    ctx.textAlign = 'right';
+    ctx.fillText('Jcom ICT Service', canvasW-24, canvasH-52);
+    ctx.font = '14px sans-serif';
+    ctx.fillStyle = '#6b7280';
+    ctx.fillText('ໃຫ້ບໍລິການເໝືອນຄົນໃນຄອບຄົວ', canvasW-24, canvasH-26);
+    ctx.textAlign = 'left';
 
     document.getElementById('ty-result-card').style.display = 'block';
     document.getElementById('ty-result-card').scrollIntoView({behavior:'smooth'});
