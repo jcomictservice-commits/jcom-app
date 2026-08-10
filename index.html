@@ -5276,13 +5276,30 @@ function generateThankYouPoster() {
       curY += 70;
     }
 
-    // Product name (large bold)
+    // Product name (large bold, with colored background box)
+    ctx.font = 'bold 56px sans-serif';
+    var nameLinesPreview = [];
+    (function(){
+      var words = productName.split(' '); var line=''; var testCtx=ctx;
+      for (var wi=0; wi<words.length; wi++){
+        var testLine = line + words[wi] + ' ';
+        if (testCtx.measureText(testLine).width > canvasW-90 && wi>0){ nameLinesPreview.push(line); line = words[wi]+' '; }
+        else { line = testLine; }
+      }
+      nameLinesPreview.push(line);
+    })();
+    var nameBoxH = nameLinesPreview.length*62 + 30;
+    var nameGrad = ctx.createLinearGradient(0,curY,canvasW,curY);
+    nameGrad.addColorStop(0, 'rgba(124,58,237,0.92)');
+    nameGrad.addColorStop(1, 'rgba(30,64,175,0.92)');
+    ctx.fillStyle = nameGrad;
+    roundRect(ctx, 24, curY, canvasW-48, nameBoxH, 14);
+    ctx.fill();
+
     ctx.fillStyle = '#fff';
-    ctx.font = 'bold 52px sans-serif';
-    ctx.shadowColor = 'rgba(0,0,0,0.6)'; ctx.shadowBlur = 10;
-    var nameLines = wrapCanvasText(ctx, productName, 30, curY+45, canvasW-60, 58);
-    ctx.shadowBlur = 0;
-    curY += nameLines*58 + 20;
+    ctx.font = 'bold 56px sans-serif';
+    var nameLines = wrapCanvasText(ctx, productName, 44, curY+55, canvasW-90, 62);
+    curY += nameBoxH + 20;
 
     // Tagline
     if (tagline) {
@@ -5324,18 +5341,40 @@ function generateThankYouPoster() {
     ctx.fillStyle = botGrad;
     ctx.fillRect(0,canvasH-380,canvasW,380);
 
-    var textY = canvasH - 280;
+    // Thank-you message box (solid colored background)
+    ctx.font = 'bold 38px sans-serif';
+    var msgLinesPreview = [];
+    (function(){
+      var words = thankMsg.split(' '); var line=''; 
+      for (var wi=0; wi<words.length; wi++){
+        var testLine = line + words[wi] + ' ';
+        if (ctx.measureText(testLine).width > canvasW-90 && wi>0){ msgLinesPreview.push(line); line = words[wi]+' '; }
+        else { line = testLine; }
+      }
+      msgLinesPreview.push(line);
+    })();
+
+    var msgBoxY = canvasH - 260;
+    var msgBoxH = msgLinesPreview.length*48 + (customerName ? 56 : 0) + 40;
+    var msgGrad = ctx.createLinearGradient(0,msgBoxY,canvasW,msgBoxY);
+    msgGrad.addColorStop(0, 'rgba(219,39,119,0.95)');
+    msgGrad.addColorStop(1, 'rgba(124,58,237,0.95)');
+    ctx.fillStyle = msgGrad;
+    roundRect(ctx, 24, msgBoxY, canvasW-48, msgBoxH, 16);
+    ctx.fill();
+
+    var textY = msgBoxY + 46;
     if (customerName) {
-      ctx.fillStyle = '#fbbf24';
-      ctx.font = 'bold 26px sans-serif';
-      ctx.fillText('👤 ' + customerName, 30, textY);
-      textY += 42;
+      ctx.fillStyle = '#fef08a';
+      ctx.font = 'bold 30px sans-serif';
+      ctx.fillText('👤 ' + customerName, 44, textY);
+      textY += 52;
     }
 
     ctx.fillStyle = '#fff';
-    ctx.font = 'bold 30px sans-serif';
-    var lineCount = wrapCanvasText(ctx, thankMsg, 30, textY, canvasW-60, 40);
-    textY += lineCount*40 + 20;
+    ctx.font = 'bold 38px sans-serif';
+    var lineCount = wrapCanvasText(ctx, thankMsg, 44, textY, canvasW-90, 48);
+    textY += lineCount*48 + 20;
 
     // Footer white bar with trust badges + shop branding
     var footerH = 90;
