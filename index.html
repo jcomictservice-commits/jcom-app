@@ -766,8 +766,10 @@ input,textarea{-webkit-user-select:text!important;user-select:text!important;-we
   <div class="card">
     <div class="cl">💛 ຂໍ້ຄວາມຂອບໃຈ</div>
     <input class="inp" id="ty-customer-name" placeholder="ຊື່ລູກຄ້າ (ທາງເລືອກ)">
-    <textarea class="inp" id="ty-thankyou-msg" rows="3" placeholder="ຂໍ້ຄວາມຂອບໃຈ (ເຊັ່ນ: ຂອບໃຈທີ່ໄວ້ວາງໃຈເລືອກຊື້ Jcom ICT Service)">ຂອບໃຈທີ່ໄວ້ວາງໃຈເລືອກຊື້ສິນຄ້າກັບ Jcom ICT Service</textarea>
-    <input class="inp" id="ty-warranty-msg" placeholder="ຂໍ້ຄວາມຮັບປະກັນ (ທາງເລືອກ)" value="ສິນຄ້າຮັບປະກັນ 1 ປີ, ຂອງແທ້ 100% ທີ່ຮ້ານ Jcom ICT Service">
+    <textarea class="inp" id="ty-thankyou-msg" rows="2" placeholder="ຂໍ້ຄວາມຂອບໃຈ">ຂອບໃຈທີ່ໄວ້ວາງໃຈເລືອກຊື້ສິນຄ້າກັບ</textarea>
+    <input class="inp" id="ty-shop-name" placeholder="ຊື່ຮ້ານ" value="Jcomictservice">
+    <input class="inp" id="ty-warranty-msg" placeholder="ຂໍ້ຄວາມຮັບປະກັນ (ທາງເລືອກ)" value="ສິນຄ້າຮັບປະກັນ1ປີ ຂອງແທ້100% ທີ່ຮ້ານ Jcomictservice">
+    <input class="inp" id="ty-contact-msg" placeholder="ຂໍ້ຄວາມຕິດຕໍ່ (ທາງເລືອກ)" value="ສົນໃຈຕິດຕໍ່ສອບຖາມໄດ້ WA:02077769999">
     <button class="pb" id="btn-ty-generate" style="background:linear-gradient(90deg,#16a34a,#15803d);font-size:16px;padding:14px">🎨 ສ້າງປໍສເຕ໋ດ</button>
   </div>
 
@@ -5245,8 +5247,10 @@ function generateThankYouPoster() {
   var badgeText = document.getElementById('ty-badge-text').value.trim();
   var specs = getSpecValues();
   var customerName = document.getElementById('ty-customer-name').value.trim();
-  var thankMsg = document.getElementById('ty-thankyou-msg').value.trim() || 'ຂອບໃຈທີ່ໄວ້ວາງໃຈເລືອກຊື້ສິນຄ້າກັບ Jcom ICT Service';
+  var thankMsg = document.getElementById('ty-thankyou-msg').value.trim() || 'ຂອບໃຈທີ່ໄວ້ວາງໃຈເລືອກຊື້ສິນຄ້າກັບ';
+  var shopName = document.getElementById('ty-shop-name').value.trim() || 'Jcomictservice';
   var warrantyMsg = document.getElementById('ty-warranty-msg').value.trim();
+  var contactMsg = document.getElementById('ty-contact-msg').value.trim();
 
   var specIcons = ['📷','⚡','📶','📱','🌐','💾','🔋','✨'];
 
@@ -5404,9 +5408,9 @@ function generateThankYouPoster() {
           msgLinesPreview.push(line);
         })();
 
-        var msgBoxY = canvasH - 340;
-        var msgBoxH = msgLinesPreview.length*46 + (customerName ? 52 : 0) + (warrantyMsg ? 44 : 0) + 40;
-        if (hasBoxImg && msgBoxH < 240) msgBoxH = 240;
+        var msgBoxY = canvasH - 380;
+        var msgBoxH = msgLinesPreview.length*46 + (customerName ? 52 : 0) + 56 + (warrantyMsg ? 36 : 0) + (contactMsg ? 34 : 0) + 46;
+        if (hasBoxImg && msgBoxH < 280) msgBoxH = 280;
         var msgGrad = ctx.createLinearGradient(0,msgBoxY,canvasW,msgBoxY);
         msgGrad.addColorStop(0, 'rgba(219,39,119,0.95)');
         msgGrad.addColorStop(1, 'rgba(124,58,237,0.95)');
@@ -5426,12 +5430,25 @@ function generateThankYouPoster() {
           ctx.fillStyle = '#fff';
           ctx.font = 'bold 36px sans-serif';
           var lineCount = wrapCanvasText(ctx, thankMsg, textStartX, textY, textMaxW, 46);
-          textY += lineCount*46 + 14;
+          textY += lineCount*46 + 8;
+
+          // Shop name - prominent, gold color
+          ctx.fillStyle = '#fde047';
+          ctx.font = 'bold 34px sans-serif';
+          wrapCanvasText(ctx, shopName, textStartX, textY, textMaxW, 40);
+          textY += 52;
 
           if (warrantyMsg) {
             ctx.fillStyle = '#f5d0fe';
-            ctx.font = '600 22px sans-serif';
-            wrapCanvasText(ctx, warrantyMsg, textStartX, textY, textMaxW, 28);
+            ctx.font = '600 21px sans-serif';
+            var wLines = wrapCanvasText(ctx, warrantyMsg, textStartX, textY, textMaxW, 26);
+            textY += wLines*26 + 8;
+          }
+
+          if (contactMsg) {
+            ctx.fillStyle = '#bfdbfe';
+            ctx.font = '600 20px sans-serif';
+            wrapCanvasText(ctx, contactMsg, textStartX, textY, textMaxW, 26);
           }
 
           document.getElementById('ty-result-card').style.display = 'block';
