@@ -5240,6 +5240,8 @@ function wrapCanvasText(ctx, text, x, y, maxWidth, lineHeight) {
 }
 
 function wrapCanvasTextCentered(ctx, text, centerX, y, maxWidth, lineHeight) {
+  // Manual centering (does NOT rely on ctx.textAlign) to avoid iOS Safari canvas
+  // text-alignment bugs with complex scripts (e.g. Lao combining vowels/tone marks).
   var words = text.split(' ');
   var line = '';
   var lines = [];
@@ -5254,9 +5256,15 @@ function wrapCanvasTextCentered(ctx, text, centerX, y, maxWidth, lineHeight) {
     }
   }
   lines.push(line);
+
   var prevAlign = ctx.textAlign;
-  ctx.textAlign = 'center';
-  lines.forEach(function(l, idx){ ctx.fillText(l.trim(), centerX, y + idx*lineHeight); });
+  ctx.textAlign = 'left';
+  lines.forEach(function(l, idx){
+    var trimmed = l.trim();
+    var w = ctx.measureText(trimmed).width;
+    var xPos = centerX - (w/2);
+    ctx.fillText(trimmed, xPos, y + idx*lineHeight);
+  });
   ctx.textAlign = prevAlign;
   return lines.length;
 }
