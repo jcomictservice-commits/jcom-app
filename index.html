@@ -5239,6 +5239,28 @@ function wrapCanvasText(ctx, text, x, y, maxWidth, lineHeight) {
   return lines.length;
 }
 
+function wrapCanvasTextCentered(ctx, text, centerX, y, maxWidth, lineHeight) {
+  var words = text.split(' ');
+  var line = '';
+  var lines = [];
+  for (var i = 0; i < words.length; i++) {
+    var testLine = line + words[i] + ' ';
+    var metrics = ctx.measureText(testLine);
+    if (metrics.width > maxWidth && i > 0) {
+      lines.push(line);
+      line = words[i] + ' ';
+    } else {
+      line = testLine;
+    }
+  }
+  lines.push(line);
+  var prevAlign = ctx.textAlign;
+  ctx.textAlign = 'center';
+  lines.forEach(function(l, idx){ ctx.fillText(l.trim(), centerX, y + idx*lineHeight); });
+  ctx.textAlign = prevAlign;
+  return lines.length;
+}
+
 function generateThankYouPoster() {
   if (!tyPhotoData) { alert('ກະລຸນາຖ່າຍຮູບ ຫຼື ເລືອກຮູບກ່ອນ'); return; }
 
@@ -5396,7 +5418,7 @@ function generateThankYouPoster() {
         ctx.fillRect(0,canvasH-420,canvasW,420);
 
         // Thank-you message box
-        ctx.font = 'bold 36px sans-serif';
+        ctx.font = 'bold 42px sans-serif';
         var msgLinesPreview = [];
         (function(){
           var words = thankMsg.split(' '); var line='';
@@ -5408,9 +5430,9 @@ function generateThankYouPoster() {
           msgLinesPreview.push(line);
         })();
 
-        var msgBoxY = canvasH - 380;
-        var msgBoxH = msgLinesPreview.length*46 + (customerName ? 52 : 0) + 56 + (warrantyMsg ? 36 : 0) + (contactMsg ? 34 : 0) + 46;
-        if (hasBoxImg && msgBoxH < 280) msgBoxH = 280;
+        var msgBoxY = canvasH - 460;
+        var msgBoxH = msgLinesPreview.length*52 + (customerName ? 54 : 0) + 76 + (warrantyMsg ? 42 : 0) + (contactMsg ? 40 : 0) + 90;
+        if (hasBoxImg && msgBoxH < 320) msgBoxH = 320;
         var msgGrad = ctx.createLinearGradient(0,msgBoxY,canvasW,msgBoxY);
         msgGrad.addColorStop(0, 'rgba(219,39,119,0.95)');
         msgGrad.addColorStop(1, 'rgba(124,58,237,0.95)');
@@ -5419,36 +5441,40 @@ function generateThankYouPoster() {
         ctx.fill();
 
         function drawTextContent() {
-          var textY = msgBoxY + 44;
+          var textCenterX = textStartX + textMaxW/2;
+          var textY = msgBoxY + 70;
+
           if (customerName) {
             ctx.fillStyle = '#fde047';
-            ctx.font = 'bold 28px sans-serif';
-            ctx.fillText('👤 ' + customerName, textStartX, textY);
-            textY += 48;
+            ctx.font = 'bold 30px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('👤 ' + customerName, textCenterX, textY);
+            ctx.textAlign = 'left';
+            textY += 54;
           }
 
           ctx.fillStyle = '#fff';
-          ctx.font = 'bold 36px sans-serif';
-          var lineCount = wrapCanvasText(ctx, thankMsg, textStartX, textY, textMaxW, 46);
-          textY += lineCount*46 + 8;
+          ctx.font = 'bold 42px sans-serif';
+          var lineCount = wrapCanvasTextCentered(ctx, thankMsg, textCenterX, textY, textMaxW, 52);
+          textY += lineCount*52 + 14;
 
           // Shop name - prominent, gold color
           ctx.fillStyle = '#fde047';
-          ctx.font = 'bold 34px sans-serif';
-          wrapCanvasText(ctx, shopName, textStartX, textY, textMaxW, 40);
-          textY += 52;
+          ctx.font = 'bold 40px sans-serif';
+          wrapCanvasTextCentered(ctx, shopName, textCenterX, textY, textMaxW, 46);
+          textY += 62;
 
           if (warrantyMsg) {
             ctx.fillStyle = '#f5d0fe';
-            ctx.font = '600 21px sans-serif';
-            var wLines = wrapCanvasText(ctx, warrantyMsg, textStartX, textY, textMaxW, 26);
-            textY += wLines*26 + 8;
+            ctx.font = '600 26px sans-serif';
+            var wLines = wrapCanvasTextCentered(ctx, warrantyMsg, textCenterX, textY, textMaxW, 32);
+            textY += wLines*32 + 10;
           }
 
           if (contactMsg) {
             ctx.fillStyle = '#bfdbfe';
-            ctx.font = '600 20px sans-serif';
-            wrapCanvasText(ctx, contactMsg, textStartX, textY, textMaxW, 26);
+            ctx.font = '600 24px sans-serif';
+            wrapCanvasTextCentered(ctx, contactMsg, textCenterX, textY, textMaxW, 30);
           }
 
           document.getElementById('ty-result-card').style.display = 'block';
