@@ -1452,7 +1452,7 @@ function selectProduct(p) {
   galleryHtml += '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:8px">';
   multiImgs.forEach(function(url, idx){
     galleryHtml += '<div style="position:relative;aspect-ratio:1;border-radius:10px;overflow:hidden;background:#f8fafc">'
-      + '<img src="'+POS_URL+url+'" style="width:100%;height:100%;object-fit:cover">'
+      + '<img src="'+POS_URL+url+'" class="btn-view-multi-img" data-full="'+POS_URL+url+'" style="width:100%;height:100%;object-fit:cover;cursor:pointer">'
       + '<button class="btn-del-multi-img" data-idx="'+idx+'" style="position:absolute;top:4px;right:4px;background:rgba(220,38,38,.9);color:#fff;border:none;border-radius:50%;width:22px;height:22px;font-size:12px;cursor:pointer;line-height:1">✕</button>'
       + '</div>';
   });
@@ -3077,7 +3077,11 @@ function generateQuotationPDF() {
   html2+='<button class="back-btn" onclick="window.close()" style="background:#6b7280">◀ ກັບຄືນ</button>';
   html2+='<button class="back-btn" onclick="window.print()" style="background:#1a56db">🖨 Print / Save PDF</button>';
   html2+='</div>';
-  html2+='</body></html>';
+  html2+='<div id="img-lightbox" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);z-index:9999;align-items:center;justify-content:center;flex-direction:column">
+  <img id="img-lightbox-img" style="max-width:92%;max-height:80%;border-radius:8px;object-fit:contain">
+  <button id="btn-close-lightbox" style="margin-top:16px;background:#fff;color:#1a1a2e;border:none;padding:12px 28px;border-radius:24px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit">✕ ປິດ</button>
+</div>
+</body></html>';
 
   var win=window.open('','_blank');
   win.document.write(html2);
@@ -5543,6 +5547,28 @@ function downloadThankYouPoster() {
     setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
   }, 'image/png');
 }
+
+
+
+// === IMAGE LIGHTBOX (view full-size product images) ===
+document.addEventListener('click', function(e){
+  var target = e.target.closest('.btn-view-multi-img');
+  if (target) {
+    var fullUrl = target.getAttribute('data-full');
+    document.getElementById('img-lightbox-img').src = fullUrl;
+    document.getElementById('img-lightbox').style.display = 'flex';
+  }
+});
+document.addEventListener('DOMContentLoaded', function(){
+  var closeBtn = document.getElementById('btn-close-lightbox');
+  if (closeBtn) closeBtn.addEventListener('click', function(){
+    document.getElementById('img-lightbox').style.display = 'none';
+  });
+  var lightbox = document.getElementById('img-lightbox');
+  if (lightbox) lightbox.addEventListener('click', function(e){
+    if (e.target === lightbox) lightbox.style.display = 'none';
+  });
+});
 
 </script>
 <input type="file" id="ci-img-inp-global" accept="image/*" style="display:none">
