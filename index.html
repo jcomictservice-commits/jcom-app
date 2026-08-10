@@ -4222,7 +4222,7 @@ function generateCatalogPoster() {
     ctx.fillText(ttText, sx, fy);
     fy += 30;
 
-    ctx.fillStyle = '#93c5fd';
+    ctx.fillStyle = '#fef08a';
     var webText = fitText('🌐 www.jcomictservice.com', '700 20px sans-serif', maxTextW);
     ctx.fillText(webText, fx, fy); fy += 30;
 
@@ -5282,8 +5282,8 @@ function generateThankYouPoster() {
       // Diagonal "ໃໝ່!" ribbon top-left (blue tone)
       ctx.save();
       var ribbonGrad = ctx.createLinearGradient(0,0,180,0);
-      ribbonGrad.addColorStop(0, '#1e3a8a');
-      ribbonGrad.addColorStop(1, '#2563eb');
+      ribbonGrad.addColorStop(0, '#7c3aed');
+      ribbonGrad.addColorStop(1, '#a855f7');
       ctx.fillStyle = ribbonGrad;
       ctx.beginPath();
       ctx.moveTo(0,0); ctx.lineTo(190,0); ctx.lineTo(140,70); ctx.lineTo(0,70);
@@ -5321,8 +5321,8 @@ function generateThankYouPoster() {
       })();
       var nameBoxH = nameLinesPreview.length*56 + 28;
       var nameGrad = ctx.createLinearGradient(0,curY,canvasW,curY);
-      nameGrad.addColorStop(0, 'rgba(30,58,138,0.93)');
-      nameGrad.addColorStop(1, 'rgba(37,99,235,0.93)');
+      nameGrad.addColorStop(0, 'rgba(124,58,237,0.93)');
+      nameGrad.addColorStop(1, 'rgba(30,64,175,0.93)');
       ctx.fillStyle = nameGrad;
       roundRect(ctx, 24, curY, canvasW-48, nameBoxH, 14);
       ctx.fill();
@@ -5334,7 +5334,7 @@ function generateThankYouPoster() {
 
       // Tagline
       if (tagline) {
-        ctx.fillStyle = '#93c5fd';
+        ctx.fillStyle = '#fef08a';
         ctx.font = 'bold 24px sans-serif';
         ctx.shadowColor = 'rgba(0,0,0,0.6)'; ctx.shadowBlur = 6;
         wrapCanvasText(ctx, tagline, 30, curY+8, canvasW-60, 30);
@@ -5344,26 +5344,26 @@ function generateThankYouPoster() {
 
       // Compact spec list - icon + short label, top-right area (avoids typical center/left face position)
       if (specs.length) {
-        var specStartY = curY + 40;
-        var maxSpecsShown = Math.min(specs.length, 4);
+        var specStartY = curY + 50;
+        var maxSpecsShown = Math.min(specs.length, 6);
         for (var i=0;i<maxSpecsShown;i++) {
-          var sy2 = specStartY + i*72;
-          if (sy2 > 700) break;
+          var sy2 = specStartY + i*88;
+          if (sy2 > 780) break;
 
-          // Small icon circle
-          ctx.fillStyle = 'rgba(37,99,235,0.9)';
-          ctx.beginPath(); ctx.arc(48, sy2, 24, 0, Math.PI*2); ctx.fill();
-          ctx.font = '22px sans-serif';
+          // Icon circle (bigger)
+          ctx.fillStyle = 'rgba(124,58,237,0.92)';
+          ctx.beginPath(); ctx.arc(56, sy2, 32, 0, Math.PI*2); ctx.fill();
+          ctx.font = '30px sans-serif';
           ctx.textAlign = 'center';
           ctx.fillStyle = '#fff';
-          ctx.fillText(specIcons[i % specIcons.length], 48, sy2+8);
+          ctx.fillText(specIcons[i % specIcons.length], 56, sy2+10);
           ctx.textAlign = 'left';
 
-          // Label text (single line, compact)
+          // Label text (bigger, up to 2 lines if long)
           ctx.fillStyle = '#fff';
-          ctx.font = 'bold 20px sans-serif';
-          ctx.shadowColor = 'rgba(0,0,0,0.8)'; ctx.shadowBlur = 5;
-          ctx.fillText(specs[i], 82, sy2+7);
+          ctx.font = 'bold 26px sans-serif';
+          ctx.shadowColor = 'rgba(0,0,0,0.8)'; ctx.shadowBlur = 6;
+          wrapCanvasText(ctx, specs[i], 100, sy2-2, canvasW-350, 30);
           ctx.shadowBlur = 0;
         }
       }
@@ -5416,8 +5416,8 @@ function generateThankYouPoster() {
         var msgBoxY = canvasH - 340;
         var msgBoxH = msgLinesPreview.length*46 + (customerName ? 52 : 0) + (warrantyMsg ? 44 : 0) + 40;
         var msgGrad = ctx.createLinearGradient(0,msgBoxY,canvasW,msgBoxY);
-        msgGrad.addColorStop(0, 'rgba(30,58,138,0.96)');
-        msgGrad.addColorStop(1, 'rgba(37,99,235,0.96)');
+        msgGrad.addColorStop(0, 'rgba(219,39,119,0.95)');
+        msgGrad.addColorStop(1, 'rgba(124,58,237,0.95)');
         ctx.fillStyle = msgGrad;
         roundRect(ctx, 24, msgBoxY, canvasW-48, msgBoxH, 16);
         ctx.fill();
@@ -5436,7 +5436,7 @@ function generateThankYouPoster() {
         textY += lineCount*46 + 14;
 
         if (warrantyMsg) {
-          ctx.fillStyle = '#bfdbfe';
+          ctx.fillStyle = '#f5d0fe';
           ctx.font = '600 22px sans-serif';
           wrapCanvasText(ctx, warrantyMsg, 44, textY, canvasW-90, 28);
         }
@@ -5453,7 +5453,7 @@ function generateThankYouPoster() {
         ctx.fillText('🚚 ບໍລິການຂົນສົ່ງທົ່ວປະເທດ', 250, canvasH-52);
 
         ctx.font = 'bold 20px sans-serif';
-        ctx.fillStyle = '#1e40af';
+        ctx.fillStyle = '#7c3aed';
         ctx.textAlign = 'right';
         ctx.fillText('Jcom ICT Service', canvasW-24, canvasH-52);
         ctx.font = '14px sans-serif';
