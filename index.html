@@ -116,6 +116,7 @@ input,textarea{-webkit-user-select:text!important;user-select:text!important;-we
     <a class="nav-a" id="na-products" href="#products">📦 ສິນຄ້າ</a>
     <a class="nav-a" id="na-stock" href="#stock">📊 ກວດສະຕໍ້ກ</a>
     <a class="nav-a" id="na-purchase" href="#purchase">🛒 ຈັດຊື້ສິນຄ້າ</a>
+    <a class="nav-a" id="na-custapp" href="#custapp">📱 ຈັດການແອັບລູກຄ້າ</a>
     <a class="nav-a" id="na-quotation" href="#quotation">📄 ໃບສະເໜີລາຄາ</a>
     <a class="nav-a" id="na-shopinfo" href="#shopinfo">🏪 ຂໍ້ມູນຮ້ານ</a>
     undefined
@@ -344,6 +345,22 @@ input,textarea{-webkit-user-select:text!important;user-select:text!important;-we
   </div>
 </div>
 
+</div>
+
+<!-- CUSTOMER APP MANAGEMENT -->
+<div id="sec-custapp" class="sec">
+<div class="pt">📱 ຈັດການແອັບລູກຄ້າ</div>
+
+<div class="card">
+  <div class="cl">🔍 ຄໍ້ນຫາສິນຄ້າເພື່ອເພິ່ມ</div>
+  <input class="inp" id="ca-search-inp" placeholder="ພິມຊື່ສິນຄ້າ (ສະເພາສິນຄ້າທີ່ມີຮູບ)">
+  <div id="ca-search-results"></div>
+</div>
+
+<div class="card">
+  <div class="cl">✅ ສິນຄ້າທີ່ເລືອກໃໜ່ (ໂຫຼດໃນແອັບລູກຄ້າ)</div>
+  <div id="ca-selected-list"><div class="ld">ໂຫຼດ...</div></div>
+</div>
 </div>
 
 <!-- CALC -->
@@ -933,7 +950,7 @@ input,textarea{-webkit-user-select:text!important;user-select:text!important;-we
 var POS_URL = 'https://165.22.242.64.nip.io'; 
 
 var PAGE_NAMES = {
-  dash:'Dashboard', sales:'ຍອດຂາຍ', products:'ສິນຄ້າ', stock:'ກວດສະຕໍ້ກ', purchase:'ຈັດຊື້ສິນຄ້າ', catalog:'ກາຕາລ໋ອກ',
+  dash:'Dashboard', sales:'ຍອດຂາຍ', products:'ສິນຄ້າ', stock:'ກວດສະຕໍ້ກ', purchase:'ຈັດຊື້ສິນຄ້າ', custapp:'ຈັດການແອັບລູກຄ້າ', catalog:'ກາຕາລ໋ອກ',
   staff:'ພະນັກງານ', tasks:'ມອບໝາຍງານ', attend:'ເຂົ້າ-ອອກງານ',
   install:'ສັນຍາຜ່ອນ', calc:'ຄິດໄລ່ຜ່ອນ', crm:'CRM', quotation:'ໃບສະເໜີລາຄາ',
   shopinfo:'ຂໍ້ມູນຮ້ານ', setup:'ຕັ້ງຄ່າ', docs:'ດາວໂຫຼດເອກະສານ', finance:'ບັນຊີລາຍຈ່າຍ', users:'ຈັດການຜູ້ໃຊ້'
@@ -949,6 +966,7 @@ var ALL_PERMS = [
   {id:'products', label:'📦 ສິນຄ້າ'},
   {id:'stock', label:'📊 ກວດສະຕໍ້ກ'},
   {id:'purchase', label:'🛒 ຈັດຊື້ສິນຄ້າ'},
+  {id:'custapp', label:'📱 ຈັດການແອັບລູກຄ້າ'},
   {id:'catalog', label:'🛍 ກາຕາລ໋ອກ'},
   {id:'staff', label:'👥 ພະນັກງານ'},
   {id:'tasks', label:'✅ ມອບໝາຍງານ'},
@@ -1051,6 +1069,7 @@ function showPage(id) {
   if (id === 'attend') { initAttend(); initLeaveRequests(); }
   if (id === 'purchase') initPurchase();
   if (id === 'catalog') initThankYouPoster();
+  if (id === 'custapp') initCustApp();
   if (id === 'dash') initSyncNowBtn();
   if (id === 'docs') initDocs();
   if (id === 'finance') initFinance();
@@ -5569,6 +5588,109 @@ document.addEventListener('DOMContentLoaded', function(){
     if (e.target === lightbox) lightbox.style.display = 'none';
   });
 });
+
+
+
+// === CUSTOMER APP PRODUCT MANAGEMENT ===
+var caSearchTimer = null;
+
+function initCustApp() {
+  var searchInp = document.getElementById('ca-search-inp');
+  if (searchInp && !searchInp.dataset.bound) {
+    searchInp.dataset.bound = '1';
+    searchInp.addEventListener('input', function(){
+      clearTimeout(caSearchTimer);
+      var q = this.value.trim();
+      caSearchTimer = setTimeout(function(){ caDoSearch(q); }, 400);
+    });
+  }
+  caLoadSelected();
+}
+
+function caDoSearch(q) {
+  var box = document.getElementById('ca-search-results');
+  if (!q) { box.innerHTML = ''; return; }
+  box.innerHTML = '<div class="ld">⏳ ກຳລັງຄົ້ນຫາ...</div>';
+  fetch(POS_URL + '/admin/pickable-products?q=' + encodeURIComponent(q))
+  .then(function(r){return r.json();})
+  .then(function(res){
+    if (!res.ok || !res.data.length) { box.innerHTML = '<div class="ld">ບໍ່ພົບສິນຄ້າ</div>'; return; }
+    box.innerHTML = res.data.map(function(p){
+      var img = p.image ? POS_URL + p.image : null;
+      var imgHtml = img ? '<img src="'+img+'" style="width:44px;height:44px;object-fit:cover;border-radius:8px;flex-shrink:0">' : '<div style="width:44px;height:44px;background:#f3f4f6;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:18px">📦</div>';
+      return '<div style="display:flex;align-items:center;gap:10px;padding:10px;border-bottom:1px solid #f3f4f6">'
+        + imgHtml
+        + '<div style="flex:1;min-width:0"><div style="font-weight:600;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+p.name+'</div>'
+        + '<div style="font-size:12px;color:#3b82f6;font-weight:700">₭'+p.price.toLocaleString()+'</div></div>'
+        + '<button class="ca-add-btn" data-id="'+p.productId+'" data-name="'+p.name.replace(/"/g,'&quot;')+'" data-price="'+p.price+'" data-img="'+(p.image||'')+'" style="background:#16a34a;color:#fff;border:none;padding:8px 14px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;flex-shrink:0">+ ເພີ່ມ</button>'
+        + '</div>';
+    }).join('');
+    box.querySelectorAll('.ca-add-btn').forEach(function(btn){
+      btn.addEventListener('click', function(){ caAddProduct(this); });
+    });
+  }).catch(function(){ box.innerHTML = '<div class="ld" style="color:#dc2626">❌ ເຊື່ອມ Server ບໍ່ໄດ້</div>'; });
+}
+
+function caAddProduct(btn) {
+  var category = confirm('ກົດ OK = ໃສ່ທາງ "ໂປໂມຊັນ" / ກົດ Cancel = "ສິນຄ້າທັງໝົດ"') ? 'promo' : 'all';
+  btn.disabled = true; btn.textContent = '⏳';
+  fetch(POS_URL + '/customer-app/products', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({
+      productId: btn.getAttribute('data-id'),
+      name: btn.getAttribute('data-name'),
+      price: btn.getAttribute('data-price'),
+      image: btn.getAttribute('data-img'),
+      category: category,
+      useAiSpec: true
+    })
+  }).then(function(r){return r.json();}).then(function(res){
+    if (res.ok) {
+      btn.textContent = '✅ ເພີ່ມແລ້ວ';
+      caLoadSelected();
+    } else {
+      alert('❌ ' + (res.error||'ເພີ່ມບໍ່ໄດ້'));
+      btn.disabled = false; btn.textContent = '+ ເພີ່ມ';
+    }
+  }).catch(function(){ alert('❌ ເຊື່ອມ Server ບໍ່ໄດ້'); btn.disabled = false; btn.textContent = '+ ເພີ່ມ'; });
+}
+
+function caLoadSelected() {
+  var box = document.getElementById('ca-selected-list');
+  fetch(POS_URL + '/customer-app/products')
+  .then(function(r){return r.json();})
+  .then(function(res){
+    if (!res.ok || !res.data.length) { box.innerHTML = '<div class="ld">ຍັງບໍ່ມີສິນຄ້າທີ່ເລືອກ</div>'; return; }
+    box.innerHTML = res.data.map(function(p){
+      var img = p.image ? POS_URL + p.image : null;
+      var imgHtml = img ? '<img src="'+img+'" style="width:44px;height:44px;object-fit:cover;border-radius:8px;flex-shrink:0">' : '<div style="width:44px;height:44px;background:#f3f4f6;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:18px">📦</div>';
+      var catBadge = p.category === 'promo'
+        ? '<span style="background:#fef3c7;color:#d97706;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700">🎉 ໂປໂມ</span>'
+        : '<span style="background:#dbeafe;color:#1a56db;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700">📦 ທັງໝົດ</span>';
+      var specText = (p.spec && p.spec.length) ? p.spec.join(', ') : 'ບໍ່ມີ Spec';
+      return '<div style="padding:10px;border-bottom:1px solid #f3f4f6">'
+        + '<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">'
+        + imgHtml
+        + '<div style="flex:1;min-width:0"><div style="font-weight:600;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+p.name+'</div>'
+        + '<div style="font-size:12px;color:#3b82f6;font-weight:700">₭'+p.price.toLocaleString()+' '+catBadge+'</div></div>'
+        + '<button class="ca-del-btn" data-id="'+p.id+'" style="background:#fef2f2;color:#dc2626;border:1px solid #fecaca;padding:6px 10px;border-radius:8px;font-size:12px;cursor:pointer;font-family:inherit;flex-shrink:0">🗑</button>'
+        + '</div>'
+        + '<div style="font-size:12px;color:#6b7280;padding-left:54px">'+specText+'</div>'
+        + '</div>';
+    }).join('');
+    box.querySelectorAll('.ca-del-btn').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        if (!confirm('ລຶບສິນຄ້ານີ້ອອກຈາກແອັບລູກຄ້າ?')) return;
+        var id = this.getAttribute('data-id');
+        fetch(POS_URL + '/customer-app/products/' + id, { method:'DELETE' })
+        .then(function(r){return r.json();}).then(function(res){
+          if (res.ok) caLoadSelected();
+          else alert('❌ ລຶບບໍ່ໄດ້');
+        });
+      });
+    });
+  }).catch(function(){ box.innerHTML = '<div class="ld" style="color:#dc2626">❌ ເຊື່ອມ Server ບໍ່ໄດ້</div>'; });
+}
 
 </script>
 <input type="file" id="ci-img-inp-global" accept="image/*" style="display:none">
