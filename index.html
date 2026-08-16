@@ -1535,10 +1535,25 @@ function selectProduct(p) {
     + (p.color ? '<div class="row"><span class="ic">🎨</span><span style="flex:1">ສີ</span><span style="font-weight:600">'+p.color+'</span></div>' : '')
     + (p.barcode ? '<div class="row"><span class="ic">🔖</span><span style="flex:1">Barcode</span><span style="font-weight:600;font-family:monospace">'+p.barcode+'</span></div>' : '')
     + (p.comment ? '<div class="row" style="align-items:flex-start"><span class="ic">📝</span><div style="flex:1"><div style="font-size:13px;color:#9ca3af;margin-bottom:2px">ໝາຍເຫັດ</div><div style="font-weight:600">'+p.comment+'</div></div></div>' : '')
+    + '<div id="prod-spec-section" style="margin-top:10px;padding:12px;background:#f0fdf4;border-radius:10px;border:1px solid #bbf7d0"><div style="font-size:13px;color:#16a34a;font-weight:700;margin-bottom:6px">✨ Spec ສິນຄ້າ (AI)</div><div id="prod-spec-content" style="font-size:13px;color:#374151">⏳ ກຳລັງໂຫຼດ...</div></div>'
     + '<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">'
     + '<button id="btn-go-calc" style="flex:1;background:#3b82f6;color:#fff;border:none;padding:12px;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;min-width:120px">💳 ຜ່ອນ</button>'
     + '<button id="btn-share-prod" style="flex:1;background:#25d366;color:#fff;border:none;padding:12px;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;min-width:120px">🖼 ສ້າງຮູບ ສົ່ງລູກຄ້າ</button>'
     + '</div>';
+
+  // Auto-fetch/generate AI spec for this product (cached after first time)
+  var specContent = document.getElementById('prod-spec-content');
+  if (specContent) {
+    fetch(POS_URL + '/product-spec/' + prodKey + '?name=' + encodeURIComponent(p.name))
+    .then(function(r){return r.json();})
+    .then(function(res){
+      if (res.ok && res.spec && res.spec.length) {
+        specContent.innerHTML = res.spec.map(function(s){ return '<div style="margin-bottom:3px">✓ '+s+'</div>'; }).join('');
+      } else {
+        specContent.textContent = 'ບໍ່ສາມາດສ້າງ Spec ໄດ້';
+      }
+    }).catch(function(){ specContent.textContent = 'ເຊື່ອມ Server ບໍ່ໄດ້'; });
+  }
 
   var fileInp = document.getElementById('_prod_file_inp_multi');
   if (fileInp) {
