@@ -1844,16 +1844,55 @@ function generateProductCardImage(p, productImgUrl, spec) {
   }) : Promise.resolve(null);
   return Promise.all([loadLogoImg(), loadProdImg]).then(function(results) {
     var logoImg = results[0], prodImg = results[1];
+    var W = 800, imgH = prodImg ? 400 : 0;
+
+    // Measure required height first using a throwaway context (same font metrics regardless of canvas size)
+    var measureCanvas = document.createElement('canvas');
+    var mctx = measureCanvas.getContext('2d');
+    mctx.font = '800 42px sans-serif';
+    var nameLinesCount = Math.ceil(mctx.measureText(p.name).width / (W-60)) || 1;
+    // more accurate: use wrapText's line counting logic via measuring
+    var words = p.name.split(' '); var lineCount = 1; var lineW = 0;
+    words.forEach(function(word){
+      var ww = mctx.measureText(word+' ').width;
+      if (lineW + ww > W-60) { lineCount++; lineW = ww; } else { lineW += ww; }
+    });
+    var nameH = lineCount * 52;
+
     var specLines = (spec && spec.length) ? spec.length : 0;
-    var specH = specLines ? (40 + specLines*32) : 0;
-    var W = 800, imgH = prodImg ? 360 : 0, H = 170 + imgH + 600 + specH;
+    mctx.font = '500 30px sans-serif';
+    var specTotalLines = 0;
+    if (spec && spec.length) {
+      spec.forEach(function(s){
+        var sWords = ('✓ '+s).split(' '); var sLineCount = 1; var sLineW = 0;
+        sWords.forEach(function(word){
+          var ww = mctx.measureText(word+' ').width;
+          if (sLineW + ww > W-60) { sLineCount++; sLineW = ww; } else { sLineW += ww; }
+        });
+        specTotalLines += sLineCount;
+      });
+    }
+    var specH = specLines ? (46 + specTotalLines*40 + 6*specLines) : 0;
+
+    var headerH = 170;
+    var cardTopPad = 40;
+    var dividerH = 40;
+    var colorRowH = p.color ? 56 : 0;
+    var barcodeRowH = p.barcode ? 56 : 0;
+    var priceBoxH = 90;
+    var stockH = 50;
+    var commentH = p.comment ? 42 : 0;
+    var footerH = 70;
+
+    var H = headerH + imgH + cardTopPad + nameH + 24 + dividerH + colorRowH + barcodeRowH + priceBoxH + stockH + commentH + specH + footerH;
+
     var canvas = document.createElement('canvas');
     canvas.width = W; canvas.height = H;
     var ctx = canvas.getContext('2d');
     var grad = ctx.createLinearGradient(0,0,0,H);
     grad.addColorStop(0,'#1a56db'); grad.addColorStop(1,'#1e40af');
     ctx.fillStyle = grad; ctx.fillRect(0,0,W,H);
-    if (logoImg) ctx.drawImage(logoImg,W/2-50,20,100,100);
+    if (logoImg) ctx.drawImage(logoImg,W/2-55,15,110,110);
     ctx.fillStyle = '#fff'; ctx.textAlign = 'center';
     ctx.font = '700 34px sans-serif';
     ctx.fillText('Jcom ICT Service',W/2,145);
@@ -1868,8 +1907,8 @@ function generateProductCardImage(p, productImgUrl, spec) {
     roundRect(ctx,0,cardY,W,H-cardY,0); ctx.fill();
     var py = cardY + 35;
     ctx.textAlign = 'left';
-    ctx.fillStyle = '#1a1a2e'; ctx.font = '800 34px sans-serif';
-    var nl = wrapText(ctx,p.name,30,py,W-60,44); py += nl + 20;
+    ctx.fillStyle = '#1a1a2e'; ctx.font = '800 42px sans-serif';
+    var nl = wrapText(ctx,p.name,30,py,W-60,52); py += nl + 20;
     ctx.strokeStyle = '#e5e7eb'; ctx.lineWidth = 1;
     ctx.beginPath(); ctx.moveTo(30,py); ctx.lineTo(W-30,py); ctx.stroke(); py += 30;
     function row(label,value,col) {
@@ -1901,9 +1940,9 @@ function generateProductCardImage(p, productImgUrl, spec) {
       ctx.beginPath(); ctx.moveTo(30,py); ctx.lineTo(W-30,py); ctx.stroke(); py += 26;
       ctx.font = '700 26px sans-serif'; ctx.fillStyle = '#16a34a';
       ctx.fillText('✨ ຈຸດເດັ່ນ',30,py); py += 32;
-      ctx.font = '500 24px sans-serif'; ctx.fillStyle = '#374151';
+      ctx.font = '500 30px sans-serif'; ctx.fillStyle = '#374151';
       spec.forEach(function(s){
-        var lh = wrapText(ctx, '✓ '+s, 30, py, W-60, 32);
+        var lh = wrapText(ctx, '✓ '+s, 30, py, W-60, 40);
         py += lh + 6;
       });
     }
