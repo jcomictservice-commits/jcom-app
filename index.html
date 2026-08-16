@@ -1542,12 +1542,14 @@ function selectProduct(p) {
     + '</div>';
 
   // Auto-fetch/generate AI spec for this product (cached after first time)
+  currentProductSpec = null;
   var specContent = document.getElementById('prod-spec-content');
   if (specContent) {
     fetch(POS_URL + '/product-spec/' + prodKey + '?name=' + encodeURIComponent(p.name))
     .then(function(r){return r.json();})
     .then(function(res){
       if (res.ok && res.spec && res.spec.length) {
+        currentProductSpec = res.spec;
         specContent.innerHTML = res.spec.map(function(s){ return '<div style="margin-bottom:3px">✓ '+s+'</div>'; }).join('');
       } else {
         specContent.textContent = 'ບໍ່ສາມາດສ້າງ Spec ໄດ້';
@@ -1605,7 +1607,7 @@ function selectProduct(p) {
     var imgUrl2 = productImagesCache[prodKey] ? POS_URL + productImagesCache[prodKey] : null;
 
     // Generate info card (no product image in card)
-    generateProductCardImage(p, null).then(function(canvas1) {
+    generateProductCardImage(p, null, currentProductSpec).then(function(canvas1) {
       canvas1.toBlob(function(blob1) {
         var f1 = new File([blob1], 'jcom-info.png', {type:'image/png'});
 
@@ -1832,7 +1834,7 @@ function generateCalcCardImage(data) {
 }
 
 // Generate product info card image
-function generateProductCardImage(p, productImgUrl) {
+function generateProductCardImage(p, productImgUrl, spec) {
   var loadProdImg = productImgUrl ? new Promise(function(resolve) {
     var img = new Image();
     img.crossOrigin = 'anonymous';
@@ -1842,7 +1844,9 @@ function generateProductCardImage(p, productImgUrl) {
   }) : Promise.resolve(null);
   return Promise.all([loadLogoImg(), loadProdImg]).then(function(results) {
     var logoImg = results[0], prodImg = results[1];
-    var W = 800, imgH = prodImg ? 360 : 0, H = 170 + imgH + 600;
+    var specLines = (spec && spec.length) ? spec.length : 0;
+    var specH = specLines ? (40 + specLines*32) : 0;
+    var W = 800, imgH = prodImg ? 360 : 0, H = 170 + imgH + 600 + specH;
     var canvas = document.createElement('canvas');
     canvas.width = W; canvas.height = H;
     var ctx = canvas.getContext('2d');
@@ -1890,6 +1894,18 @@ function generateProductCardImage(p, productImgUrl) {
     if (p.comment) {
       ctx.font = '600 18px sans-serif'; ctx.fillStyle = '#6b7280';
       ctx.fillText('📝 '+p.comment.slice(0,50),30,py);
+      py += 34;
+    }
+    if (spec && spec.length) {
+      ctx.strokeStyle = '#e5e7eb'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(30,py); ctx.lineTo(W-30,py); ctx.stroke(); py += 26;
+      ctx.font = '700 20px sans-serif'; ctx.fillStyle = '#16a34a';
+      ctx.fillText('✨ ຈຸດເດັ່ນ',30,py); py += 32;
+      ctx.font = '500 18px sans-serif'; ctx.fillStyle = '#374151';
+      spec.forEach(function(s){
+        var lh = wrapText(ctx, '✓ '+s, 30, py, W-60, 26);
+        py += lh + 6;
+      });
     }
     ctx.font = '600 16px sans-serif'; ctx.fillStyle = '#9ca3af'; ctx.textAlign = 'center';
     ctx.fillText('📍 ປາກເຊ ຈຳປາສັກ | 📞 020-7776-9999',W/2,H-20);
@@ -5646,6 +5662,7 @@ document.addEventListener('DOMContentLoaded', function(){
 
 
 // === CUSTOMER APP PRODUCT MANAGEMENT ===
+var currentProductSpec = null;
 var caSearchTimer = null;
 
 function initCustApp() {
