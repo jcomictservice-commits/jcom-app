@@ -1855,7 +1855,7 @@ function generateProductCardImage(p, productImgUrl, spec) {
     ctx.fillStyle = grad; ctx.fillRect(0,0,W,H);
     if (logoImg) ctx.drawImage(logoImg,W/2-50,20,100,100);
     ctx.fillStyle = '#fff'; ctx.textAlign = 'center';
-    ctx.font = '700 28px sans-serif';
+    ctx.font = '700 34px sans-serif';
     ctx.fillText('Jcom ICT Service',W/2,145);
     if (prodImg) {
       ctx.fillStyle = '#fff'; ctx.fillRect(0,165,W,imgH);
@@ -1868,14 +1868,14 @@ function generateProductCardImage(p, productImgUrl, spec) {
     roundRect(ctx,0,cardY,W,H-cardY,0); ctx.fill();
     var py = cardY + 35;
     ctx.textAlign = 'left';
-    ctx.fillStyle = '#1a1a2e'; ctx.font = '800 26px sans-serif';
-    var nl = wrapText(ctx,p.name,30,py,W-60,34); py += nl + 20;
+    ctx.fillStyle = '#1a1a2e'; ctx.font = '800 34px sans-serif';
+    var nl = wrapText(ctx,p.name,30,py,W-60,44); py += nl + 20;
     ctx.strokeStyle = '#e5e7eb'; ctx.lineWidth = 1;
     ctx.beginPath(); ctx.moveTo(30,py); ctx.lineTo(W-30,py); ctx.stroke(); py += 30;
     function row(label,value,col) {
-      ctx.font = '600 20px sans-serif'; ctx.fillStyle = '#6b7280';
+      ctx.font = '600 26px sans-serif'; ctx.fillStyle = '#6b7280';
       ctx.fillText(label,30,py);
-      ctx.font = '700 22px sans-serif'; ctx.fillStyle = col || '#1a1a2e';
+      ctx.font = '700 28px sans-serif'; ctx.fillStyle = col || '#1a1a2e';
       ctx.textAlign = 'right'; ctx.fillText(value,W-30,py);
       ctx.textAlign = 'left'; py += 46;
     }
@@ -1883,31 +1883,31 @@ function generateProductCardImage(p, productImgUrl, spec) {
     if (p.barcode) row('🔖 ລະຫັດ', p.barcode);
     ctx.fillStyle = '#eff6ff';
     roundRect(ctx,30,py-30,W-60,60,12); ctx.fill();
-    ctx.font = '700 20px sans-serif'; ctx.fillStyle = '#1a56db';
+    ctx.font = '700 26px sans-serif'; ctx.fillStyle = '#1a56db';
     ctx.fillText('💰 ລາຄາ',50,py+8);
-    ctx.font = '800 28px sans-serif'; ctx.textAlign = 'right';
+    ctx.font = '800 36px sans-serif'; ctx.textAlign = 'right';
     ctx.fillText('₭'+p.price.toLocaleString(),W-50,py+8);
     ctx.textAlign = 'left'; py += 70;
-    ctx.font = '700 20px sans-serif';
+    ctx.font = '700 26px sans-serif';
     ctx.fillStyle = p.stock > 0 ? '#16a34a' : '#dc2626';
     ctx.fillText(p.stock > 0 ? '✅ ມີສິນຄ້າພ້ອມ' : '⚠ ສິນຄ້າໝົດ',30,py); py += 40;
     if (p.comment) {
-      ctx.font = '600 18px sans-serif'; ctx.fillStyle = '#6b7280';
+      ctx.font = '600 24px sans-serif'; ctx.fillStyle = '#6b7280';
       ctx.fillText('📝 '+p.comment.slice(0,50),30,py);
       py += 34;
     }
     if (spec && spec.length) {
       ctx.strokeStyle = '#e5e7eb'; ctx.lineWidth = 1;
       ctx.beginPath(); ctx.moveTo(30,py); ctx.lineTo(W-30,py); ctx.stroke(); py += 26;
-      ctx.font = '700 20px sans-serif'; ctx.fillStyle = '#16a34a';
+      ctx.font = '700 26px sans-serif'; ctx.fillStyle = '#16a34a';
       ctx.fillText('✨ ຈຸດເດັ່ນ',30,py); py += 32;
-      ctx.font = '500 18px sans-serif'; ctx.fillStyle = '#374151';
+      ctx.font = '500 24px sans-serif'; ctx.fillStyle = '#374151';
       spec.forEach(function(s){
-        var lh = wrapText(ctx, '✓ '+s, 30, py, W-60, 26);
+        var lh = wrapText(ctx, '✓ '+s, 30, py, W-60, 32);
         py += lh + 6;
       });
     }
-    ctx.font = '600 16px sans-serif'; ctx.fillStyle = '#9ca3af'; ctx.textAlign = 'center';
+    ctx.font = '600 20px sans-serif'; ctx.fillStyle = '#9ca3af'; ctx.textAlign = 'center';
     ctx.fillText('📍 ປາກເຊ ຈຳປາສັກ | 📞 020-7776-9999',W/2,H-20);
     return canvas;
   });
