@@ -5622,7 +5622,7 @@ function caDoSearch(q) {
         + imgHtml
         + '<div style="flex:1;min-width:0"><div style="font-weight:600;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+p.name+'</div>'
         + '<div style="font-size:12px;color:#3b82f6;font-weight:700">₭'+p.price.toLocaleString()+'</div></div>'
-        + '<button class="ca-add-btn" data-id="'+p.productId+'" data-name="'+p.name.replace(/"/g,'&quot;')+'" data-price="'+p.price+'" data-img="'+(p.image||'')+'" style="background:#16a34a;color:#fff;border:none;padding:8px 14px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;flex-shrink:0">+ ເພີ່ມ</button>'
+        + '<button class="ca-add-btn" data-id="'+p.productId+'" data-name="'+p.name.replace(/"/g,'&quot;')+'" data-price="'+p.price+'" data-img="'+(p.image||'')+'" data-group="'+(p.groupName||'').replace(/"/g,'&quot;')+'" style="background:#16a34a;color:#fff;border:none;padding:8px 14px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;flex-shrink:0">+ ເພີ່ມ</button>'
         + '</div>';
     }).join('');
     box.querySelectorAll('.ca-add-btn').forEach(function(btn){
@@ -5641,6 +5641,7 @@ function caAddProduct(btn) {
       name: btn.getAttribute('data-name'),
       price: btn.getAttribute('data-price'),
       image: btn.getAttribute('data-img'),
+      groupName: btn.getAttribute('data-group'),
       category: category,
       useAiSpec: true
     })
